@@ -1,0 +1,885 @@
+import binascii
+import gzip
+import json
+import threading
+import traceback
+import locale
+
+import requests
+import wx
+import wx.dataview
+
+from e3dc._rscp_dto import RSCPDTO
+from e3dc.rscp_tag import RSCPTag
+from e3dc.rscp_type import RSCPType
+from gui import MainFrame
+from e3dc.rscp_helper import rscp_helper
+import datetime
+import configparser
+import websocket
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+import time
+
+
+class E3DCGui(rscp_helper):
+    pass
+
+class MessageBox(wx.Dialog):
+    def __init__(self, parent, title, value):
+        wx.Dialog.__init__(self, parent, title=title)
+        text = wx.TextCtrl(self, style=wx.TE_READONLY | wx.BORDER_NONE | wx.TE_MULTILINE)
+        text.SetValue(value)
+        text.SetBackgroundColour(self.GetBackgroundColour())
+        self.ShowModal()
+        self.Destroy()
+
+
+class Frame(MainFrame):
+    _serverApp = None
+    _data_bat = None
+    _data_dcdc = None
+    _data_ems = None
+    _data_info = None
+    _data_pvi = None
+    _data_pm = None
+    _curpmcols = 0
+    _extsrcavailable = 0
+
+    def loadConfig(self):
+        config = configparser.ConfigParser()
+        config.read('rscpe3dc.conf.ini')
+
+        if 'Login' in config:
+
+            if 'username' in config['Login']:
+                self.txtUsername.SetValue(config['Login']['username'])
+            if 'password' in config['Login']:
+                self.txtPassword.SetValue(config['Login']['password'])
+            if 'address' in config['Login']:
+                self.txtIP.SetValue(config['Login']['address'])
+            if 'rscppassword' in config['Login']:
+                self.txtRSCPPassword.SetValue(config['Login']['rscppassword'])
+
+    def saveConfig(self):
+        config = configparser.ConfigParser()
+        config.read('rscpe3dc.conf.ini')
+        config['Login'] = {'username':self.txtUsername.GetValue(),
+                           'password':self.txtPassword.GetValue(),
+                           'address':self.txtIP.GetValue(),
+                           'rscppassword':self.txtRSCPPassword.GetValue()}
+
+        with open('rscpe3dc.conf.ini', 'w') as configfile:
+            config.write(configfile)
+
+    def __init__(self, parent):
+        MainFrame.__init__(self, parent)
+
+        self.loadConfig()
+
+        self.Bind(wx.EVT_BUTTON, self.bTestClick, self.bTest)
+        self.Bind(wx.EVT_BUTTON, self.bSaveClick, self.bSave)
+        self.Bind(wx.EVT_BUTTON, self.bUpdateClick, self.bUpdate)
+
+        self.gDCB_row_voltages = None
+        self.gDCB_row_temp = None
+
+        self._gui = None
+
+        try:
+            self.bUpdateClick(None)
+        except:
+            traceback.print_exc()
+
+    @property
+    def gui(self):
+        if self._gui:
+            if self._username == self.txtUsername.GetValue() and self._password == self.txtPassword.GetValue() and \
+                    self._address == self.txtIP.GetValue() and self._rscppass == self.txtRSCPPassword.GetValue():
+                return self._gui
+
+        self._username = self.txtUsername.GetValue()
+        self._password = self.txtPassword.GetValue()
+        self._address = self.txtIP.GetValue()
+        self._rscppass = self.txtRSCPPassword.GetValue()
+
+        if self._username and self._password and self._address and self._rscppass:
+            self._gui = E3DCGui(self._username, self._password, self._address, self._rscppass)
+        else:
+            self._gui = None
+
+        self.gDCB_last_row = 28
+
+        return self._gui
+
+    def fill_info(self):
+        d = self.gui.get_data(self.gui.getInfo() + self.gui.getUpdateStatus(), True)
+        self._data_info = d
+
+        self.txtProductionDate.SetValue(repr(d['INFO_PRODUCTION_DATE']))
+        self.txtSerialnumber.SetValue(repr(d['INFO_SERIAL_NUMBER']))
+        self.txtSwRelease.SetValue(repr(d['INFO_SW_RELEASE']))
+        self.txtA35Serial.SetValue(repr(d['INFO_A35_SERIAL_NUMBER']))
+        dd = datetime.datetime.utcfromtimestamp(float(d['INFO_TIME'].data))
+        self.txtTime.SetValue(str(dd))
+        self.txtTimezone.SetValue(repr(d['INFO_TIME_ZONE']))
+        dd = datetime.datetime.utcfromtimestamp(float(d['INFO_UTC_TIME'].data))
+        self.txtTimeUTC.SetValue(str(dd))
+        self.txtUpdateStatus.SetValue(repr(d['UM_UPDATE_STATUS']))
+        self.txtIPAdress.SetValue(repr(d['INFO_IP_ADDRESS']))
+        self.txtSubnetmask.SetValue(repr(d['INFO_SUBNET_MASK']))
+        self.txtMacAddress.SetValue(repr(d['INFO_MAC_ADDRESS']))
+        self.txtGateway.SetValue(repr(d['INFO_GATEWAY']))
+        self.txtDNSServer.SetValue(repr(d['INFO_DNS']))
+        self.chDHCP.SetValue(d['INFO_DHCP_STATUS'].data)
+        self.chSRVIsOnline.SetValue(d['SRV_IS_ONLINE'].data)
+        self.chSYSReboot.SetValue(d['SYS_IS_SYSTEM_REBOOTING'].data)
+        self.txtRSCPUserLevel.SetValue(repr(d['RSCP_USER_LEVEL']))
+
+
+
+    def bEMSUploadChangesOnClick( self, event ):
+        r = []
+        test = 1 if self.chEMSBatteryBeforeCarMode.GetValue() == False else 0
+        if test != self._data_ems['EMS_BATTERY_BEFORE_CAR_MODE'].data:
+            r.append(RSCPDTO(tag = RSCPTag.EMS_REQ_SET_BATTERY_BEFORE_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
+
+        test = 0 if self.chEMSBatteryToCarMode.GetValue() == False else 1
+        if test != self._data_ems['EMS_BATTERY_TO_CAR_MODE'].data:
+            r.append(RSCPDTO(tag = RSCPTag.EMS_REQ_SET_BATTERY_TO_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
+
+        temp = []
+
+        test = self.chEMSPowerLimitsUsed.GetValue()
+        if test != self._data_ems['EMS_GET_POWER_SETTINGS']['EMS_POWER_LIMITS_USED'].data:
+            temp.append(RSCPDTO(tag=RSCPTag.EMS_POWER_LIMITS_USED, rscp_type=RSCPType.Bool, data=test))
+
+        test = 1 if self.chEMSPowerSaveEnabled.GetValue() else 0
+        if test != self._data_ems['EMS_GET_POWER_SETTINGS']['EMS_POWERSAVE_ENABLED'].data:
+            temp.append(RSCPDTO(tag=RSCPTag.EMS_POWERSAVE_ENABLED, rscp_type=RSCPType.UChar8, data=test))
+
+        test = 1 if self.chEMSWeatherRegulatedChargeEnabled.GetValue() else 0
+        if test != self._data_ems['EMS_GET_POWER_SETTINGS']['EMS_WEATHER_REGULATED_CHARGE_ENABLED'].data:
+            temp.append(RSCPDTO(tag=RSCPTag.EMS_WEATHER_REGULATED_CHARGE_ENABLED, rscp_type=RSCPType.UChar8, data=test))
+
+        test = self.sEMSMaxChargePower.GetValue()
+        if test != self._data_ems['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER'].data:
+            temp.append(RSCPDTO(tag=RSCPTag.EMS_MAX_CHARGE_POWER, rscp_type=RSCPType.Uint32, data=test))
+
+        test = self.sEMSMaxDischargePower.GetValue()
+        if test != self._data_ems['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER'].data:
+            temp.append(RSCPDTO(tag=RSCPTag.EMS_MAX_DISCHARGE_POWER, rscp_type=RSCPType.Uint32, data=test))
+
+        test = self.sEMSMaxDischargeStartPower.GetValue()
+        if test != self._data_ems['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER'].data:
+            temp.append(RSCPDTO(tag=RSCPTag.EMS_DISCHARGE_START_POWER, rscp_type=RSCPType.Uint32, data=test))
+
+        if len(temp) > 0:
+            r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_POWER_SETTINGS, rscp_type = RSCPType.Container, data=temp))
+
+        days = ['Mo','Di','Mi','Do','Fr','Sa','So']
+
+        for idlePeriod in self._data_ems['EMS_GET_IDLE_PERIODS']['EMS_IDLE_PERIOD']:
+            if idlePeriod['EMS_IDLE_PERIOD_TYPE'].data == 0:
+                c = 'Charge'
+            else:
+                c = 'Discharge'
+
+            day = days[int(idlePeriod['EMS_IDLE_PERIOD_DAY'])]
+            von = 'tpEMS' + c + day + 'Von'
+            bis = 'tpEMS' + c + day + 'Bis'
+            ch = 'chEMS' + c + day
+
+            ch_data = self.__getattribute__(ch).GetValue()
+            von_data = self.__getattribute__(von).GetValue().split(':')
+            if len(von_data) == 2:
+                von_data_hour = int(von_data[0])
+                von_data_minute = int(von_data[1])
+            else:
+                raise Exception('Dateneingabe im Feld ' + von + ' falsch')
+
+            self.__getattribute__(bis).SetValue(str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+
+            bis_data = self.__getattribute__(bis).GetValue().split(':')
+            if len(bis_data) == 2:
+                bis_data_hour = int(bis_data[0])
+                bis_data_minute = int(bis_data[1])
+            else:
+                raise Exception('Dateneingabe im Feld ' + bis + ' falsch')
+
+            if idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data != ch_data or \
+                    idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_HOUR'].data != von_data_hour or \
+                    idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_MINUTE'].data != von_data_minute or \
+                    idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data != bis_data_hour or \
+                    idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data != bis_data_minute:
+                res = self.gui.setIdlePeriod(type = idlePeriod['EMS_IDLE_PERIOD_TYPE'].data,
+                                       active = ch_data,
+                                       day = idlePeriod['EMS_IDLE_PERIOD_DAY'].data,
+                                       start = str(von_data_hour).zfill(2) + ':' + str(von_data_minute).zfill(2),
+                                       end = str(bis_data_hour).zfill(2) + ':' + str(bis_data_minute).zfill(2))
+                r += res
+
+        if len(r) > 0:
+            try:
+                res = self.gui.get_data(r, True)
+                wx.MessageBox('Übertragung abgeschlossen')
+            except:
+                traceback.print_exc()
+                wx.MessageBox('Übertragung fehlgeschlagen')
+        else:
+            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Ladeeinstellungen speichern', wx.YES_NO)
+            if res == wx.YES:
+                test = 1 if self.chEMSBatteryBeforeCarMode.GetValue() == False else 0
+                r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_BATTERY_BEFORE_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
+
+                test = 0 if self.chEMSBatteryToCarMode.GetValue() == False else 1
+                r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_BATTERY_TO_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
+
+                temp = []
+
+                test = self.chEMSPowerLimitsUsed.GetValue()
+                temp.append(RSCPDTO(tag=RSCPTag.EMS_POWER_LIMITS_USED, rscp_type=RSCPType.Bool, data=test))
+
+                test = 1 if self.chEMSPowerSaveEnabled.GetValue() else 0
+                temp.append(RSCPDTO(tag=RSCPTag.EMS_POWERSAVE_ENABLED, rscp_type=RSCPType.UChar8, data=test))
+
+                test = 1 if self.chEMSWeatherRegulatedChargeEnabled.GetValue() else 0
+                temp.append(RSCPDTO(tag=RSCPTag.EMS_WEATHER_REGULATED_CHARGE_ENABLED, rscp_type=RSCPType.UChar8, data=test))
+
+                test = self.sEMSMaxChargePower.GetValue()
+                temp.append(RSCPDTO(tag=RSCPTag.EMS_MAX_CHARGE_POWER, rscp_type=RSCPType.Uint32, data=test))
+
+                test = self.sEMSMaxDischargePower.GetValue()
+                temp.append(RSCPDTO(tag=RSCPTag.EMS_MAX_DISCHARGE_POWER, rscp_type=RSCPType.Uint32, data=test))
+
+                test = self.sEMSMaxDischargeStartPower.GetValue()
+                temp.append(RSCPDTO(tag=RSCPTag.EMS_DISCHARGE_START_POWER, rscp_type=RSCPType.Uint32, data=test))
+
+                r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_POWER_SETTINGS, rscp_type=RSCPType.Container, data=temp))
+
+                try:
+                    res = self.gui.get_data(r, True)
+                    wx.MessageBox('Übertragung abgeschlossen')
+                except:
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
+        self.bUpdateClick(None)
+
+    def fill_ems(self):
+        self._extsrcavailable = 0
+        d = self.gui.get_data(self.gui.getEMSData(), True)
+        self._data_ems = d
+
+        self.txtEMSPowerPV.SetValue(repr(d['EMS_POWER_PV']) + ' W')
+        self.txtEMSPowerHome.SetValue(repr(d['EMS_POWER_HOME']) + ' W')
+        self.txtEMSPowerBat.SetValue(repr(d['EMS_POWER_BAT']) + ' W')
+        self.txtEMSPowerGrid.SetValue(repr(d['EMS_POWER_GRID']) + ' W')
+        self.txtEMSPowerAdd.SetValue(repr(d['EMS_POWER_ADD']) + ' W')
+        self.txtEMSAutarkie.SetValue(str(round(d['EMS_AUTARKY'],2)) + ' %')
+        self.gEMSAutarkie.SetValue(round(d['EMS_AUTARKY'],0))
+        self.txtEMSSelfConsumption.SetValue(str(round(d['EMS_SELF_CONSUMPTION'],2)) + ' %')
+        self.gEMSSelfConsumption.SetValue(round(d['EMS_SELF_CONSUMPTION'],0))
+        self.txtEMSBatSoc.SetValue(str(round(d['EMS_BAT_SOC'],2)) + ' %')
+        self.mgEMSBatSoc.SetValue(round(d['EMS_BAT_SOC'],0))
+        self.txtEMSCouplingMode.SetValue(repr(d['EMS_COUPLING_MODE']))
+        self.txtEMSMode.SetValue(repr(d['EMS_MODE']))
+        if d['EMS_BATTERY_BEFORE_CAR_MODE'].data == 1:
+            self.chEMSBatteryBeforeCarMode.SetValue(False)
+        else:
+            self.chEMSBatteryBeforeCarMode.SetValue(True)
+        if d['EMS_BATTERY_TO_CAR_MODE'].data == 1:
+            self.chEMSBatteryToCarMode.SetValue(True)
+        else:
+            self.chEMSBatteryToCarMode.SetValue(False)
+        balancedphases = "{0:b}".format(d['EMS_BALANCED_PHASES'].data).replace('1','X ').replace('0','0 ')
+
+        self.txtEMSBalancedPhases.SetValue(balancedphases)
+        self.txtEMSExtSrcAvailable.SetValue(repr(d['EMS_EXT_SRC_AVAILABLE']))
+        self._extsrcavailable = d['EMS_EXT_SRC_AVAILABLE'].data
+        self.txtEMSInstalledPeakPower.SetValue(repr(d['EMS_INSTALLED_PEAK_POWER']) + ' Wp')
+        self.txtEMSDerateAtPercent.SetValue(str(round(d['EMS_DERATE_AT_PERCENT_VALUE'],3)*100) + ' %')
+        self.txtEMSDerateAtPower.SetValue(repr(d['EMS_DERATE_AT_POWER_VALUE']) + ' W')
+        self.txtEMSUsedChargeLimit.SetValue(repr(d['EMS_USED_CHARGE_LIMIT']) + ' W')
+        self.txtEMSUserChargeLimit.SetValue(repr(d['EMS_USER_CHARGE_LIMIT']) + ' W')
+        self.txtEMSBatChargeLimit.SetValue(repr(d['EMS_BAT_CHARGE_LIMIT']) + ' W')
+        self.txtEMSDCDCChargeLimit.SetValue(repr(d['EMS_DCDC_CHARGE_LIMIT']) + ' W')
+        self.txtEMSRemainingBatChargePower.SetValue(repr(d['EMS_REMAINING_BAT_CHARGE_POWER']) + ' W')
+        self.txtEMSUsedDischargeLimit.SetValue(repr(d['EMS_USED_DISCHARGE_LIMIT']) + ' W')
+        self.txtEMSUserDischargeLimit.SetValue(repr(d['EMS_USER_DISCHARGE_LIMIT']) + ' W')
+        self.txtEMSBatDischargeLimit.SetValue(repr(d['EMS_BAT_DISCHARGE_LIMIT']) + ' W')
+        self.txtEMSDCDCDischargeLimit.SetValue(repr(d['EMS_DCDC_DISCHARGE_LIMIT']) + ' W')
+        self.txtEMSRemainingBatDischargePower.SetValue(repr(d['EMS_REMAINING_BAT_DISCHARGE_POWER']) + ' W')
+        self.txtEMSEmergencyPowerStatus.SetValue(repr(d['EMS_EMERGENCY_POWER_STATUS']))
+        self.chEMSPowerLimitsUsed.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_POWER_LIMITS_USED'].data)
+        self.chEMSPowerSaveEnabled.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_POWERSAVE_ENABLED'].data)
+        self.chEMSWeatherRegulatedChargeEnabled.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_WEATHER_REGULATED_CHARGE_ENABLED'].data)
+        self.txtEMSStatus.SetValue(repr(d['EMS_STATUS']))
+        self.chEMSEPTestRunning.SetValue(d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_RUNNING'].data)
+        self.txtEMSEPTestCounter.SetValue(repr(d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_START_COUNTER']))
+        self.txtEMSEPTestTimestamp.SetValue(repr(d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_NEXT_TESTSTART']))
+
+        self.txtEMSPowerWBAll.SetValue(repr(d['EMS_POWER_WB_ALL']) + ' W')
+        self.txtEMSPowerWBSolar.SetValue(repr(d['EMS_POWER_WB_SOLAR']) + ' W')
+        self.chEMSAlive.SetValue(d['EMS_ALIVE'].data)
+
+        self.chEMSGetManualCharge.SetValue(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ACTIVE'].data)
+        self.txtEMSManualChargeStartCounter.SetValue(repr(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_START_COUNTER']))
+        self.txtEMSManualChargeEnergyCounter.SetValue(repr(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ENERGY_COUNTER'])) # TODO: Einheit anfügen
+        self.txtEMSManualChargeLaststart.SetValue(repr(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_LASTSTART'])) # TODO: Datetime formatieren
+
+        for sysspec in d['EMS_GET_SYS_SPECS']['EMS_SYS_SPEC']:
+            if sysspec['EMS_SYS_SPEC_NAME'].data == 'hybridModeSupported':
+                self.txtEMSHybridModeSupported.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'] .data== 'installedBatteryCapacity':
+                self.txtEMSInstalledBatteryCapacity.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxAcPower':
+                self.txtEMSMaxAcPower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxBatChargePower':
+                self.txtEMSMaxBatChargePower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxBatDischargPower':
+                self.txtEMSMaxBatDischargePower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxChargePower':
+                self.txtEMSMaxChargePowerSys.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxDischargePower':
+                self.txtEMSMaxDischargePowerSys.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxFbcChargePower':
+                self.txtEMSMaxFbcDischargePower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxPvPower':
+                self.txtEMSMaxPVPower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxStartChargePower':
+                self.txtEMSMaxStartChargePower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+                maxStartChargePower = int(sysspec['EMS_SYS_SPEC_VALUE_INT'])
+                self.sEMSMaxChargePower.Max = maxStartChargePower
+                self.sEMSMaxDischargeStartPower.Max = maxStartChargePower
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxStartDischargePower':
+                self.txtEMSMaxStartDischargePower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+                maxStartDischargePower = int(sysspec['EMS_SYS_SPEC_VALUE_INT'])
+                self.sEMSMaxDischargePower.Max = maxStartDischargePower
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'minStartChargePower':
+                self.txtEMSMinStartChargePower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+                minStartChargePower = int(sysspec['EMS_SYS_SPEC_VALUE_INT'])
+                self.sEMSMaxChargePower.Min = minStartChargePower
+                self.sEMSMaxDischargeStartPower.Min = minStartChargePower
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'minStartDischargePower':
+                self.txtEMSMinStartDischargePower.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+                minStartDischargePower = int(sysspec['EMS_SYS_SPEC_VALUE_INT'])
+                self.sEMSMaxDischargePower.Min = minStartDischargePower
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'recommendedMinChargeLimit':
+                self.txtEMSRecommendedMinChargeLimit.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'recommendedMinDischargeLimit':
+                self.txtEMSRecommendedMinDischargeLimit.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'startChargeDefault':
+                self.txtEMSstartChargeDefault.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'startDischargeDefault':
+                self.txtEMSstartDischargeDefault.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
+
+        self.sEMSMaxChargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER'].data)
+        self.txtEMSMaxChargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER']) + ' W')
+        self.sEMSMaxDischargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER'].data)
+        self.txtEMSMaxDischargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER']) + ' W')
+        self.sEMSMaxDischargeStartPower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER'])
+        self.txtEMSMaxDischargeStartPower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER']) + ' W')
+
+        self.chEPIsland.SetValue(d['EP_IS_ISLAND_GRID'].data)
+        self.chEPReadyForSwitch.SetValue(d['EP_IS_READY_FOR_SWITCH'].data)
+        self.chEPISGridConnected.SetValue(d['EP_IS_GRID_CONNECTED'].data)
+        self.chEPPossible.SetValue(d['EP_IS_POSSIBLE'].data)
+        self.chEPInvalid.SetValue(d['EP_IS_INVALID_STATE'].data)
+
+        days = ['Mo','Di','Mi','Do','Fr','Sa','So']
+
+        for idlePeriod in d['EMS_GET_IDLE_PERIODS']['EMS_IDLE_PERIOD']:
+            if idlePeriod['EMS_IDLE_PERIOD_TYPE'].data == 0:
+                c = 'Charge'
+            else:
+                c = 'Discharge'
+
+            day = days[int(idlePeriod['EMS_IDLE_PERIOD_DAY'])]
+            von = 'tpEMS' + c + day + 'Von'
+            bis = 'tpEMS' + c + day + 'Bis'
+            ch = 'chEMS' + c + day
+
+            self.__getattribute__(ch).SetValue(idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data)
+            self.__getattribute__(von).SetValue(str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+            self.__getattribute__(bis).SetValue(str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+
+    def sEMSMaxChargePowerOnScroll(self, event):
+        self.txtEMSMaxChargePower.SetValue(str(self.sEMSMaxChargePower.GetValue()) + ' W')
+
+    def sEMSMaxDischargePowerOnScroll(self, event):
+        self.txtEMSMaxDischargePower.SetValue(str(self.sEMSMaxDischargePower.GetValue()) + ' W')
+
+    def sEMSMaxDischargeStartPowerOnScroll(self, event):
+        self.txtEMSMaxDischargeStartPower.SetValue(str(self.sEMSMaxDischargeStartPower.GetValue()) + ' W')
+
+    def fill_pm(self):
+        def get_einheit(value):
+            if abs(value) > 10000:
+                if abs(value) > 10000000:
+                    return value / 1000000, 'MWh'
+                else:
+                    return value / 1000, 'kWh'
+            else:
+                return value, 'Wh'
+
+        if self._extsrcavailable >= 0:
+            indexes = range(0,8)
+            print(indexes)
+        else:
+            indexes = None
+
+        data = self.gui.get_data(self.gui.getPMData(pm_indexes = indexes), True)
+        self._data_pm = data
+        if not isinstance(data, list):
+            if isinstance(data, RSCPDTO) and data.tag != RSCPTag.LIST_TYPE:
+                data = [data]
+
+        self._curpmcols = -1
+        self.gPM.DeleteCols()
+        for pm in data:
+            if pm.name == 'PM_DATA':
+                d = pm
+                if 'PM_DEVICE_STATE' not in pm or pm['PM_DEVICE_STATE'].type != RSCPType.Error:
+                    index = pm['PM_INDEX'].data
+                    if index > self._curpmcols:
+                        if index >= self.gPM.GetNumberCols():
+                            self.gPM.AppendCols(1)
+                        self.gPM.SetColLabelValue(index, 'LM #' + str(index))
+                        self._curpmcols += 1
+                    self.gPM.SetCellValue(0, index, str(round(d['PM_POWER_L1'], 3)) + ' W')
+                    self.gPM.SetCellValue(1, index, str(round(d['PM_POWER_L2'], 3)) + ' W')
+                    self.gPM.SetCellValue(2, index, str(round(d['PM_POWER_L3'], 3)) + ' W')
+                    self.gPM.SetCellValue(3, index, str(round(d['PM_POWER_L1'].data+d['PM_POWER_L2'].data+d['PM_POWER_L3'].data, 3)) + ' W')
+                    self.gPM.SetCellValue(4, index, str(round(d['PM_VOLTAGE_L1'], 3)) + ' V')
+                    self.gPM.SetCellValue(5, index, str(round(d['PM_VOLTAGE_L2'], 3)) + ' V')
+                    self.gPM.SetCellValue(6, index, str(round(d['PM_VOLTAGE_L3'], 3)) + ' V')
+
+                    energy, einheit = get_einheit(d['PM_ENERGY_L1'].data)
+                    self.gPM.SetCellValue(7, index, str(round(energy, 3)) + ' ' + einheit)
+                    energy, einheit = get_einheit(d['PM_ENERGY_L2'].data)
+                    self.gPM.SetCellValue(8, index, str(round(energy, 3)) + ' ' + einheit)
+                    energy, einheit = get_einheit(d['PM_ENERGY_L3'].data)
+                    self.gPM.SetCellValue(9, index, str(round(energy, 3)) + ' ' + einheit)
+                    energy, einheit = get_einheit(d['PM_ENERGY_L1'].data+d['PM_ENERGY_L2'].data+d['PM_ENERGY_L3'].data)
+                    self.gPM.SetCellValue(10, index, str(round(energy, 3)) + ' ' + einheit)
+
+                    self.gPM.SetCellValue(11, index, repr(d['PM_FIRMWARE_VERSION']))
+                    self.gPM.SetCellValue(12, index, repr(d['PM_ACTIVE_PHASES']))
+                    self.gPM.SetCellValue(13, index, repr(d['PM_MODE']))
+                    self.gPM.SetCellValue(14, index, repr(d['PM_ERROR_CODE']))
+                    self.gPM.SetCellValue(15, index, repr(d['PM_TYPE']))
+                    self.gPM.SetCellValue(16, index, repr(d['PM_DEVICE_ID']))
+                    self.gPM.SetCellValue(17, index, repr(d['PM_IS_CAN_SILENCE']))
+                    self.gPM.SetCellValue(28, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_CONNECTED']))
+                    self.gPM.SetCellValue(29, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_WORKING']))
+                    self.gPM.SetCellValue(30, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_IN_SERVICE']))
+
+                    if 'PM_COMM_STATE' in d:
+                        d = d['PM_COMM_STATE']
+                        self.gPM.SetCellValue(18, index, repr(d['PM_CS_START_TIME']))
+                        self.gPM.SetCellValue(19, index, repr(d['PM_CS_LAST_TIME']))
+                        self.gPM.SetCellValue(20, index, repr(d['PM_CS_SUCC_FRAMES_ALL']))
+                        self.gPM.SetCellValue(21, index, repr(d['PM_CS_SUCC_FRAMES_100']))
+                        self.gPM.SetCellValue(22, index, repr(d['PM_CS_EXP_FRAMES_ALL']))
+                        self.gPM.SetCellValue(23, index, repr(d['PM_CS_EXP_FRAMES_100']))
+                        self.gPM.SetCellValue(24, index, repr(d['PM_CS_ERR_FRAMES_ALL']))
+                        self.gPM.SetCellValue(25, index, repr(d['PM_CS_ERR_FRAMES_100']))
+                        self.gPM.SetCellValue(26, index, repr(d['PM_CS_UNK_FRAMES']))
+                        self.gPM.SetCellValue(27, index, repr(d['PM_CS_ERR_FRAME']))
+
+
+        self.gPM.AutoSize()
+
+    def fill_dcdc(self):
+        data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[0, 1]), True)
+        self._data_dcdc = data
+        for d in data['DCDC_DATA']:
+            index = int(d['DCDC_INDEX'])
+
+            self.gDCDC.SetCellValue(0,index, str(round(d['DCDC_I_BAT'].data,5)) + ' A')
+            self.gDCDC.SetCellValue(1,index, str(round(d['DCDC_U_BAT'].data,2)) + ' V')
+            self.gDCDC.SetCellValue(2,index, str(round(d['DCDC_P_BAT'].data,2)) + ' W')
+            self.gDCDC.SetCellValue(3,index, str(round(d['DCDC_I_DCL'].data,5)) + ' A')
+            self.gDCDC.SetCellValue(4,index, str(round(d['DCDC_U_DCL'].data,2)) + ' V')
+            self.gDCDC.SetCellValue(5,index, str(round(d['DCDC_P_DCL'].data,2)) + ' W')
+            self.gDCDC.SetCellValue(6,index, repr(d['DCDC_FIRMWARE_VERSION']))
+            self.gDCDC.SetCellValue(7,index, repr(d['DCDC_FPGA_FIRMWARE']))
+            self.gDCDC.SetCellValue(8,index, repr(d['DCDC_SERIAL_NUMBER']))
+            self.gDCDC.SetCellValue(9,index, str(repr(d['DCDC_BOARD_VERSION'])))
+            self.gDCDC.SetCellValue(10,index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_STATE_AS_STRING']))
+            self.gDCDC.SetCellValue(11,index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_SUBSTATE_AS_STRING']))
+
+        self.gDCDC.AutoSizeColumns()
+
+    def fill_pvi(self):
+        data = self.gui.get_data(self.gui.getPVIData(), True)
+        self._data_pvi = data
+
+        self.txtPVISerialNumber.SetValue(repr(data['PVI_SERIAL_NUMBER']))
+        self.txtPVIType.SetValue(repr(data['PVI_TYPE']))
+        self.txtPVIVersionMain.SetValue(repr(data['PVI_VERSION']['PVI_VERSION_MAIN']))
+        self.txtPVIVersionPic.SetValue(repr(data['PVI_VERSION']['PVI_VERSION_PIC']))
+        self.txtPVITempCount.SetValue(repr(data['PVI_TEMPERATURE_COUNT']))
+        self.chPVIOnGrid.SetValue(data['PVI_ON_GRID'].data)
+        self.txtPVIStatus.SetValue(repr(data['PVI_STATE']))
+        self.txtPVILastError.SetValue(repr(data['PVI_LAST_ERROR']))
+        self.chPVICosPhiActive.SetValue(data['PVI_COS_PHI']['PVI_COS_PHI_IS_AKTIV'].data)
+        self.txtPVICosPhiValue.SetValue(repr(data['PVI_COS_PHI']['PVI_COS_PHI_VALUE']))
+        self.txtPVICosPhiExcited.SetValue(repr(data['PVI_COS_PHI']['PVI_COS_PHI_EXCITED']))
+        self.txtPVIVoltageTrTop.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_THRESHOLD_TOP']))
+        self.txtPVIVoltageTrBottom.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_THRESHOLD_BOTTOM']))
+        self.txtPVIVoltageSlUp.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_SLOPE_UP']))
+        self.txtPVIVoltageSlDown.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_SLOPE_DOWN']))
+        self.txtPVIPowerMode.SetValue(repr(data['PVI_POWER_MODE']))
+        self.txtPVISystemMode.SetValue(repr(data['PVI_SYSTEM_MODE']))
+        self.txtPVIMaxTemperature.SetValue(repr(data['PVI_MAX_TEMPERATURE']['PVI_VALUE']))
+        self.txtPVIMinTemperature.SetValue(repr(data['PVI_MIN_TEMPERATURE']['PVI_VALUE']))
+        self.txtPVIMaxApparentpower.SetValue(repr(data['PVI_AC_MAX_APPARENTPOWER']['PVI_VALUE']))
+        self.txtPVIFreqMin.SetValue(repr(data['PVI_FREQUENCY_UNDER_OVER']['PVI_FREQUENCY_UNDER']))
+        self.txtPVIMaxFreq.SetValue(repr(data['PVI_FREQUENCY_UNDER_OVER']['PVI_FREQUENCY_OVER']))
+
+        self.chPVIDeviceConnected.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_CONNECTED'].data)
+        self.chPVIDeviceWorking.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_WORKING'].data)
+        self.chPVIDeviceInService.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_IN_SERVICE'].data)
+
+        values = [{},{},{}]
+        for d in data:
+            if d.name in ['PVI_AC_POWER','PVI_AC_VOLTAGE','PVI_AC_CURRENT','PVI_AC_APPARENTPOWER','PVI_AC_REACTIVEPOWER','PVI_AC_ENERGY_ALL','PVI_AC_ENERGY_GRID_CONSUMPTION']:
+                index = d['PVI_INDEX'].data
+                values[index][d.name] = d['PVI_VALUE']
+        sum_ac_power = sum_ac_energy_all = sum_ac_energy_grid = 0
+        for i in range(0,3):
+            self.gPVIAC.SetCellValue(0, i, repr(values[i]['PVI_AC_POWER']) + ' W')
+            sum_ac_power+=values[i]['PVI_AC_POWER'].data
+            self.gPVIAC.SetCellValue(1, i, repr(round(values[i]['PVI_AC_VOLTAGE'],3)) + ' V')
+            self.gPVIAC.SetCellValue(2, i, repr(round(values[i]['PVI_AC_CURRENT'],5)) + ' A')
+            self.gPVIAC.SetCellValue(3, i, repr(round(values[i]['PVI_AC_APPARENTPOWER'],3)) + ' VA')
+            self.gPVIAC.SetCellValue(4, i, repr(round(values[i]['PVI_AC_REACTIVEPOWER'],3)) + ' VAr')
+            self.gPVIAC.SetCellValue(5, i, repr(values[i]['PVI_AC_ENERGY_ALL']) + ' kWh')
+            sum_ac_energy_all+=values[i]['PVI_AC_ENERGY_ALL'].data
+            self.gPVIAC.SetCellValue(6, i, repr(values[i]['PVI_AC_ENERGY_GRID_CONSUMPTION']) + ' kWh')
+            sum_ac_energy_grid+=values[i]['PVI_AC_ENERGY_GRID_CONSUMPTION'].data
+
+        self.gPVIAC.SetCellValue(0,3,str(round(sum_ac_power,3)) + ' W')
+        self.gPVIAC.SetCellValue(5,3,str(round(sum_ac_energy_all,3)) + ' kWh')
+        self.gPVIAC.SetCellValue(6,3,str(round(sum_ac_energy_grid,3)) + ' kWh')
+        self.gPVIAC.AutoSize()
+
+        values = [{},{}]
+        for d in data:
+            if d.name in ['PVI_DC_POWER','PVI_DC_VOLTAGE','PVI_DC_CURRENT','PVI_DC_STRING_ENERGY_ALL']:
+                index = d['PVI_INDEX'].data
+                values[index][d.name] = d['PVI_VALUE']
+        sum_dc_power = sum_dc_energy = 0
+        for i in range(0,2):
+            self.gPVIDC.SetCellValue(0, i, repr(values[i]['PVI_DC_POWER']) + ' W')
+            sum_dc_power += values[i]['PVI_DC_POWER'].data
+            self.gPVIDC.SetCellValue(1, i, repr(values[i]['PVI_DC_VOLTAGE']) + ' V')
+            self.gPVIDC.SetCellValue(2, i, str(round(values[i]['PVI_DC_CURRENT'],5)) + ' A')
+            self.gPVIDC.SetCellValue(3, i, str(round(values[i]['PVI_DC_STRING_ENERGY_ALL'])/1000) + ' kWh')
+            sum_dc_energy += values[i]['PVI_DC_STRING_ENERGY_ALL'].data
+
+        self.gPVIDC.SetCellValue(0,2,str(round(sum_dc_power,3)) + ' W')
+        self.gPVIDC.SetCellValue(3,2,str(round(sum_dc_energy,3)/1000) + ' kWh')
+        self.gPVIDC.AutoSize()
+        self.gPVITemps.ClearGrid()
+        self.gPVITemps.DeleteRows(numRows=self.gPVITemps.GetNumberRows())
+        self.gPVITemps.AppendRows(data['PVI_TEMPERATURE_COUNT'].data)
+        for d in data:
+            if d.name == 'PVI_TEMPERATURE':
+                index = d['PVI_INDEX'].data
+                self.gPVITemps.SetCellValue(index,0,str(round(d['PVI_VALUE'],3)) + ' °C')
+                self.gPVITemps.SetRowLabelValue(index, u"Temperatur #" + str(index))
+
+        self.gPVITemps.AutoSize()
+
+
+
+    def fill_bat(self):
+        f = self.gui.get_data(self.gui.getBatDcbData(), True)
+        self._data_bat = f
+        self.gDCB.DeleteCols()
+        self.txtUsableCapacity.SetValue(str(round(f['BAT_USABLE_CAPACITY'],5)) + ' Ah')
+        self.txtUsableRemainingCapacity.SetValue(str(round(f['BAT_USABLE_REMAINING_CAPACITY'],5)) + ' Ah')
+        self.txtASOC.SetValue(str(round(f['BAT_ASOC'],1)) + '%')
+        self.txtFCC.SetValue(str(round(f['BAT_FCC'], 3)))
+        self.txtRC.SetValue(str(round(f['BAT_RC'], 1)) + '%')
+        self.txtRSOC.SetValue(str(round(f['BAT_INFO']['BAT_RSOC'],1)) + '%')
+        self.txtRSOCREAL.SetValue(str(round(f['BAT_RSOC_REAL'],1)) + '%')
+        self.txtModuleVoltage.SetValue(str(round(f['BAT_INFO']['BAT_MODULE_VOLTAGE'],3)) + ' V')
+        self.txtCurrent.SetValue(str(round(f['BAT_INFO']['BAT_CURRENT'],5)) + ' A')
+        self.txtBatStatusCode.SetValue(repr(f['BAT_INFO']['BAT_STATUS_CODE']))
+        self.txtErrorCode.SetValue(repr(f['BAT_INFO']['BAT_ERROR_CODE']))
+        self.txtDcbCount.SetValue(repr(f['BAT_DCB_COUNT']))
+        self.gDCB.AppendCols(int(f['BAT_DCB_COUNT'])-1)
+        for i in range(0, int(f['BAT_DCB_COUNT'])):
+            self.gDCB.SetColLabelValue(i,'DCB #' + str(i))
+        self.txtMaxBatVoltage.SetValue(repr(f['BAT_MAX_BAT_VOLTAGE']) + ' V')
+        self.txtMaxChargeCurrent.SetValue(repr(f['BAT_MAX_CHARGE_CURRENT']) + ' A')
+        self.txtEodVoltage.SetValue(repr(f['BAT_EOD_VOLTAGE'])+ ' V')
+        self.txtMaxDischargeCurrent.SetValue(repr(f['BAT_MAX_DISCHARGE_CURRENT'])+ ' A')
+        self.txtChargeCycles.SetValue(repr(f['BAT_CHARGE_CYCLES']))
+        self.txtTerminalVoltage.SetValue(repr(f['BAT_TERMINAL_VOLTAGE']) + ' V')
+        self.txtMaxDcbCellTemperature.SetValue(str(round(f['BAT_MAX_DCB_CELL_TEMPERATURE'],2)) + ' °C')
+        self.txtMinDcbCellTemperature.SetValue(str(round(f['BAT_MIN_DCB_CELL_TEMPERATURE'],2)) + ' °C')
+
+        self.chBATDeviceConnected.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_CONNECTED'].data)
+        self.chBATDeviceWorking.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_WORKING'].data)
+        self.chBATDeviceInService.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_IN_SERVICE'].data)
+
+        if f['BAT_TRAINING_MODE'].data == 0:
+            s = 'Nicht im Training'
+        elif f['BAT_TRAINING_MODE'].data == 1:
+            s = 'Trainingsmodus Entladen'
+        elif f['BAT_TRAINING_MODE'].data == 2:
+            s = 'Trainingsmodus Laden'
+        else:
+            s = ' - '
+        self.txtBatTrainingMode.SetValue(s)
+        self.txtBatDeviceName.SetValue(repr(f['BAT_DEVICE_NAME']))
+        for d in f['BAT_DCB_ALL_CELL_VOLTAGES']:
+            index = int(d['BAT_DCB_INDEX'])
+            i = 1
+            if index == 0 and not self.gDCB_row_voltages:
+                self.gDCB.AppendRows(len(d['BAT_DATA']))
+                self.gDCB_row_voltages = self.gDCB_last_row
+                self.gDCB_last_row += len(d['BAT_DATA'])
+
+            for volt in d['BAT_DATA']:
+                self.gDCB.SetRowLabelValue(self.gDCB_row_voltages + i, u"Spannung #" + str(i))
+                self.gDCB.SetCellValue(self.gDCB_row_voltages + i, index, str(round(volt,4)) + ' V')
+                i+=1
+
+        for d in f['BAT_DCB_ALL_CELL_TEMPERATURES']:
+            index = int(d['BAT_DCB_INDEX'])
+            i = 1
+            if index == 0 and not self.gDCB_row_temp:
+                self.gDCB.AppendRows(len(d['BAT_DATA']))
+                self.gDCB_row_temp = self.gDCB_last_row
+                self.gDCB_last_row += len(d['BAT_DATA'])
+
+            for temp in d['BAT_DATA']:
+                self.gDCB.SetRowLabelValue(self.gDCB_row_temp + i, u"Temperatur #" + str(i))
+                self.gDCB.SetCellValue(self.gDCB_row_temp + i, index, str(round(temp,4)) + ' °C')
+                i+=1
+
+        for d in f['BAT_DCB_INFO']:
+            index = int(d['BAT_DCB_INDEX'])
+            dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP'])/1000)
+            self.gDCB.SetCellValue(0,index, str(dd))
+            self.gDCB.SetCellValue(1,index, repr(d['BAT_DCB_MAX_CHARGE_VOLTAGE']) + ' V')
+            self.gDCB.SetCellValue(2,index, repr(d['BAT_DCB_MAX_CHARGE_CURRENT']) + ' A')
+            self.gDCB.SetCellValue(3,index, repr(d['BAT_DCB_END_OF_DISCHARGE']) + ' V')
+            self.gDCB.SetCellValue(4,index, repr(d['BAT_DCB_MAX_DISCHARGE_CURRENT']) + ' A')
+            self.gDCB.SetCellValue(5,index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'],5)) + ' Ah')
+            self.gDCB.SetCellValue(6,index, str(round(d['BAT_DCB_REMAINING_CAPACITY'],5)) + ' Ah')
+            self.gDCB.SetCellValue(7,index, repr(d['BAT_DCB_SOC']) + '%')
+            self.gDCB.SetCellValue(8,index, repr(d['BAT_DCB_SOH']) + '%')
+            self.gDCB.SetCellValue(9,index, repr(d['BAT_DCB_CYCLE_COUNT']))
+            self.gDCB.SetCellValue(10,index, str(round(d['BAT_DCB_CURRENT'],5)) + ' A')
+            self.gDCB.SetCellValue(11,index, str(round(d['BAT_DCB_VOLTAGE'],2)) + ' V')
+            self.gDCB.SetCellValue(12,index, str(round(d['BAT_DCB_CURRENT_AVG_30S'],5)) + ' A')
+            self.gDCB.SetCellValue(13,index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'],2)) + ' V')
+            self.gDCB.SetCellValue(14,index, str(round(d['BAT_DCB_DESIGN_CAPACITY'],5)) + ' Ah')
+            self.gDCB.SetCellValue(15,index, repr(d['BAT_DCB_DESIGN_VOLTAGE']) + ' V')
+            self.gDCB.SetCellValue(16,index, repr(d['BAT_DCB_CHARGE_LOW_TEMPERATURE']) + ' °C')
+            self.gDCB.SetCellValue(17,index, repr(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE']) + ' °C')
+            self.gDCB.SetCellValue(18,index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
+            self.gDCB.SetCellValue(19,index, repr(d['BAT_DCB_SERIALNO']))
+            self.gDCB.SetCellValue(20,index, repr(d['BAT_DCB_FW_VERSION']))
+            self.gDCB.SetCellValue(21,index, repr(d['BAT_DCB_PCB_VERSION']))
+            self.gDCB.SetCellValue(22,index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
+            self.gDCB.SetCellValue(23,index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
+            self.gDCB.SetCellValue(24,index, repr(d['BAT_DCB_UNKNOWN2']))
+            self.gDCB.SetCellValue(25,index, repr(d['BAT_DCB_UNKNOWN3']))
+            self.gDCB.SetCellValue(26,index, repr(d['BAT_DCB_UNKNOWN4']))
+            self.gDCB.SetCellValue(27,index, repr(d['BAT_DCB_UNKNOWN5']))
+            self.gDCB.SetCellValue(28,index, repr(d['BAT_DCB_UNKNOWN6']))
+            self.gDCB_last_row = 28
+
+        self.gDCB.AutoSizeColumns()
+
+    def bSaveClick(self, event):
+        self.saveConfig()
+
+        #rscp = self.gui.get_data(self.gui.getUserLevel(), True)
+        #ems = self.gui.get_data(self.gui.getEMSData() + self.gui.getUserLevel(), True)
+
+    def bSYSRebootOnClick( self, event ):
+        res = wx.MessageBox('Soll das gesamte E3/DC - System wirklich neu gestartet werden?', 'Systemneustart', wx.YES_NO | wx.ICON_WARNING)
+        if res == wx.YES:
+            wx.MessageBox('Funktion noch nicht implementiert!')
+            x = RSCPTag.REQ_SYSTEM_REBOOT
+
+    def bSYSApplicationRestartOnClick( self, event ):
+        res = wx.MessageBox('Soll die Anwendung im E3/DC wirklich neu gestartet werden?', 'Applikations - Neustart', wx.YES_NO | wx.ICON_WARNING)
+        if res == wx.YES:
+            wx.MessageBox('Funktion noch nicht implementiert!')
+            x = RSCPTag.SYS_REQ_RESTART_APPLICATION
+
+    def bEMSEPTestOnClick( self, event ):
+        res = wx.MessageBox('Beim Notstromtest wird kurz der Hausstrom gekappt.\nNach etwa 10-15 Sekunden sollte dann '
+                            'der Notstrom einspringen und\nStrom wieder zur Verfügung stehen.\nEs wird dann auf Notstrom'
+                            ' umgestellt. Nach dem Test wird der\nNotstrom wieder beendet, der Hausstrom wird wieder '
+                            'getrennt für ca. 2 Sekunden.\n\nSoll der Notstrom-Test wirklich durchgeführt werden?',
+                            'Notstrom-Test', wx.YES_NO | wx.ICON_WARNING)
+        if res == wx.YES:
+            wx.MessageBox('Funktion noch nicht implementiert!')
+            x = RSCPDTO(tag = RSCPTag.REQ_START_EMERGENCYPOWER_TEST, rscp_type=RSCPType.Bool, data = True)
+
+    def bTestClick(self, event):
+        try:
+            result = self.gui.get_data(self.gui.getInfo(), False)
+            sn = result['INFO_SERIAL_NUMBER']
+            rel = result['INFO_SW_RELEASE']
+            msg = wx.MessageBox('Verbindung mit System ' + sn + ' / ' + rel + ' hergestellt', 'Info',
+                          wx.OK | wx.ICON_INFORMATION)
+        except:
+            traceback.print_exc()
+            msg = wx.MessageBox('Verbindung konnte nicht aufgebaut werden!', 'Error',
+                          wx.OK | wx.ICON_ERROR)
+
+    def bUpdateCheckClick(self, event):
+        try:
+            result = self.gui.get_data(self.gui.getCheckForUpdates(), False)
+            print(result)
+            status = result['UM_CHECK_FOR_UPDATES']
+        except:
+            traceback.print_exc()
+            status = 0
+
+        if status == 1:
+            wx.MessageBox('Updatecheck wird ausgeführt, wenn eine neue Version zur Verfügung steht wird diese installiert.')
+        else:
+            wx.MessageBox('Updatecheck konnte nicht ausgeführt werden')
+
+
+    def bUpdateClick(self, event):
+        if self.gui:
+
+            try:
+                self.fill_info()
+            except:
+                traceback.print_exc()
+            try:
+                self.fill_bat()
+            except:
+                traceback.print_exc()
+            try:
+                self.fill_dcdc()
+            except:
+                traceback.print_exc()
+
+            try:
+                self.fill_pvi()
+            except:
+                traceback.print_exc()
+
+            try:
+                self.fill_ems()
+            except:
+                traceback.print_exc()
+
+            try:
+                self.fill_pm()
+            except:
+                traceback.print_exc()
+
+    def sendToServer(self, event):
+        ret = wx.MessageBox('Achtung, es werden alle angezeigten Daten an externe Stelle übermittelt.\nSeriennummern werden in anonymisierter Form übermittelt.\nZugangsdaten werden nicht übermittelt.\nDie Datenübertragung erfolgt verschlüsselt.\nWirklich fortfahren?',
+                            caption = 'Ausgelesene Daten übermitteln',
+                            style=wx.YES_NO)
+        if ret == wx.YES:
+            anonymize = ['DCDC_SERIAL_NUMBER','BAT_DCB_SERIALNO','BAT_DCB_UNKNOWN6','INFO_SERIAL_NUMBER','INFO_A35_SERIAL_NUMBER','PVI_SERIAL_NUMBER']
+            remove = ['INFO_IP_ADDRESS']
+            data = {}
+            if self._data_bat:
+                data['BAT_DATA'] = self._data_bat.asDict()
+
+            if self._data_dcdc:
+                data['DCDC_DATA'] = self._data_dcdc.asDict()
+
+            if self._data_ems:
+                data['EMS_DATA'] = self._data_ems.asDict()
+
+            if self._data_info:
+                data['INFO_DATA'] = self._data_info.asDict()
+
+            if self._data_pvi:
+                data['PVI_DATA'] = self._data_pvi.asDict()
+
+            if self._data_pm:
+                data['PM_DATA'] = self._data_pm.asDict()
+
+            #bin = self.gui.e3dc.rscp_utils.encode_data(self._data_bat)
+            #bin += self.gui.e3dc.rscp_utils.encode_data(self._data_dcdc)
+            #for x in self._data_ems.data:
+            #    bin += self.gui.e3dc.rscp_utils.encode_data(x)
+            #for x in self._data_info.data:
+            #    bin += self.gui.e3dc.rscp_utils.encode_data(x)
+            #bin += self.gui.e3dc.rscp_utils.encode_data(self._data_pvi)
+            #bin += self.gui.e3dc.rscp_utils.encode_data(self._data_pm)
+            #gz = gzip.compress(bin)
+            #print(len(bin), len(gz))
+            #t = self.gui.e3dc.rscp_utils.decode_data(bin)
+            #print(t)
+
+            data = self.anonymize_data(data, anonymize, remove)
+            status = 'NO CODE'
+            try:
+                r = requests.post(url = self.txtDBServer.GetValue(), json = data)
+                status = r.status_code
+                r.raise_for_status()
+                res = r.json()
+                if 'error' in res:
+                    raise Exception('Fehler bei Datenübermittlung' + res['error'])
+
+                if 'success' in res:
+                    MessageBox(self, 'Übermittlung Erfolgreich', 'Daten wurden erfolgreich übermittelt!\nSpeicherpfad:\n\n' + res['success'])
+
+
+            except:
+                traceback.print_exc()
+                wx.MessageBox('Es gab einen Fehler bei der Übermittlung. (HTTP-Status: ' + str(r.status_code) + ')')
+
+    def anonymize_data(self, data, anonymize, remove):
+        if isinstance(data, dict):
+            toremove = []
+            for i in data.keys():
+                if isinstance(data[i], dict) or isinstance(data[i], list):
+                    data[i] = self.anonymize_data(data[i], anonymize, remove)
+                elif i in anonymize:
+                    if isinstance(data[i], int) or isinstance(data[i], float):
+                        data[i] = str(data[i])
+                    if len(data[i]) >= 6:
+                        tmp = 'X' * (len(data[i])-6)
+                        data[i] = data[i][:6] + tmp
+                    else:
+                        data[i] = 'X' * len(data[i])
+                elif i in remove:
+                    toremove.append(i)
+
+            for r in toremove:
+                del data[r]
+        elif isinstance(data, list):
+            nl = []
+            for i in data:
+                nl += [self.anonymize_data(i, anonymize, remove)]
+            data = nl
+
+        return data
+
+
+
+
+
+
+
+
+
+app = wx.App()
+g = Frame(None)
+g.Show()
+app.MainLoop()
