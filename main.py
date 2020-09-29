@@ -1,27 +1,29 @@
-import binascii
-import gzip
+import hashlib
 import json
+import re
 import threading
+import time
 import traceback
-import locale
 
 import requests
 import wx
 import wx.dataview
 
 from e3dc._rscp_dto import RSCPDTO
+from e3dc._rscp_exceptions import RSCPCommunicationError
+from e3dc.e3dc import E3DC
+from e3dcwebgui import E3DCWebGui
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
 from gui import MainFrame
 from e3dc.rscp_helper import rscp_helper
 import datetime
 import configparser
-import websocket
+
 try:
     import thread
 except ImportError:
     import _thread as thread
-import time
 
 
 class E3DCGui(rscp_helper):
@@ -45,8 +47,10 @@ class Frame(MainFrame):
     _data_info = None
     _data_pvi = None
     _data_pm = None
+    _data_wb = None
     _curpmcols = 0
     _extsrcavailable = 0
+    _gui = None
 
     def loadConfig(self):
         config = configparser.ConfigParser()
@@ -62,6 +66,20 @@ class Frame(MainFrame):
                 self.txtIP.SetValue(config['Login']['address'])
             if 'rscppassword' in config['Login']:
                 self.txtRSCPPassword.SetValue(config['Login']['rscppassword'])
+            if 'seriennummer' in config['Login']:
+                self.txtConfigSeriennummer.SetValue(config['Login']['seriennummer'])
+            if 'websocketaddr' in config['Login']:
+                self.txtConfigWebsocket.SetValue(config['Login']['websocketaddr'])
+            else:
+                self.txtConfigWebsocket.SetValue('wss://s10.e3dc.com/ws')
+
+            if 'usewebsocket' in config['Login']:
+                if config['Login']['usewebsocket'] in ('1','true','ja'):
+                    usewebsocket = True
+                else:
+                    usewebsocket = False
+                self.chConfigWebsocket.SetValue(usewebsocket)
+
 
     def saveConfig(self):
         config = configparser.ConfigParser()
@@ -69,7 +87,10 @@ class Frame(MainFrame):
         config['Login'] = {'username':self.txtUsername.GetValue(),
                            'password':self.txtPassword.GetValue(),
                            'address':self.txtIP.GetValue(),
-                           'rscppassword':self.txtRSCPPassword.GetValue()}
+                           'rscppassword':self.txtRSCPPassword.GetValue(),
+                           'seriennummer':self.txtConfigSeriennummer.GetValue(),
+                           'websocketaddr':self.txtConfigWebsocket.GetValue(),
+                           'usewebsocket':'true' if self.chConfigWebsocket.GetValue() else 'false'}
 
         with open('rscpe3dc.conf.ini', 'w') as configfile:
             config.write(configfile)
@@ -88,6 +109,9 @@ class Frame(MainFrame):
 
         self._gui = None
 
+        self._wsthread = threading.Thread(target=self.check_e3dcwebgui, args=())
+        self._wsthread.start()
+
         try:
             self.bUpdateClick(None)
         except:
@@ -97,16 +121,28 @@ class Frame(MainFrame):
     def gui(self):
         if self._gui:
             if self._username == self.txtUsername.GetValue() and self._password == self.txtPassword.GetValue() and \
-                    self._address == self.txtIP.GetValue() and self._rscppass == self.txtRSCPPassword.GetValue():
+                    self._address == self.txtIP.GetValue() and self._rscppass == self.txtRSCPPassword.GetValue() and \
+                    self._seriennummer == self.txtConfigSeriennummer.GetValue() and self._websocketaddr == self.txtConfigWebsocket.GetValue() and \
+                    self._usewebsocket == self.chConfigWebsocket.GetValue():
                 return self._gui
 
         self._username = self.txtUsername.GetValue()
         self._password = self.txtPassword.GetValue()
         self._address = self.txtIP.GetValue()
         self._rscppass = self.txtRSCPPassword.GetValue()
+        self._seriennummer = self.txtConfigSeriennummer.GetValue()
+        self._websocketaddr = self.txtConfigWebsocket.GetValue()
+        self._usewebsocket = self.chConfigWebsocket.GetValue()
 
-        if self._username and self._password and self._address and self._rscppass:
+        if isinstance(self._gui, E3DCWebGui):
+            self._gui.e3dc.ws.close()
+
+        if self._username and self._password and self._address and self._rscppass and not self._usewebsocket:
             self._gui = E3DCGui(self._username, self._password, self._address, self._rscppass)
+            print('Verwende Direkte Verbindung')
+        elif self._username and self._password and self._seriennummer and self._websocketaddr and self._usewebsocket:
+            self._gui = E3DCWebGui(self._username, self._password, self._seriennummer)
+            print('Verwende Websocket')
         else:
             self._gui = None
 
@@ -267,6 +303,10 @@ class Frame(MainFrame):
                     wx.MessageBox('Übertragung fehlgeschlagen')
         self.bUpdateClick(None)
 
+    def fill_wb(self):
+        d = self.gui.get_data(self.gui.getWB(), True)
+        print(d)
+
     def fill_ems(self):
         self._extsrcavailable = 0
         d = self.gui.get_data(self.gui.getEMSData(), True)
@@ -278,9 +318,9 @@ class Frame(MainFrame):
         self.txtEMSPowerGrid.SetValue(repr(d['EMS_POWER_GRID']) + ' W')
         self.txtEMSPowerAdd.SetValue(repr(d['EMS_POWER_ADD']) + ' W')
         self.txtEMSAutarkie.SetValue(str(round(d['EMS_AUTARKY'],2)) + ' %')
-        self.gEMSAutarkie.SetValue(round(d['EMS_AUTARKY'],0))
+        self.gEMSAutarkie.SetValue(int(round(d['EMS_AUTARKY'],0)))
         self.txtEMSSelfConsumption.SetValue(str(round(d['EMS_SELF_CONSUMPTION'],2)) + ' %')
-        self.gEMSSelfConsumption.SetValue(round(d['EMS_SELF_CONSUMPTION'],0))
+        self.gEMSSelfConsumption.SetValue(int(round(d['EMS_SELF_CONSUMPTION'],0)))
         self.txtEMSBatSoc.SetValue(str(round(d['EMS_BAT_SOC'],2)) + ' %')
         self.mgEMSBatSoc.SetValue(round(d['EMS_BAT_SOC'],0))
         self.txtEMSCouplingMode.SetValue(repr(d['EMS_COUPLING_MODE']))
@@ -379,7 +419,7 @@ class Frame(MainFrame):
         self.txtEMSMaxChargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER']) + ' W')
         self.sEMSMaxDischargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER'].data)
         self.txtEMSMaxDischargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER']) + ' W')
-        self.sEMSMaxDischargeStartPower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER'])
+        self.sEMSMaxDischargeStartPower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER'].data)
         self.txtEMSMaxDischargeStartPower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER']) + ' W')
 
         self.chEPIsland.SetValue(d['EP_IS_ISLAND_GRID'].data)
@@ -426,7 +466,6 @@ class Frame(MainFrame):
 
         if self._extsrcavailable >= 0:
             indexes = range(0,8)
-            print(indexes)
         else:
             indexes = None
 
@@ -493,9 +532,11 @@ class Frame(MainFrame):
         self.gPM.AutoSize()
 
     def fill_dcdc(self):
-        data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[0, 1]), True)
-        self._data_dcdc = data
-        for d in data['DCDC_DATA']:
+        for index in [0,1]:
+            data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
+            #self._data_dcdc[index] = data
+            d = data
+
             index = int(d['DCDC_INDEX'])
 
             self.gDCDC.SetCellValue(0,index, str(round(d['DCDC_I_BAT'].data,5)) + ' A')
@@ -629,6 +670,14 @@ class Frame(MainFrame):
         self.chBATDeviceWorking.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_WORKING'].data)
         self.chBATDeviceInService.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_IN_SERVICE'].data)
 
+        self.txtBATMaxDCBCount.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_MAX_DCB_COUNT']))
+        self.txtBATCapacity.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_CAPACITY']) + ' Wh')
+        self.txtBATMaxChargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_CHARGE_POWER']) + ' W')
+        self.txtBATMaxDischargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_DSCHARGE_POWER']) + ' W')
+
+        self.txtBATMeasuredResistance.SetValue(repr(f['BAT_INTERNALS']['BAT_MEASURED_RESISTANCE']))
+        self.txtBATRunMeasuredResistance.SetValue(repr(f['BAT_INTERNALS']['BAT_RUN_MEASURED_RESISTANCE']))
+
         if f['BAT_TRAINING_MODE'].data == 0:
             s = 'Nicht im Training'
         elif f['BAT_TRAINING_MODE'].data == 1:
@@ -692,11 +741,11 @@ class Frame(MainFrame):
             self.gDCB.SetCellValue(21,index, repr(d['BAT_DCB_PCB_VERSION']))
             self.gDCB.SetCellValue(22,index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
             self.gDCB.SetCellValue(23,index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
-            self.gDCB.SetCellValue(24,index, repr(d['BAT_DCB_UNKNOWN2']))
-            self.gDCB.SetCellValue(25,index, repr(d['BAT_DCB_UNKNOWN3']))
-            self.gDCB.SetCellValue(26,index, repr(d['BAT_DCB_UNKNOWN4']))
-            self.gDCB.SetCellValue(27,index, repr(d['BAT_DCB_UNKNOWN5']))
-            self.gDCB.SetCellValue(28,index, repr(d['BAT_DCB_UNKNOWN6']))
+            self.gDCB.SetCellValue(24,index, repr(d['BAT_DCB_NR_SERIES_CELL']))
+            self.gDCB.SetCellValue(25,index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
+            self.gDCB.SetCellValue(26,index, repr(d['BAT_DCB_SERIALCODE']))
+            self.gDCB.SetCellValue(27,index, repr(d['BAT_DCB_NR_SENSOR']))
+            self.gDCB.SetCellValue(28,index, repr(d['BAT_DCB_STATUS']))
             self.gDCB_last_row = 28
 
         self.gDCB.AutoSizeColumns()
@@ -729,23 +778,60 @@ class Frame(MainFrame):
             wx.MessageBox('Funktion noch nicht implementiert!')
             x = RSCPDTO(tag = RSCPTag.REQ_START_EMERGENCYPOWER_TEST, rscp_type=RSCPType.Bool, data = True)
 
-    def bTestClick(self, event):
+    def bTestClick(self, event, method = 'auto'):
         try:
-            result = self.gui.get_data(self.gui.getInfo(), False)
-            sn = result['INFO_SERIAL_NUMBER']
-            rel = result['INFO_SW_RELEASE']
-            msg = wx.MessageBox('Verbindung mit System ' + sn + ' / ' + rel + ' hergestellt', 'Info',
+            if not self.gui:
+                self.bConfigGetIPAddressOnClick(event)
+
+            if method == 'ws':
+                self.chConfigWebsocket.SetValue(True)
+            elif method == 'direct':
+                self.chConfigWebsocket.SetValue(False)
+            elif method == 'auto':
+                if self.txtRSCPPassword.GetValue() == '':
+                    self.chConfigWebsocket.SetValue(True)
+                else:
+                    self.chConfigWebsocket.SetValue(False)
+
+            result = self.gui.get_data(self.gui.getInfo(), True)
+
+            sn = repr(result['INFO_SERIAL_NUMBER'])
+            if self.txtConfigSeriennummer.GetValue() == '' and sn:
+                self.txtConfigSeriennummer.SetValue(sn)
+
+            ip = repr(result['INFO_IP_ADDRESS'])
+            if self.txtIP.GetValue() == '' and ip:
+                self.txtIP.SetValue(ip)
+
+            rel = repr(result['INFO_SW_RELEASE'])
+
+            if isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() == '':
+                msg = wx.MessageBox('Verbindung mit System ' + sn + ' / ' + rel + ' konnte nur über WebSockets hergestellt werden, da kein RSCP-Passwort vergeben wurde.\nDiese Verbindung ist langsamer und auf das Internet angewiesen.\n', 'Info',
+                                    wx.OK | wx.ICON_WARNING)
+            elif isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() != '':
+                msg = wx.MessageBox(
+                    'Verbindung mit System ' + sn + ' / ' + rel + ' konnte nur über WebSockets hergestellt werden, da das angegebene RSCP-Passwort falsch ist oder das E3DC nicht direkt erreichbar ist.\nDiese Verbindung ist langsamer und auf das Internet angewiesen.',
+                    'Info',
+                    wx.OK | wx.ICON_WARNING)
+            else:
+                msg = wx.MessageBox('Verbindung mit System ' + sn + ' / ' + rel + ' hergestellt', 'Info',
                           wx.OK | wx.ICON_INFORMATION)
+        except RSCPCommunicationError:
+            if isinstance(self.gui, E3DCGui) and method == 'auto':
+                self.bTestClick(event, method = 'ws')
+            else:
+                traceback.print_exc()
+                msg = wx.MessageBox('Verbindung konnte nicht aufgebaut werden', 'Error',
+                              wx.OK | wx.ICON_ERROR)
         except:
             traceback.print_exc()
-            msg = wx.MessageBox('Verbindung konnte nicht aufgebaut werden!', 'Error',
-                          wx.OK | wx.ICON_ERROR)
+            msg = wx.MessageBox('Verbindung konnte nicht aufgebaut werden', 'Error',
+                                wx.OK | wx.ICON_ERROR)
 
     def bUpdateCheckClick(self, event):
         try:
-            result = self.gui.get_data(self.gui.getCheckForUpdates(), False)
-            print(result)
-            status = result['UM_CHECK_FOR_UPDATES']
+            result = self.gui.get_data(self.gui.getCheckForUpdates(), True)
+            status = result.data
         except:
             traceback.print_exc()
             status = 0
@@ -787,12 +873,17 @@ class Frame(MainFrame):
             except:
                 traceback.print_exc()
 
+            try:
+                self.fill_wb()
+            except:
+                traceback.print_exc()
+
     def sendToServer(self, event):
         ret = wx.MessageBox('Achtung, es werden alle angezeigten Daten an externe Stelle übermittelt.\nSeriennummern werden in anonymisierter Form übermittelt.\nZugangsdaten werden nicht übermittelt.\nDie Datenübertragung erfolgt verschlüsselt.\nWirklich fortfahren?',
                             caption = 'Ausgelesene Daten übermitteln',
                             style=wx.YES_NO)
         if ret == wx.YES:
-            anonymize = ['DCDC_SERIAL_NUMBER','BAT_DCB_SERIALNO','BAT_DCB_UNKNOWN6','INFO_SERIAL_NUMBER','INFO_A35_SERIAL_NUMBER','PVI_SERIAL_NUMBER']
+            anonymize = ['DCDC_SERIAL_NUMBER','BAT_DCB_SERIALNO','BAT_DCB_SERIALCODE','INFO_SERIAL_NUMBER','INFO_A35_SERIAL_NUMBER','PVI_SERIAL_NUMBER']
             remove = ['INFO_IP_ADDRESS']
             data = {}
             if self._data_bat:
@@ -813,18 +904,8 @@ class Frame(MainFrame):
             if self._data_pm:
                 data['PM_DATA'] = self._data_pm.asDict()
 
-            #bin = self.gui.e3dc.rscp_utils.encode_data(self._data_bat)
-            #bin += self.gui.e3dc.rscp_utils.encode_data(self._data_dcdc)
-            #for x in self._data_ems.data:
-            #    bin += self.gui.e3dc.rscp_utils.encode_data(x)
-            #for x in self._data_info.data:
-            #    bin += self.gui.e3dc.rscp_utils.encode_data(x)
-            #bin += self.gui.e3dc.rscp_utils.encode_data(self._data_pvi)
-            #bin += self.gui.e3dc.rscp_utils.encode_data(self._data_pm)
-            #gz = gzip.compress(bin)
-            #print(len(bin), len(gz))
-            #t = self.gui.e3dc.rscp_utils.decode_data(bin)
-            #print(t)
+            if self._data_wb:
+                data['WB_DATA'] = self._data_wb.asDict()
 
             data = self.anonymize_data(data, anonymize, remove)
             status = 'NO CODE'
@@ -872,12 +953,151 @@ class Frame(MainFrame):
         return data
 
 
+    def mainOnClose(self, event):
+        if isinstance(self._gui, E3DCWebGui):
+            self._gui.e3dc.ws.close()
+
+        event.Skip()
 
 
+    def getSerialnoFromWeb(self, username, password):
+        userlevel = None
+
+        try:
+            r = requests.post('https://s10.e3dc.com/s10/phpcmd/cmd.php', data={'DO': 'LOGIN',
+                                                                               'USERNAME': username,
+                                                                               'PASSWD': hashlib.md5(password.encode()).hexdigest(),
+                                                                               'DENV': 'E3DC'})
+            r.raise_for_status()
+            r_json = r.json()
+            if r_json['ERRNO'] != 0:
+                raise Exception('Abfrage Fehlerhaft #1, Fehlernummer ' + str(r_json['ERRNO']))
+            userlevel = int(r_json['CONTENT']['USERLEVEL'])
+            cookies = r.cookies
+            if userlevel in (1, 128):
+                try:
+                    r = requests.post('https://s10.e3dc.com/s10/phpcmd/cmd.php', data={'DO': 'GETCONTENT',
+                                                                                       'MODID': 'IDOVERVIEWCOMMONTABLE',
+                                                                                       'ARG0': 'undefined',
+                                                                                       'TOS': -7200,
+                                                                                       'DENV': 'E3DC'}, cookies=cookies)
+                    r.raise_for_status()
+                    r_json = r.json()
+
+                    if r_json['ERRNO'] != 0:
+                        raise Exception('Abfrage fehlerhaft #2, Fehlernummer ' + str(r_json['ERRNO']))
+
+                    content = r_json['CONTENT']
+                    html = None
+                    for lst in content:
+                        if 'HTML' in lst:
+                            html = lst['HTML']
+                            break
+
+                    if not html:
+                        raise Exception('Abfrage Fehlerhaft #3, Daten nicht gefunden')
+
+                    regex = r"s10list = '(\[\{.*\}\])';"
+
+                    try:
+                        match = re.search(regex, html, re.MULTILINE).group(1)
+                        obj = json.loads(match)
+                        return obj
+                    except:
+                        raise Exception('Abfrage Fehlerhaft #4, Regex nicht erfolgreich')
+
+                except:
+                    traceback.print_exc()
+        except:
+            traceback.print_exc()
+
+        return []
+
+    def bConfigGetSerialNoOnClick( self, event ):
+        username = self.txtUsername.GetValue()
+        password = self.txtPassword.GetValue()
+
+        if username and password:
+            ret = self.getSerialnoFromWeb(username, password)
+            if len(ret) == 1:
+                serial = 'S10-' + ret[0]['serialno']
+                self.txtConfigSeriennummer.SetValue(serial)
+                wx.MessageBox('Seriennummer konnte ermittelt werden (WEB): ' + serial, 'Ermittlung Seriennummer')
+            elif len(ret) > 1:
+                sns = '\n'
+                for sn in ret:
+                    sns += '\nS10-' + sn['serialno']
+                wx.MessageBox('Es wurde mehr als eine Seriennummer ermittelt (WEB):' + sns, 'Ermittlung Seriennummer')
+            else:
+                wx.MessageBox('Es konnte keine Seriennummer ermittelt werden (WEB). Zugangsdaten falsch?', 'Ermittlung Seriennummer', wx.ICON_ERROR)
+        else:
+            wx.MessageBox('Zur Ermittlung der Seriennummer sind mindestens Benutzername und Passwort erforderlich!', 'Ermittlung Seriennummer', wx.ICON_WARNING)
+
+        event.Skip()
+
+    def bConfigGetIPAddressOnClick( self, event ):
+        username = self.txtUsername.GetValue()
+        password = self.txtPassword.GetValue()
+        serial = self.txtConfigSeriennummer.GetValue()
+        if username and password:
+            if not serial:
+                try:
+                    ret = self.getSerialnoFromWeb(username, password)
+                    if len(ret) > 0:
+                        serial = 'S10-' + ret[0]['serialno']
+                        self.txtConfigSeriennummer.SetValue(serial)
+                except:
+                    wx.MessageBox('Seriennummer fehlt und konnte nicht ermittelt werden', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
+
+        if username and password and serial:
+            self.chConfigWebsocket.SetValue(True)
+
+        if isinstance(self.gui, E3DCWebGui):
+            try:
+                ip = repr(self.gui.get_data(self.gui.getInfo(), True)['INFO_IP_ADDRESS'])
+                if ip:
+                    self.txtIP.SetValue(ip)
+                    self.chConfigWebsocket.SetValue(False)
+                    wx.MessageBox('IP-Adresse konnte ermittelt werden: ' + ip, 'Ermittlung IP-Adresse')
+                else:
+                    wx.MessageBox('IP-Adresse konnte nicht ermittelt werden, kein Inahlt', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
+
+            except:
+                wx.MessageBox('Bei der Ermittlung der IP-Adresse ist ein Fehler aufgetreten #2', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
+
+        event.Skip()
+
+    def bConfigSetRSCPPasswordOnClick( self, event ):
+        ret = wx.MessageBox('Soll das angegebene RSCP-Kennwort mit dem bisherigen überschrieben werden?', 'RSCP-Passwort ändern', wx.YES_NO | wx.ICON_WARNING)
+        if ret == wx.YES:
+            try:
+                password = self.txtRSCPPassword.GetValue()
+                requests = [RSCPDTO(tag = RSCPTag.RSCP_REQ_SET_ENCRYPTION_PASSPHRASE, rscp_type = RSCPType.CString, data = password)]
+                res = self.gui.get_data(requests, True)
+                if res.data:
+                    wx.MessageBox('RSCP-Passwort wurde erfolgreich geändert', 'RSCP-Passwort ändern', wx.ICON_INFORMATION)
+                else:
+                    raise Exception('RSCP-Passwort wurde nicht akzeptiert!')
+            except:
+                wx.MessageBox('Fehler beim Ändern des RSCP-Passworts', 'RSCP-Passwort ändern', wx.ICON_ERROR)
 
 
+        event.Skip()
 
+    def setWSConnected(self):
+        self.rConfigWebsocketConnected.SetValue(True)
 
+    def setWSDisconnected(self):
+        self.rConfigWebsocketConnected.SetValue(False)
+
+    def check_e3dcwebgui(self):
+        while True:
+            if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
+                self.setWSConnected()
+            else:
+                self.setWSDisconnected()
+
+            time.sleep(1)
 
 app = wx.App()
 g = Frame(None)

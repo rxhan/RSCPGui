@@ -3,6 +3,7 @@ import logging
 import math
 import struct
 import time
+import traceback
 import zlib
 
 from e3dc._rscp_dto import RSCPDTO
@@ -43,11 +44,11 @@ class RSCPUtils:
             return struct.pack(self._DATA_HEADER_FORMAT, rscp_dto.tag.value, rscp_dto.type.value, 0)
         elif rscp_dto.type == RSCPType.Timestamp:
             timestamp = int(rscp_dto.data / 1000)
-            milliseconds = (rscp_dto.data - timestamp * 1000) * 1e6
+            milliseconds = int((rscp_dto.data - timestamp * 1000) * 1e6)
             high = timestamp >> 32
             low = timestamp & 0xffffffff
             length = struct.calcsize("iii") - data_header_length
-            return struct.pack("iii", rscp_dto.tag.value, rscp_dto.type.value, length, high, low, milliseconds)
+            return struct.pack(self._DATA_HEADER_FORMAT + "iii", rscp_dto.tag.value, rscp_dto.type.value, length, high, low, milliseconds)
         elif rscp_dto.type == RSCPType.Container:
             if isinstance(rscp_dto.data, list):
                 new_data = b''
@@ -55,17 +56,23 @@ class RSCPUtils:
                     new_data += self.encode_data(data_chunk)
                 rscp_dto.set_data(new_data)
                 pack_format += str(len(rscp_dto.data)) + rscp_dto.type.mapping
+        elif rscp_dto.type.mapping in ("s","r"):
+            if isinstance(rscp_dto.data, str):
+                # We do expect a string object. Make it to bytes array
+                rscp_dto.set_data(bytes(rscp_dto.data, encoding="latin_1"))
+            pack_format += str(len(rscp_dto.data)) + "s"
         elif rscp_dto.type.mapping != "s":
             pack_format += rscp_dto.type.mapping
-        elif rscp_dto.type.mapping == "s":
-            # We do expect a string object. Make it to bytes array
-            rscp_dto.set_data(bytes(rscp_dto.data, encoding="latin_1"))
-            pack_format += str(len(rscp_dto.data)) + rscp_dto.type.mapping
 
         data_length = struct.calcsize(pack_format) - data_header_length
         logger.debug("pack_format: " + pack_format)
         logger.debug("data: " + str(rscp_dto.data))
-        return struct.pack(pack_format, rscp_dto.tag.value, rscp_dto.type.value, data_length, rscp_dto.data)
+        try:
+            res = struct.pack(pack_format, rscp_dto.tag.value, rscp_dto.type.value, data_length, rscp_dto.data)
+        except:
+            traceback.print_exc()
+
+        return res
 
     def _decode_frame(self, frame_data) -> tuple:
         """
@@ -107,10 +114,7 @@ class RSCPUtils:
             res, timestamp = self._decode_frame(b)
             f.type = RSCPType.Container
             data = self.decode_data(res)
-            if data.type == RSCPType.Container:
-                f.data = data.data
-            else:
-                f.data = data
+            f.data = data
 
         return rscp_dto
 
@@ -149,7 +153,7 @@ class RSCPUtils:
                 inner_rscp_dto = self.decode_data(data[current_byte:data_header_size + current_byte + data_length_c])
                 current_byte += inner_rscp_dto.size
                 container_data.append(inner_rscp_dto)
-            return RSCPDTO(RSCPTag.DUMMYCONTAINER, RSCPType.Container, container_data, current_byte)
+            return RSCPDTO(RSCPTag.LIST_TYPE, RSCPType.Container, container_data, current_byte)
         elif data_type == RSCPType.Timestamp:
             data_format = "<iii"
             high, low, ms = struct.unpack(data_format,

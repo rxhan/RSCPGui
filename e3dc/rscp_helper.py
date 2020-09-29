@@ -16,22 +16,6 @@ class rscp_helper():
     def __init__(self, username, password, host, rscp_pass):
         self.e3dc = E3DC(username, password, host, rscp_pass)
 
-    def getWeblogin(self, identifier):
-        r = RSCPDTO(RSCPTag.SERVER_REQ_NEW_VIRTUAL_CONNECTION, rscp_type=RSCPType.Container)
-
-        r += RSCPDTO(RSCPTag.SERVER_USER, RSCPType.CString, self.e3dc.username)
-        pass_md5 = hashlib.md5()
-        pass_md5.update(self.e3dc.password.encode('utf-8'))
-        password = pass_md5.hexdigest()
-        r += RSCPDTO(RSCPTag.SERVER_PASSWD, RSCPType.CString, password)
-
-        r += RSCPDTO(RSCPTag.SERVER_IDENTIFIER, RSCPType.CString, identifier)
-        r += RSCPDTO(RSCPTag.SERVER_TYPE, RSCPType.Int32, 4)
-        r += RSCPDTO(RSCPTag.SERVER_HASH_CODE, RSCPType.Int32, 1234567890)
-
-        return [r]
-
-
     def get_all(self, requests=None, raw=False):
         if not requests:
             requests = []
@@ -63,6 +47,13 @@ class rscp_helper():
         requests.append(RSCPTag.UM_REQ_UPDATE_STATUS)
 
         return requests
+
+    def getWB(self):
+        # TODO: Werte auslesen und in der Oberfläche darstellen
+        r = RSCPDTO(RSCPTag.WB_REQ_CONNECTED_DEVICES, rscp_type=RSCPType.Container)
+        r += RSCPDTO(RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data = 0)
+        r += RSCPTag.WB_REQ_STATUS
+        return r
 
     def getInfo(self):
         requests = []
@@ -146,7 +137,8 @@ class rscp_helper():
             r += RSCPTag.BAT_REQ_DCB_COUNT
             r += RSCPTag.BAT_REQ_DEVICE_NAME
             r += RSCPTag.BAT_REQ_DEVICE_STATE
-
+            r += RSCPTag.BAT_REQ_SPECIFICATION
+            r += RSCPTag.BAT_REQ_INTERNALS
 
             if dcb_indexes:
                 for dcb_index in dcb_indexes:
@@ -388,113 +380,5 @@ class rscp_helper():
             else:
                 rscp = RSCPDTO(tag=RSCPTag.LIST_TYPE, rscp_type=RSCPType.Container, data=responses)
                 return rscp
-
-        write_data = {}
-        for response in responses:
-            d = response.asDict()
-            for key in d.keys():
-                if key == 'BAT_DATA':
-                    for k in d[key]:
-                        data = d[key][k]
-                        if k == 'BAT_DCB_INFO':
-                            for k in data.keys():
-                                write_data[k + '_' + str(data['BAT_DCB_INDEX'])] = data[k]
-                        elif k == 'BAT_DCB_ALL_CELL_TEMPERATURES':
-                            dcb_temps = data
-                            dcb_index = dcb_temps['BAT_DCB_INDEX']
-                            i = 0
-                            for data in dcb_temps['BAT_DATA']:
-                                name = "BAT_DCB_CELL_TEMPERATURE_" + str(i) + "_" + str(dcb_index)
-                                write_data[name] = data['BAT_DCB_CELL_TEMPERATURE']
-                                i += 1
-                        elif k == 'BAT_DCB_ALL_CELL_VOLTAGES':
-                            dcb_temps = data
-                            dcb_index = dcb_temps['BAT_DCB_INDEX']
-                            i = 0
-                            for data in dcb_temps['BAT_DATA']:
-                                name = "BAT_DCB_CELL_VOLTAGE_" + str(i) + "_" + str(dcb_index)
-                                write_data[name] = data['BAT_DCB_CELL_VOLTAGE']
-                                i += 1
-
-                elif key == 'DCDC_DATA':
-                    data = d[key]
-                    for k in data.keys():
-                        write_data[k + '_' + str(data['DCDC_INDEX'])] = data[k]
-
-                elif key in ['EMS_POWER_BAT', 'EMS_POWER_HOME', 'EMS_BAT_SOC', 'EMS_POWER_GRID', 'EMS_POWER_ADD',
-                             'EMS_BALANCED_PHASES', 'EMS_INSTALLED_PEAK_POWER', 'EMS_DERATE_AT_PERCENT_VALUE',
-                             'EMS_DERATE_AT_POWER_VALUE', 'EMS_USED_CHARGE_LIMIT', 'EMS_USER_CHARGE_LIMIT',
-                             'EMS_BAT_CHARGE_LIMIT',
-                             'EMS_DCDC_CHARGE_LIMIT', 'EMS_REMAINING_BAT_CHARGE_POWER', 'EMS_EMERGENCY_POWER_STATUS',
-                             'INFO_PRODUCTION_DATE', 'INFO_SERIAL_NUMBER', 'INFO_SW_RELEASE', 'INFO_A35_SERIAL_NUMBER',
-                             'INFO_TIME','RSCP_USER_LEVEL','UM_CHECK_FOR_UPDATES','UM_UPDATE_STATUS']:
-                    write_data[key] = d[key]
-
-                elif key == 'EMS_GET_POWER_SETTINGS':
-                    for k in d[key].keys():
-                        write_data[k] = d[key][k]
-
-                elif key == 'EMS_GET_SYS_SPECS':
-                    data = d[key]
-                    for spec in data:
-                        s = spec['EMS_SYS_SPEC']
-                        write_data['EMS_SYS_SPEC_' + str(s['EMS_SYS_SPEC_NAME'])] = s['EMS_SYS_SPEC_VALUE_INT']
-
-                elif key == 'EMS_GET_IDLE_PERIODS':
-                    for period in d[key]:
-                        # EMS_IDLE_PERIOD_TYPE 0=Laden,    1 = Entladen
-                        # EMS_IDLE_PERIOD_DAY  0=Montag .. 6 = Sonntag
-                        period = period['EMS_IDLE_PERIOD']
-                        if period['EMS_IDLE_PERIOD_ACTIVE'] == True:
-                            write_data[key + '_' + str(period['EMS_IDLE_PERIOD_TYPE']) + '_' + str(
-                                period['EMS_IDLE_PERIOD_DAY'])] = period
-
-                elif key == 'PM_DATA':
-                    data = d[key]
-
-                    for k in data.keys():
-                        write_data[k + '_' + str(data['PM_INDEX'])] = data[k]
-                elif key == 'PVI_DATA':
-                    pvi_data = d[key]
-                    for data in pvi_data:
-                        if 'PVI_AC_POWER' in data.keys():
-                            name = 'PVI_POWER_L' + str(data['PVI_AC_POWER']['PVI_INDEX'] + 1)
-                            write_data[name] = data['PVI_AC_POWER']['PVI_VALUE']
-                        if 'PVI_AC_VOLTAGE' in data.keys():
-                            name = 'PVI_VOLTAGE_L' + str(data['PVI_AC_VOLTAGE']['PVI_INDEX'] + 1)
-                            write_data[name] = data['PVI_AC_VOLTAGE']['PVI_VALUE']
-                        if 'PVI_AC_CURRENT' in data.keys():
-                            name = 'PVI_CURRENT_L' + str(data['PVI_AC_CURRENT']['PVI_INDEX'] + 1)
-                            write_data[name] = data['PVI_AC_CURRENT']['PVI_VALUE']
-                        if 'PVI_AC_APPARENTPOWER' in data.keys():
-                            name = 'PVI_APPARENTPOWER_L' + str(data['PVI_AC_APPARENTPOWER']['PVI_INDEX'] + 1)
-                            write_data[name] = data['PVI_AC_APPARENTPOWER']['PVI_VALUE']
-                        if 'PVI_AC_REACTIVEPOWER' in data.keys():
-                            name = 'PVI_REACTIVEPOWER_L' + str(data['PVI_AC_REACTIVEPOWER']['PVI_INDEX'] + 1)
-                            write_data[name] = data['PVI_AC_REACTIVEPOWER']['PVI_VALUE']
-                        if 'PVI_AC_ENERGY_ALL' in data.keys():
-                            name = 'PVI_ENERGY_ALL_L' + str(data['PVI_AC_ENERGY_ALL']['PVI_INDEX'] + 1)
-                            write_data[name] = data['PVI_AC_ENERGY_ALL']['PVI_VALUE']
-                        if 'PVI_AC_ENERGY_GRID_CONSUMPTION' in data.keys():
-                            name = 'PVI_ENERGY_GRID_CONSUMPTION_L' + str(
-                                data['PVI_AC_ENERGY_GRID_CONSUMPTION']['PVI_INDEX'] + 1)
-                            write_data[name] = data['PVI_AC_ENERGY_GRID_CONSUMPTION']['PVI_VALUE']
-                        if 'PVI_DC_POWER' in data.keys():
-                            name = 'PVI_DC_POWER_' + str(data['PVI_DC_POWER']['PVI_INDEX'])
-                            write_data[name] = data['PVI_DC_POWER']['PVI_VALUE']
-                        if 'PVI_DC_VOLTAGE' in data.keys():
-                            name = 'PVI_DC_VOLTAGE_' + str(data['PVI_DC_VOLTAGE']['PVI_INDEX'])
-                            write_data[name] = data['PVI_DC_VOLTAGE']['PVI_VALUE']
-                        if 'PVI_DC_CURRENT' in data.keys():
-                            name = 'PVI_DC_CURRENT_' + str(data['PVI_DC_CURRENT']['PVI_INDEX'])
-                            write_data[name] = data['PVI_DC_CURRENT']['PVI_VALUE']
-                        if 'PVI_DC_STRING_ENERGY_ALL' in data.keys():
-                            name = 'PVI_DC_STRING_ENERGY_ALL_' + str(data['PVI_DC_STRING_ENERGY_ALL']['PVI_INDEX'])
-                            write_data[name] = data['PVI_DC_STRING_ENERGY_ALL']['PVI_VALUE']
-                        if 'PVI_TEMPERATURE' in data.keys():
-                            name = 'PVI_TEMPERATURE_' + str(data['PVI_TEMPERATURE']['PVI_INDEX'])
-                            write_data[name] = data['PVI_TEMPERATURE']['PVI_VALUE']
-                        else:
-                            pass
-
-        return write_data
+        else:
+            raise Exception('Deprecated')

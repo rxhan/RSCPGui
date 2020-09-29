@@ -1564,7 +1564,7 @@ class MainFrame ( wx.Frame ):
 		self.pEMS.SetSizer( bSizer12 )
 		self.pEMS.Layout()
 		bSizer12.Fit( self.pEMS )
-		self.pMainregister.AddPage( self.pEMS, u"EMS", True )
+		self.pMainregister.AddPage( self.pEMS, u"EMS", False )
 		self.pDCDC = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer41 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1745,6 +1745,66 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( self.txtDcbCount, 0, wx.ALL, 5 )
 
+		self.m_staticText163 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"maximale Anzahl Batteriemodule", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText163.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText163, 0, wx.ALL, 5 )
+
+		self.txtBATMaxDCBCount = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMaxDCBCount.Enable( False )
+
+		gSizer3.Add( self.txtBATMaxDCBCount, 0, wx.ALL, 5 )
+
+		self.m_staticText164 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText164.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText164, 0, wx.ALL, 5 )
+
+		self.txtBATCapacity = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATCapacity.Enable( False )
+
+		gSizer3.Add( self.txtBATCapacity, 0, wx.ALL, 5 )
+
+		self.m_staticText165 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximale Ladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText165.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText165, 0, wx.ALL, 5 )
+
+		self.txtBATMaxChargePower = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMaxChargePower.Enable( False )
+
+		gSizer3.Add( self.txtBATMaxChargePower, 0, wx.ALL, 5 )
+
+		self.m_staticText166 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximale Entladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText166.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText166, 0, wx.ALL, 5 )
+
+		self.txtBATMaxDischargePower = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMaxDischargePower.Enable( False )
+
+		gSizer3.Add( self.txtBATMaxDischargePower, 0, wx.ALL, 5 )
+
+		self.m_staticText167 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"gemessener Wiederstand", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText167.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText167, 0, wx.ALL, 5 )
+
+		self.txtBATMeasuredResistance = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMeasuredResistance.Enable( False )
+
+		gSizer3.Add( self.txtBATMeasuredResistance, 0, wx.ALL, 5 )
+
+		self.m_staticText168 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"gemessener Wiederstand (RUN)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText168.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText168, 0, wx.ALL, 5 )
+
+		self.txtBATRunMeasuredResistance = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATRunMeasuredResistance.Enable( False )
+
+		gSizer3.Add( self.txtBATRunMeasuredResistance, 0, wx.ALL, 5 )
+
 		self.m_staticText27 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximale Modultemperatur", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText27.Wrap( -1 )
 
@@ -1873,7 +1933,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel10.SetSizer( fgSizer23 )
 		self.m_panel10.Layout()
 		fgSizer23.Fit( self.m_panel10 )
-		self.m_notebook3.AddPage( self.m_panel10, u"Basis", True )
+		self.m_notebook3.AddPage( self.m_panel10, u"Basis", False )
 		self.m_panel11 = wx.Panel( self.m_notebook3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer5 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1919,11 +1979,11 @@ class MainFrame ( wx.Frame ):
 		self.gDCB.SetRowLabelValue( 21, u"PCB Version" )
 		self.gDCB.SetRowLabelValue( 22, u"Datatable Version" )
 		self.gDCB.SetRowLabelValue( 23, u"Protokollversion" )
-		self.gDCB.SetRowLabelValue( 24, u"Unbekannt2" )
-		self.gDCB.SetRowLabelValue( 25, u"Unbekannt3" )
-		self.gDCB.SetRowLabelValue( 26, u"Produktname" )
-		self.gDCB.SetRowLabelValue( 27, u"Hersteller" )
-		self.gDCB.SetRowLabelValue( 28, u"Unbekannt6" )
+		self.gDCB.SetRowLabelValue( 24, u"Zellanzahl in Serie" )
+		self.gDCB.SetRowLabelValue( 25, u"Zellanzahl in Parallel" )
+		self.gDCB.SetRowLabelValue( 26, u"Serielcode" )
+		self.gDCB.SetRowLabelValue( 27, u"Nr Sensor" )
+		self.gDCB.SetRowLabelValue( 28, u"Status" )
 		self.gDCB.SetRowLabelAlignment( wx.ALIGN_LEFT, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -1936,7 +1996,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel11.SetSizer( bSizer5 )
 		self.m_panel11.Layout()
 		bSizer5.Fit( self.m_panel11 )
-		self.m_notebook3.AddPage( self.m_panel11, u"DCB", False )
+		self.m_notebook3.AddPage( self.m_panel11, u"DCB", True )
 
 		bSizer42.Add( self.m_notebook3, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2419,27 +2479,107 @@ class MainFrame ( wx.Frame ):
 		self.txtPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
 		fgSizer1.Add( self.txtPassword, 0, wx.ALL, 5 )
 
-		self.m_staticText7 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"IP-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText7.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText7, 0, wx.ALL, 5 )
-
-		self.txtIP = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.txtIP, 0, wx.ALL, 5 )
-
 		self.m_staticText8 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"RSCP-Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText8.Wrap( -1 )
 
 		fgSizer1.Add( self.m_staticText8, 0, wx.ALL, 5 )
 
+		fgSizer22 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer22.SetFlexibleDirection( wx.BOTH )
+		fgSizer22.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
 		self.txtRSCPPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
-		fgSizer1.Add( self.txtRSCPPassword, 0, wx.ALL, 5 )
+		fgSizer22.Add( self.txtRSCPPassword, 0, wx.ALL, 5 )
+
+		self.bConfigSetRSCPPassword = wx.Button( self.pEinstellungen, wx.ID_ANY, u"setzen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer22.Add( self.bConfigSetRSCPPassword, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer22, 1, wx.EXPAND, 5 )
 
 		self.bTest = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Verbindungstest", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer1.Add( self.bTest, 0, wx.ALL, 5 )
 
+
+		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticline12 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer1.Add( self.m_staticline12, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline13 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer1.Add( self.m_staticline13, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticText7 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"IP-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText7.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText7, 0, wx.ALL, 5 )
+
+		fgSizer211 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer211.SetFlexibleDirection( wx.BOTH )
+		fgSizer211.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtIP = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer211.Add( self.txtIP, 0, wx.ALL, 5 )
+
+		self.bConfigGetIPAddress = wx.Button( self.pEinstellungen, wx.ID_ANY, u"ermitteln", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer211.Add( self.bConfigGetIPAddress, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer211, 1, wx.EXPAND, 5 )
+
+		self.m_staticText171 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Verbindungsart", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText171.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText171, 0, wx.ALL, 5 )
+
+		self.chConfigWebsocket = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"Websockets", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chConfigWebsocket.Enable( False )
+
+		fgSizer1.Add( self.chConfigWebsocket, 0, wx.ALL, 5 )
+
+		self.m_staticText169 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Seriennummer", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText169.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText169, 0, wx.ALL, 5 )
+
+		fgSizer20 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer20.SetFlexibleDirection( wx.BOTH )
+		fgSizer20.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtConfigSeriennummer = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer20.Add( self.txtConfigSeriennummer, 0, wx.ALL, 5 )
+
+		self.bConfigGetSerialNo = wx.Button( self.pEinstellungen, wx.ID_ANY, u"ermitteln", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer20.Add( self.bConfigGetSerialNo, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer20, 1, wx.EXPAND, 5 )
+
+		self.m_staticText170 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Websocket-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText170.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText170, 0, wx.ALL, 5 )
+
+		fgSizer231 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer231.SetFlexibleDirection( wx.BOTH )
+		fgSizer231.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtConfigWebsocket = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtConfigWebsocket.Enable( False )
+
+		fgSizer231.Add( self.txtConfigWebsocket, 0, wx.ALL, 5 )
+
+		self.rConfigWebsocketConnected = wx.RadioButton( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer231.Add( self.rConfigWebsocketConnected, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer231, 1, wx.EXPAND, 5 )
+
 		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Übernehmen", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer1.Add( self.bSave, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
 
 
 		fgSizer1.Add( ( 0, 50), 1, wx.EXPAND, 5 )
@@ -2470,7 +2610,7 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer1 )
 		self.pEinstellungen.Layout()
 		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2484,6 +2624,7 @@ class MainFrame ( wx.Frame ):
 		self.Centre( wx.BOTH )
 
 		# Connect Events
+		self.Bind( wx.EVT_CLOSE, self.mainOnClose )
 		self.btnUpdatecheck.Bind( wx.EVT_BUTTON, self.bUpdateCheckClick )
 		self.bSYSReboot.Bind( wx.EVT_BUTTON, self.bSYSRebootOnClick )
 		self.bSYSApplicationRestart.Bind( wx.EVT_BUTTON, self.bSYSApplicationRestartOnClick )
@@ -2492,6 +2633,9 @@ class MainFrame ( wx.Frame ):
 		self.sEMSMaxDischargePower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargePowerOnScroll )
 		self.sEMSMaxDischargeStartPower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargeStartPowerOnScroll )
 		self.bEMSUploadChanges.Bind( wx.EVT_BUTTON, self.bEMSUploadChangesOnClick )
+		self.bConfigSetRSCPPassword.Bind( wx.EVT_BUTTON, self.bConfigSetRSCPPasswordOnClick )
+		self.bConfigGetIPAddress.Bind( wx.EVT_BUTTON, self.bConfigGetIPAddressOnClick )
+		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 
 	def __del__( self ):
@@ -2499,6 +2643,9 @@ class MainFrame ( wx.Frame ):
 
 
 	# Virtual event handlers, overide them in your derived class
+	def mainOnClose( self, event ):
+		event.Skip()
+
 	def bUpdateCheckClick( self, event ):
 		event.Skip()
 
@@ -2521,6 +2668,15 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bEMSUploadChangesOnClick( self, event ):
+		event.Skip()
+
+	def bConfigSetRSCPPasswordOnClick( self, event ):
+		event.Skip()
+
+	def bConfigGetIPAddressOnClick( self, event ):
+		event.Skip()
+
+	def bConfigGetSerialNoOnClick( self, event ):
 		event.Skip()
 
 	def sendToServer( self, event ):

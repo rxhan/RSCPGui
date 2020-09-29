@@ -22,19 +22,32 @@ from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
 
 class E3DCWebGui(rscp_helper):
+    timeout = 5
+    timeout_connect = 10
+
     def __init__(self, username, password, identifier, url = None):
         self.e3dc = E3DCWeb(username, password, identifier, url)
-        threading.Thread(target=self.e3dc.start_ws, args = ()).start()
+        self._wsthread = threading.Thread(target=self.e3dc.start_ws, args = ())
+        self._wsthread.start()
+
+    def __del__(self):
+        del self.e3dc
 
     def get_data(self, requests, raw=False):
+        start = time.time()
         while not self.e3dc.connected:
-            time.sleep(0.01)
+            if (time.time() - start) > self.timeout_connect:
+                raise Exception('WebGui Verbindungsaufbau fehlgeschlagen, Timeout')
+            time.sleep(0.1)
 
         r = self.e3dc.getRSCPToServer(requests)
         self.e3dc.register_next_response()
         self.e3dc.send_data(r)
+        start = time.time()
         while self.e3dc.next_response:
-            time.sleep(0.01)
+            if (time.time() - start) > self.timeout:
+                raise Exception('WebGui Datenabfrage fehlgeschlagen, Timeout')
+            time.sleep(0.1)
 
         return self.e3dc.next_response_data
 
@@ -116,8 +129,13 @@ class E3DCWeb(E3DC):
                     p = []
                     rscp_data = res['SERVER_RSCP_DATA']
 
+                    print(rscp_data)
+
                     if self.next_response:
-                        self.next_response_data = rscp_data
+                        if isinstance(rscp_data.data, RSCPDTO):
+                            self.next_response_data = rscp_data.data
+                        else:
+                            self.next_response_data = rscp_data
                         self.next_response = None
                     if 'INFO_SERIAL_NUMBER' in rscp_data:
                         self.info_serial_number = rscp_data['INFO_SERIAL_NUMBER'].data
@@ -182,6 +200,7 @@ class E3DCWeb(E3DC):
                 x = RSCPDTO(payload_element)
             else:
                 x = payload_element
+            print(x)
             payload += self.rscp_utils.encode_data(x)
 
         payload = self.rscp_utils.encode_frame(payload)
@@ -232,15 +251,8 @@ class E3DCWeb(E3DC):
                                             'Cache-Control': 'no-cache',
                                             })
 
-        def on_open(ws):
-            def run(*args):
-                time.sleep(99999)
-                ws.close()
-                print("thread terminating...")
-
-            thread.start_new_thread(run, ())
-
-        ws.on_open = on_open
         self.ws = ws
         ws.run_forever()
 
+    def __del__(self):
+        self.ws.close()

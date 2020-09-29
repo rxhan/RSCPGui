@@ -13,7 +13,7 @@ It consists of a tag, the type, the data and the size of the data.
 """
 
 class RSCPDTO:
-    def __init__(self, tag: RSCPTag, rscp_type: RSCPType = RSCPType.Nil, data: Union[list, float, str, None] = None,
+    def __init__(self, tag: RSCPTag, rscp_type: RSCPType = RSCPType.Nil, data: Union[list, float, str, None, bytes] = None,
                  size: Optional[int] = None):
         self.tag = tag
         self.type = rscp_type
@@ -90,6 +90,12 @@ class RSCPDTO:
                     return data
             elif len(result) > 1:
                 return result
+        else:
+            if self.data:
+                if self.data.tag == RSCPTag.LIST_TYPE:
+                    return self.data[key]
+                elif self.data.name == key:
+                    return self.data
 
         return None
 
@@ -118,6 +124,12 @@ class RSCPDTO:
                 elif isinstance(item, RSCPDTO):
                     if data == item:
                         return True
+        else:
+            if self.data:
+                if self.data.tag == RSCPTag.LIST_TYPE:
+                    return item in self.data
+                elif self.data.name == item:
+                    return True
 
         return False
 
