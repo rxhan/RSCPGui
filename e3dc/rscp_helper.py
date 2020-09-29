@@ -377,8 +377,10 @@ class rscp_helper():
         if raw:
             if len(responses) == 1:
                 return responses[0]
-            else:
+            elif len(responses) > 0:
                 rscp = RSCPDTO(tag=RSCPTag.LIST_TYPE, rscp_type=RSCPType.Container, data=responses)
                 return rscp
+            else:
+                return None
         else:
             raise Exception('Deprecated')
