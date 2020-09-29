@@ -5,6 +5,7 @@ import threading
 import time
 import traceback
 
+import pytz as pytz
 import requests
 import wx
 import wx.dataview
@@ -51,6 +52,7 @@ class Frame(MainFrame):
     _curpmcols = 0
     _extsrcavailable = 0
     _gui = None
+    _time_format = '%d.%m.%Y %H:%M:%S.%f'
 
     def loadConfig(self):
         config = configparser.ConfigParser()
@@ -97,6 +99,9 @@ class Frame(MainFrame):
 
     def __init__(self, parent):
         MainFrame.__init__(self, parent)
+
+        for tz in pytz.all_timezones:
+            self.cbTimezone.Append(str(tz))
 
         self.loadConfig()
 
@@ -159,8 +164,8 @@ class Frame(MainFrame):
         self.txtSwRelease.SetValue(repr(d['INFO_SW_RELEASE']))
         self.txtA35Serial.SetValue(repr(d['INFO_A35_SERIAL_NUMBER']))
         dd = datetime.datetime.utcfromtimestamp(float(d['INFO_TIME'].data))
-        self.txtTime.SetValue(str(dd))
-        self.txtTimezone.SetValue(repr(d['INFO_TIME_ZONE']))
+        self.txtTime.SetValue(str(dd.strftime(self._time_format)))
+        self.cbTimezone.SetValue(repr(d['INFO_TIME_ZONE']))
         dd = datetime.datetime.utcfromtimestamp(float(d['INFO_UTC_TIME'].data))
         self.txtTimeUTC.SetValue(str(dd))
         self.txtUpdateStatus.SetValue(repr(d['UM_UPDATE_STATUS']))
@@ -356,7 +361,12 @@ class Frame(MainFrame):
         self.chEMSPowerSaveEnabled.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_POWERSAVE_ENABLED'].data)
         self.chEMSWeatherRegulatedChargeEnabled.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_WEATHER_REGULATED_CHARGE_ENABLED'].data)
         self.txtEMSStatus.SetValue(repr(d['EMS_STATUS']))
-        self.chEMSEPTestRunning.SetValue(d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_RUNNING'].data)
+        eptest = d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_RUNNING'].data
+        if eptest:
+            self.bEMSEPTest.Enable(False)
+        else:
+            self.bEMSEPTest.Enable(True)
+        self.chEMSEPTestRunning.SetValue(eptest)
         self.txtEMSEPTestCounter.SetValue(repr(d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_START_COUNTER']))
         self.txtEMSEPTestTimestamp.SetValue(repr(d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_NEXT_TESTSTART']))
 
@@ -364,10 +374,23 @@ class Frame(MainFrame):
         self.txtEMSPowerWBSolar.SetValue(repr(d['EMS_POWER_WB_SOLAR']) + ' W')
         self.chEMSAlive.SetValue(d['EMS_ALIVE'].data)
 
-        self.chEMSGetManualCharge.SetValue(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ACTIVE'].data)
-        self.txtEMSManualChargeStartCounter.SetValue(repr(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_START_COUNTER']))
-        self.txtEMSManualChargeEnergyCounter.SetValue(repr(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ENERGY_COUNTER'])) # TODO: Einheit anfügen
-        self.txtEMSManualChargeLaststart.SetValue(repr(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_LASTSTART'])) # TODO: Datetime formatieren
+        manChargeActive = d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ACTIVE'].data
+
+        self.chEMSGetManualCharge.SetValue(manChargeActive)
+        if manChargeActive:
+            self.bEMSManualChargeStart.Enable(False)
+        else:
+            self.bEMSManualChargeStart.Enable(True)
+
+        startcounter = d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_START_COUNTER'].data/1000
+        dd = datetime.datetime.fromtimestamp(startcounter)
+        self.txtEMSManualChargeStartCounter.SetValue(dd.strftime(self._time_format))
+
+        self.txtEMSManualChargeEnergyCounter.SetValue(str(round(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ENERGY_COUNTER'],5)) + ' kWh') # TODO: Einheit anfügen
+
+        laststart = d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_LASTSTART'].data
+        dd = datetime.datetime.fromtimestamp(laststart)
+        self.txtEMSManualChargeLaststart.SetValue(dd.strftime(self._time_format))
 
         for sysspec in d['EMS_GET_SYS_SPECS']['EMS_SYS_SPEC']:
             if sysspec['EMS_SYS_SPEC_NAME'].data == 'hybridModeSupported':
@@ -759,14 +782,28 @@ class Frame(MainFrame):
     def bSYSRebootOnClick( self, event ):
         res = wx.MessageBox('Soll das gesamte E3/DC - System wirklich neu gestartet werden?', 'Systemneustart', wx.YES_NO | wx.ICON_WARNING)
         if res == wx.YES:
-            wx.MessageBox('Funktion noch nicht implementiert!')
-            x = RSCPTag.REQ_SYSTEM_REBOOT
+            try:
+                r = RSCPTag.SYS_REQ_SYSTEM_REBOOT
+                print(r)
+                res = self.gui.get_data([r], True)
+                print(res)
+                wx.MessageBox('System wird neu gestartet')
+            except:
+                traceback.print_exc()
+                wx.MessageBox('Übertragung fehlgeschlagen')
 
     def bSYSApplicationRestartOnClick( self, event ):
         res = wx.MessageBox('Soll die Anwendung im E3/DC wirklich neu gestartet werden?', 'Applikations - Neustart', wx.YES_NO | wx.ICON_WARNING)
         if res == wx.YES:
-            wx.MessageBox('Funktion noch nicht implementiert!')
-            x = RSCPTag.SYS_REQ_RESTART_APPLICATION
+            try:
+                r = RSCPTag.SYS_REQ_RESTART_APPLICATION
+                print(r)
+                res = self.gui.get_data([r], True)
+                print(res)
+                wx.MessageBox('Anwendung wird neu gestartet')
+            except:
+                traceback.print_exc()
+                wx.MessageBox('Übertragung fehlgeschlagen')
 
     def bEMSEPTestOnClick( self, event ):
         res = wx.MessageBox('Beim Notstromtest wird kurz der Hausstrom gekappt.\nNach etwa 10-15 Sekunden sollte dann '
@@ -775,8 +812,38 @@ class Frame(MainFrame):
                             'getrennt für ca. 2 Sekunden.\n\nSoll der Notstrom-Test wirklich durchgeführt werden?',
                             'Notstrom-Test', wx.YES_NO | wx.ICON_WARNING)
         if res == wx.YES:
-            wx.MessageBox('Funktion noch nicht implementiert!')
-            x = RSCPDTO(tag = RSCPTag.REQ_START_EMERGENCYPOWER_TEST, rscp_type=RSCPType.Bool, data = True)
+            try:
+                r = RSCPDTO(tag = RSCPTag.REQ_START_EMERGENCYPOWER_TEST, rscp_type=RSCPType.Bool, data = True)
+                print(r)
+                res = self.gui.get_data([r], True)
+                print(res)
+                wx.MessageBox('Notstromtest wird durchgeführt')
+            except:
+                traceback.print_exc()
+                wx.MessageBox('Übertragung fehlgeschlagen')
+
+    def bEMSManualChargeStartOnClick( self, event ):
+        try:
+            val = int(self.txtEMSManualChargeValue.GetValue())
+        except:
+            val = 0
+        if val > 0:
+            res = wx.MessageBox('Die manuelle Ladung ist auf die Ausführung einmal am Tag begrenzt, steht nicht genügend PV-Leistung zur Verfügung, wird Netzstrom bezogen! Fortfahren?', 'Manuelle Ladung', wx.YES_NO | wx.ICON_QUESTION)
+            if res == wx.YES:
+                try:
+                    r = RSCPDTO(tag = RSCPTag.EMS_REQ_START_MANUAL_CHARGE, rscp_type = RSCPType.Uint32, data = val)
+                    print(r)
+                    res = self.gui.get_data([r], True)
+                    print(res)
+                    if res.name == 'EMS_START_MANUAL_CHARGE' and res.data:
+                        wx.MessageBox('Manuelle Ladung gestartet')
+                    else:
+                        wx.MessageBox('Fehler beim Start der manuellen Ladung, heute bereits durchgeführt?')
+                except:
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
+        else:
+            wx.MessageBox('Die Ladung von (' + self.txtEMSManualChargeValue.GetValue() + ') Wh ist nicht zulässig, bitte anderen Ganzzahl-Wert wählen', 'Manuelle Ladung', wx.ICON_WARNING)
 
     def bTestClick(self, event, method = 'auto'):
         try:
@@ -849,10 +916,12 @@ class Frame(MainFrame):
                 self.fill_info()
             except:
                 traceback.print_exc()
+
             try:
                 self.fill_bat()
             except:
                 traceback.print_exc()
+
             try:
                 self.fill_dcdc()
             except:
@@ -1092,12 +1161,75 @@ class Frame(MainFrame):
 
     def check_e3dcwebgui(self):
         while True:
-            if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
-                self.setWSConnected()
-            else:
-                self.setWSDisconnected()
+            try:
+                if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
+                    self.setWSConnected()
+                else:
+                    self.setWSDisconnected()
 
-            time.sleep(1)
+                time.sleep(1)
+            except:
+                pass
+
+    def bINFOSaveOnClick( self, event ):
+        r = []
+        test = self.cbTimezone.GetValue()
+        if test != self._data_info['INFO_TIME_ZONE'].data:
+            r.append(RSCPDTO(tag = RSCPTag.INFO_REQ_SET_TIME_ZONE, rscp_type=RSCPType.CString, data=test))
+
+        test = self.txtIPAdress.GetValue()
+        if test != self._data_info['INFO_IP_ADDRESS'].data:
+            r.append(RSCPDTO(tag = RSCPTag.INFO_REQ_SET_IP_ADDRESS, rscp_type=RSCPType.CString, data=test))
+
+        test = self.txtSubnetmask.GetValue()
+        if test != self._data_info['INFO_SUBNET_MASK'].data:
+            r.append(RSCPDTO(tag = RSCPTag.INFO_REQ_SET_SUBNET_MASK, rscp_type=RSCPType.CString, data=test))
+
+        test = self.txtGateway.GetValue()
+        if test != self._data_info['INFO_GATEWAY'].data:
+            r.append(RSCPDTO(tag = RSCPTag.INFO_REQ_SET_GATEWAY, rscp_type=RSCPType.CString, data=test))
+
+        test = self.txtDNSServer.GetValue()
+        if test != self._data_info['INFO_DNS'].data:
+            r.append(RSCPDTO(tag = RSCPTag.INFO_REQ_SET_DNS, rscp_type=RSCPType.CString, data=test))
+
+        test = self.chDHCP.GetValue()
+        if test != self._data_info['INFO_DHCP_STATUS'].data:
+            r.append(RSCPDTO(tag = RSCPTag.INFO_REQ_SET_DHCP_STATUS, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) == 0:
+            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Info speichern', wx.YES_NO)
+            if res == wx.YES:
+                test = self.cbTimezone.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_TIME_ZONE, rscp_type=RSCPType.CString, data=test))
+
+                test = self.txtIPAdress.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_IP_ADDRESS, rscp_type=RSCPType.CString, data=test))
+
+                test = self.txtSubnetmask.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_SUBNET_MASK, rscp_type=RSCPType.CString, data=test))
+
+                test = self.txtGateway.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_GATEWAY, rscp_type=RSCPType.CString, data=test))
+
+                test = self.txtDNSServer.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_DNS, rscp_type=RSCPType.CString, data=test))
+
+                test = self.chDHCP.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_DHCP_STATUS, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) > 0:
+            res = wx.MessageBox('Wichtig: Falsche Einstellungen können dazu führen, dass das E3DC nicht mehr oder nur noch per Websockets zu erreichen ist. Die Einstellungen müssen dann über das Display direkt geändert werden. Wirklich durchführen?', 'Hinweis', wx.ICON_WARNING + wx.YES_NO)
+            if res == wx.YES:
+                try:
+                    res = self.gui.get_data(r, True)
+                    wx.MessageBox('Übertragung abgeschlossen')
+                except:
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
+
+                self.bUpdateClick(event)
+
 
 app = wx.App()
 g = Frame(None)

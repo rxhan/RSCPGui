@@ -153,6 +153,8 @@ class MainFrame ( wx.Frame ):
 		gSizer2.Add( self.m_staticText9, 0, wx.ALL, 5 )
 
 		self.txtTime = wx.TextCtrl( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 160,-1 ), 0 )
+		self.txtTime.Enable( False )
+
 		gSizer2.Add( self.txtTime, 0, wx.ALL, 5 )
 
 		self.m_staticText11 = wx.StaticText( self.pMain, wx.ID_ANY, u"Zeitzone", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -160,8 +162,9 @@ class MainFrame ( wx.Frame ):
 
 		gSizer2.Add( self.m_staticText11, 0, wx.ALL, 5 )
 
-		self.txtTimezone = wx.TextCtrl( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer2.Add( self.txtTimezone, 0, wx.ALL, 5 )
+		cbTimezoneChoices = []
+		self.cbTimezone = wx.ComboBox( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, cbTimezoneChoices, 0 )
+		gSizer2.Add( self.cbTimezone, 0, wx.ALL, 5 )
 
 		self.m_staticText10 = wx.StaticText( self.pMain, wx.ID_ANY, u"Systemzeit (UTC)", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText10.Wrap( -1 )
@@ -195,6 +198,8 @@ class MainFrame ( wx.Frame ):
 		gSizer2.Add( self.m_staticText66, 0, wx.ALL, 5 )
 
 		self.txtMacAddress = wx.TextCtrl( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMacAddress.Enable( False )
+
 		gSizer2.Add( self.txtMacAddress, 0, wx.ALL, 5 )
 
 		self.m_staticText67 = wx.StaticText( self.pMain, wx.ID_ANY, u"Gateway", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -220,6 +225,9 @@ class MainFrame ( wx.Frame ):
 
 		self.chDHCP = wx.CheckBox( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer2.Add( self.chDHCP, 0, wx.ALL, 5 )
+
+		self.bINFOSave = wx.Button( self.pMain, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.bINFOSave, 0, wx.ALL, 5 )
 
 
 		fgSizer21.Add( gSizer2, 1, wx.EXPAND, 5 )
@@ -668,16 +676,6 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer15.Add( self.chEMSGetManualCharge, 0, wx.ALL, 5 )
 
-		self.m_staticText160 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Anzahl manueller Ladungen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText160.Wrap( -1 )
-
-		fgSizer15.Add( self.m_staticText160, 0, wx.ALL, 5 )
-
-		self.txtEMSManualChargeStartCounter = wx.TextCtrl( self.m_panel7, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.txtEMSManualChargeStartCounter.Enable( False )
-
-		fgSizer15.Add( self.txtEMSManualChargeStartCounter, 0, wx.ALL, 5 )
-
 		self.m_staticText161 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Manuell geladene Energiemenge", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText161.Wrap( -1 )
 
@@ -688,15 +686,49 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer15.Add( self.txtEMSManualChargeEnergyCounter, 0, wx.ALL, 5 )
 
+		self.m_staticText160 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"letzte manuelle Ladung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText160.Wrap( -1 )
+
+		fgSizer15.Add( self.m_staticText160, 0, wx.ALL, 5 )
+
+		self.txtEMSManualChargeStartCounter = wx.TextCtrl( self.m_panel7, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), 0 )
+		self.txtEMSManualChargeStartCounter.Enable( False )
+
+		fgSizer15.Add( self.txtEMSManualChargeStartCounter, 0, wx.ALL, 5 )
+
 		self.m_staticText162 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"letzte manuelle Ladung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText162.Wrap( -1 )
 
 		fgSizer15.Add( self.m_staticText162, 0, wx.ALL, 5 )
 
-		self.txtEMSManualChargeLaststart = wx.TextCtrl( self.m_panel7, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtEMSManualChargeLaststart = wx.TextCtrl( self.m_panel7, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), 0 )
 		self.txtEMSManualChargeLaststart.Enable( False )
 
 		fgSizer15.Add( self.txtEMSManualChargeLaststart, 0, wx.ALL, 5 )
+
+		self.m_staticline131 = wx.StaticLine( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer15.Add( self.m_staticline131, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline14 = wx.StaticLine( self.m_panel7, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer15.Add( self.m_staticline14, 0, wx.EXPAND |wx.ALL, 5 )
+
+		fgSizer24 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer24.SetFlexibleDirection( wx.BOTH )
+		fgSizer24.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtEMSManualChargeValue = wx.TextCtrl( self.m_panel7, wx.ID_ANY, u"200", wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
+		fgSizer24.Add( self.txtEMSManualChargeValue, 0, wx.ALL, 5 )
+
+		self.m_staticText173 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Wh", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText173.Wrap( -1 )
+
+		fgSizer24.Add( self.m_staticText173, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+
+
+		fgSizer15.Add( fgSizer24, 1, wx.EXPAND, 5 )
+
+		self.bEMSManualChargeStart = wx.Button( self.m_panel7, wx.ID_ANY, u"Manuelle Ladung starten", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer15.Add( self.bEMSManualChargeStart, 0, wx.ALL, 5 )
 
 
 		fgSizer10.Add( fgSizer15, 1, wx.EXPAND, 5 )
@@ -1564,7 +1596,7 @@ class MainFrame ( wx.Frame ):
 		self.pEMS.SetSizer( bSizer12 )
 		self.pEMS.Layout()
 		bSizer12.Fit( self.pEMS )
-		self.pMainregister.AddPage( self.pEMS, u"EMS", False )
+		self.pMainregister.AddPage( self.pEMS, u"EMS", True )
 		self.pDCDC = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer41 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1933,7 +1965,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel10.SetSizer( fgSizer23 )
 		self.m_panel10.Layout()
 		fgSizer23.Fit( self.m_panel10 )
-		self.m_notebook3.AddPage( self.m_panel10, u"Basis", False )
+		self.m_notebook3.AddPage( self.m_panel10, u"Basis", True )
 		self.m_panel11 = wx.Panel( self.m_notebook3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer5 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1996,7 +2028,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel11.SetSizer( bSizer5 )
 		self.m_panel11.Layout()
 		bSizer5.Fit( self.m_panel11 )
-		self.m_notebook3.AddPage( self.m_panel11, u"DCB", True )
+		self.m_notebook3.AddPage( self.m_panel11, u"DCB", False )
 
 		bSizer42.Add( self.m_notebook3, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2616,7 +2648,7 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer1 )
 		self.pEinstellungen.Layout()
 		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2634,7 +2666,9 @@ class MainFrame ( wx.Frame ):
 		self.btnUpdatecheck.Bind( wx.EVT_BUTTON, self.bUpdateCheckClick )
 		self.bSYSReboot.Bind( wx.EVT_BUTTON, self.bSYSRebootOnClick )
 		self.bSYSApplicationRestart.Bind( wx.EVT_BUTTON, self.bSYSApplicationRestartOnClick )
+		self.bINFOSave.Bind( wx.EVT_BUTTON, self.bINFOSaveOnClick )
 		self.bEMSEPTest.Bind( wx.EVT_BUTTON, self.bEMSEPTestOnClick )
+		self.bEMSManualChargeStart.Bind( wx.EVT_BUTTON, self.bEMSManualChargeStartOnClick )
 		self.sEMSMaxChargePower.Bind( wx.EVT_SCROLL, self.sEMSMaxChargePowerOnScroll )
 		self.sEMSMaxDischargePower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargePowerOnScroll )
 		self.sEMSMaxDischargeStartPower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargeStartPowerOnScroll )
@@ -2661,7 +2695,13 @@ class MainFrame ( wx.Frame ):
 	def bSYSApplicationRestartOnClick( self, event ):
 		event.Skip()
 
+	def bINFOSaveOnClick( self, event ):
+		event.Skip()
+
 	def bEMSEPTestOnClick( self, event ):
+		event.Skip()
+
+	def bEMSManualChargeStartOnClick( self, event ):
 		event.Skip()
 
 	def sEMSMaxChargePowerOnScroll( self, event ):
