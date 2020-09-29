@@ -26,8 +26,8 @@ Weitere Informationen werden automatisch ermittelt sofern ein Internetzugriff be
 Soll ein lokaler Zugriff erfolgen muss das RSCP-Passwort angegeben werden. 
 Dies kanna auch vom Programm gesetzt werden.
 
-# Windows-Binarys
+# Windows-Binary
 
-Können hier heruntergeladen werden:
+Kann hier heruntergeladen werden:
 
 https://pv.pincrushers.de/rscpgui
