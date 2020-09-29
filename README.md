@@ -7,11 +7,6 @@ Die Schnittstelle basiert auf der Library von fsantini (https://github.com/fsant
 
 # Abhängigkeiten
 
-wxPython
-py3rijndael
-requests
-websocket-client
-
 Getestet wurde mit Python 3.8 und Python 3.7.
 Grundsätzlich sollte das Programm Plattformunabhängig sein, es wurde jedoch ausschließlich mit Windows getestet.
 
