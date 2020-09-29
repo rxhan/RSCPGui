@@ -25511,7 +25511,7 @@
                                             <property name="aui_position"></property>
                                             <property name="aui_row"></property>
                                             <property name="best_size"></property>
-                                            <property name="bg"></property>
+                                            <property name="bg">wxSYS_COLOUR_INFOBK</property>
                                             <property name="caption">Web-Benutzername</property>
                                             <property name="caption_visible">1</property>
                                             <property name="center_pane">0</property>
@@ -25636,7 +25636,7 @@
                                             <property name="aui_position"></property>
                                             <property name="aui_row"></property>
                                             <property name="best_size"></property>
-                                            <property name="bg"></property>
+                                            <property name="bg">wxSYS_COLOUR_INFOBK</property>
                                             <property name="caption">Web-Passwort</property>
                                             <property name="caption_visible">1</property>
                                             <property name="center_pane">0</property>
@@ -25777,7 +25777,7 @@
                                                     <property name="aui_position"></property>
                                                     <property name="aui_row"></property>
                                                     <property name="best_size"></property>
-                                                    <property name="bg"></property>
+                                                    <property name="bg">wxSYS_COLOUR_INFOBK</property>
                                                     <property name="caption">RSCP-Passwort</property>
                                                     <property name="caption_visible">1</property>
                                                     <property name="center_pane">0</property>

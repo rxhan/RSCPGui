@@ -2469,6 +2469,8 @@ class MainFrame ( wx.Frame ):
 		fgSizer1.Add( self.m_staticText5, 0, wx.ALL, 5 )
 
 		self.txtUsername = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		self.txtUsername.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
+
 		fgSizer1.Add( self.txtUsername, 0, wx.ALL, 5 )
 
 		self.m_staticText6 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Web-Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -2477,6 +2479,8 @@ class MainFrame ( wx.Frame ):
 		fgSizer1.Add( self.m_staticText6, 0, wx.ALL, 5 )
 
 		self.txtPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
+		self.txtPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
+
 		fgSizer1.Add( self.txtPassword, 0, wx.ALL, 5 )
 
 		self.m_staticText8 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"RSCP-Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -2489,6 +2493,8 @@ class MainFrame ( wx.Frame ):
 		fgSizer22.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
 		self.txtRSCPPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
+		self.txtRSCPPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
+
 		fgSizer22.Add( self.txtRSCPPassword, 0, wx.ALL, 5 )
 
 		self.bConfigSetRSCPPassword = wx.Button( self.pEinstellungen, wx.ID_ANY, u"setzen", wx.DefaultPosition, wx.DefaultSize, 0 )
