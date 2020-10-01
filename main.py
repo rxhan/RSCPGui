@@ -1161,15 +1161,12 @@ class Frame(MainFrame):
 
     def check_e3dcwebgui(self):
         while True:
-            try:
-                if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
-                    self.setWSConnected()
-                else:
-                    self.setWSDisconnected()
+            if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
+                self.setWSConnected()
+            else:
+                self.setWSDisconnected()
 
-                time.sleep(1)
-            except:
-                pass
+            time.sleep(1)
 
     def bINFOSaveOnClick( self, event ):
         r = []
