@@ -72,8 +72,6 @@ class Frame(MainFrame):
                 self.txtConfigSeriennummer.SetValue(config['Login']['seriennummer'])
             if 'websocketaddr' in config['Login']:
                 self.txtConfigWebsocket.SetValue(config['Login']['websocketaddr'])
-            else:
-                self.txtConfigWebsocket.SetValue('wss://s10.e3dc.com/ws')
 
             if 'usewebsocket' in config['Login']:
                 if config['Login']['usewebsocket'] in ('1','true','ja'):
@@ -81,7 +79,9 @@ class Frame(MainFrame):
                 else:
                     usewebsocket = False
                 self.chConfigWebsocket.SetValue(usewebsocket)
-
+                
+        if self.txtConfigWebsocket.GetValue() == '':
+            self.txtConfigWebsocket.SetValue('wss://s10.e3dc.com/ws')
 
     def saveConfig(self):
         config = configparser.ConfigParser()
