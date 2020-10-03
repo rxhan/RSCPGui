@@ -698,13 +698,15 @@ class Frame(MainFrame):
         for bat in self._data_bat:
             self.cbBATIndex.Append('BAT #' + str(bat['BAT_INDEX'].data))
 
-        selected = self.cbBATIndex.GetSelection()
-        if selected != wx.NOT_FOUND:
-            self.fill_bat_index(selected)
-
     def fill_bat_index(self, index):
+        self.gDCB_row_voltages = None
+        self.gDCB_row_temp = None
+        self.gDCB_last_row = 28
+
         f = self._data_bat[index]
-        self.gDCB.DeleteCols()
+
+        dcbcount = int(f['BAT_DCB_COUNT'])
+        self.gDCB.DeleteCols(pos=0, numCols=self.gDCB.GetNumberCols())
         self.txtUsableCapacity.SetValue(str(round(f['BAT_USABLE_CAPACITY'], 5)) + ' Ah')
         self.txtUsableRemainingCapacity.SetValue(str(round(f['BAT_USABLE_REMAINING_CAPACITY'], 5)) + ' Ah')
         self.txtASOC.SetValue(str(round(f['BAT_ASOC'], 1)) + '%')
@@ -717,8 +719,8 @@ class Frame(MainFrame):
         self.txtBatStatusCode.SetValue(repr(f['BAT_INFO']['BAT_STATUS_CODE']))
         self.txtErrorCode.SetValue(repr(f['BAT_INFO']['BAT_ERROR_CODE']))
         self.txtDcbCount.SetValue(repr(f['BAT_DCB_COUNT']))
-        self.gDCB.AppendCols(int(f['BAT_DCB_COUNT']) - 1)
-        for i in range(0, int(f['BAT_DCB_COUNT'])):
+        self.gDCB.AppendCols(dcbcount)
+        for i in range(0, dcbcount):
             self.gDCB.SetColLabelValue(i, 'DCB #' + str(i))
         self.txtMaxBatVoltage.SetValue(repr(f['BAT_MAX_BAT_VOLTAGE']) + ' V')
         self.txtMaxChargeCurrent.SetValue(repr(f['BAT_MAX_CHARGE_CURRENT']) + ' A')
@@ -757,69 +759,75 @@ class Frame(MainFrame):
                 logger.warning('BAT_DCB_ALL_CELL_VOLTAGES konnte nicht abgerufen werden')
             else:
                 index = int(d['BAT_DCB_INDEX'])
-                if index == 0 and not self.gDCB_row_voltages:
-                    self.gDCB.AppendRows(len(d['BAT_DATA']))
-                    self.gDCB_row_voltages = self.gDCB_last_row
-                    self.gDCB_last_row += len(d['BAT_DATA'])
+                if index < dcbcount:
+                    if index == 0 and not self.gDCB_row_voltages:
+                        rows = self.gDCB.GetNumberRows()
+                        if rows < self.gDCB_last_row + len(d['BAT_DATA']):
+                            self.gDCB.AppendRows(len(d['BAT_DATA']))
+                        self.gDCB_row_voltages = self.gDCB_last_row
+                        self.gDCB_last_row += len(d['BAT_DATA'])
 
-                i = 1
-                for volt in d['BAT_DATA']:
-                    self.gDCB.SetRowLabelValue(self.gDCB_row_voltages + i, u"Spannung #" + str(i))
-                    self.gDCB.SetCellValue(self.gDCB_row_voltages + i, index, str(round(volt, 4)) + ' V')
-                    i += 1
+                    i = 1
+                    for volt in d['BAT_DATA']:
+                        self.gDCB.SetRowLabelValue(self.gDCB_row_voltages + i, u"Spannung #" + str(i))
+                        self.gDCB.SetCellValue(self.gDCB_row_voltages + i, index, str(round(volt, 4)) + ' V')
+                        i += 1
 
         for d in f['BAT_DCB_ALL_CELL_TEMPERATURES']:
             if d.type == RSCPType.Error:
                 logger.warning('BAT_DCB_ALL_CELL_TEMPERATURES konnte nicht abgerufen werden')
             else:
                 index = int(d['BAT_DCB_INDEX'])
-                if index == 0 and not self.gDCB_row_temp:
-                    self.gDCB.AppendRows(len(d['BAT_DATA']))
-                    self.gDCB_row_temp = self.gDCB_last_row
-                    self.gDCB_last_row += len(d['BAT_DATA'])
+                if index < dcbcount:
+                    if index == 0 and not self.gDCB_row_temp:
+                        rows = self.gDCB.GetNumberRows()
+                        if rows < self.gDCB_last_row + len(d['BAT_DATA']):
+                            self.gDCB.AppendRows(len(d['BAT_DATA']))
+                        self.gDCB_row_temp = self.gDCB_last_row
+                        self.gDCB_last_row += len(d['BAT_DATA'])
 
-                i = 1
-                for temp in d['BAT_DATA']:
-                    self.gDCB.SetRowLabelValue(self.gDCB_row_temp + i, u"Temperatur #" + str(i))
-                    self.gDCB.SetCellValue(self.gDCB_row_temp + i, index, str(round(temp, 4)) + ' °C')
-                    i += 1
+                    i = 1
+                    for temp in d['BAT_DATA']:
+                        self.gDCB.SetRowLabelValue(self.gDCB_row_temp + i, u"Temperatur #" + str(i))
+                        self.gDCB.SetCellValue(self.gDCB_row_temp + i, index, str(round(temp, 4)) + ' °C')
+                        i += 1
 
         for d in f['BAT_DCB_INFO']:
             if d.type == RSCPType.Error:
                 logger.warning('BAT_DCB_INFO konnte nicht abgerufen werden')
             else:
                 index = int(d['BAT_DCB_INDEX'])
-                dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP']) / 1000)
-                self.gDCB.SetCellValue(0, index, str(dd))
-                self.gDCB.SetCellValue(1, index, repr(d['BAT_DCB_MAX_CHARGE_VOLTAGE']) + ' V')
-                self.gDCB.SetCellValue(2, index, repr(d['BAT_DCB_MAX_CHARGE_CURRENT']) + ' A')
-                self.gDCB.SetCellValue(3, index, repr(d['BAT_DCB_END_OF_DISCHARGE']) + ' V')
-                self.gDCB.SetCellValue(4, index, repr(d['BAT_DCB_MAX_DISCHARGE_CURRENT']) + ' A')
-                self.gDCB.SetCellValue(5, index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'], 5)) + ' Ah')
-                self.gDCB.SetCellValue(6, index, str(round(d['BAT_DCB_REMAINING_CAPACITY'], 5)) + ' Ah')
-                self.gDCB.SetCellValue(7, index, repr(d['BAT_DCB_SOC']) + '%')
-                self.gDCB.SetCellValue(8, index, repr(d['BAT_DCB_SOH']) + '%')
-                self.gDCB.SetCellValue(9, index, repr(d['BAT_DCB_CYCLE_COUNT']))
-                self.gDCB.SetCellValue(10, index, str(round(d['BAT_DCB_CURRENT'], 5)) + ' A')
-                self.gDCB.SetCellValue(11, index, str(round(d['BAT_DCB_VOLTAGE'], 2)) + ' V')
-                self.gDCB.SetCellValue(12, index, str(round(d['BAT_DCB_CURRENT_AVG_30S'], 5)) + ' A')
-                self.gDCB.SetCellValue(13, index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'], 2)) + ' V')
-                self.gDCB.SetCellValue(14, index, str(round(d['BAT_DCB_DESIGN_CAPACITY'], 5)) + ' Ah')
-                self.gDCB.SetCellValue(15, index, repr(d['BAT_DCB_DESIGN_VOLTAGE']) + ' V')
-                self.gDCB.SetCellValue(16, index, repr(d['BAT_DCB_CHARGE_LOW_TEMPERATURE']) + ' °C')
-                self.gDCB.SetCellValue(17, index, repr(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE']) + ' °C')
-                self.gDCB.SetCellValue(18, index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
-                self.gDCB.SetCellValue(19, index, repr(d['BAT_DCB_SERIALNO']))
-                self.gDCB.SetCellValue(20, index, repr(d['BAT_DCB_FW_VERSION']))
-                self.gDCB.SetCellValue(21, index, repr(d['BAT_DCB_PCB_VERSION']))
-                self.gDCB.SetCellValue(22, index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
-                self.gDCB.SetCellValue(23, index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
-                self.gDCB.SetCellValue(24, index, repr(d['BAT_DCB_NR_SERIES_CELL']))
-                self.gDCB.SetCellValue(25, index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
-                self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_SERIALCODE']))
-                self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_SENSOR']))
-                self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_STATUS']))
-                self.gDCB_last_row = 28
+                if index < dcbcount:
+                    dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP']) / 1000)
+                    self.gDCB.SetCellValue(0, index, str(dd))
+                    self.gDCB.SetCellValue(1, index, repr(d['BAT_DCB_MAX_CHARGE_VOLTAGE']) + ' V')
+                    self.gDCB.SetCellValue(2, index, repr(d['BAT_DCB_MAX_CHARGE_CURRENT']) + ' A')
+                    self.gDCB.SetCellValue(3, index, repr(d['BAT_DCB_END_OF_DISCHARGE']) + ' V')
+                    self.gDCB.SetCellValue(4, index, repr(d['BAT_DCB_MAX_DISCHARGE_CURRENT']) + ' A')
+                    self.gDCB.SetCellValue(5, index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'], 5)) + ' Ah')
+                    self.gDCB.SetCellValue(6, index, str(round(d['BAT_DCB_REMAINING_CAPACITY'], 5)) + ' Ah')
+                    self.gDCB.SetCellValue(7, index, repr(d['BAT_DCB_SOC']) + '%')
+                    self.gDCB.SetCellValue(8, index, repr(d['BAT_DCB_SOH']) + '%')
+                    self.gDCB.SetCellValue(9, index, repr(d['BAT_DCB_CYCLE_COUNT']))
+                    self.gDCB.SetCellValue(10, index, str(round(d['BAT_DCB_CURRENT'], 5)) + ' A')
+                    self.gDCB.SetCellValue(11, index, str(round(d['BAT_DCB_VOLTAGE'], 2)) + ' V')
+                    self.gDCB.SetCellValue(12, index, str(round(d['BAT_DCB_CURRENT_AVG_30S'], 5)) + ' A')
+                    self.gDCB.SetCellValue(13, index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'], 2)) + ' V')
+                    self.gDCB.SetCellValue(14, index, str(round(d['BAT_DCB_DESIGN_CAPACITY'], 5)) + ' Ah')
+                    self.gDCB.SetCellValue(15, index, repr(d['BAT_DCB_DESIGN_VOLTAGE']) + ' V')
+                    self.gDCB.SetCellValue(16, index, repr(d['BAT_DCB_CHARGE_LOW_TEMPERATURE']) + ' °C')
+                    self.gDCB.SetCellValue(17, index, repr(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE']) + ' °C')
+                    self.gDCB.SetCellValue(18, index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
+                    self.gDCB.SetCellValue(19, index, repr(d['BAT_DCB_SERIALNO']))
+                    self.gDCB.SetCellValue(20, index, repr(d['BAT_DCB_FW_VERSION']))
+                    self.gDCB.SetCellValue(21, index, repr(d['BAT_DCB_PCB_VERSION']))
+                    self.gDCB.SetCellValue(22, index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
+                    self.gDCB.SetCellValue(23, index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
+                    self.gDCB.SetCellValue(24, index, repr(d['BAT_DCB_NR_SERIES_CELL']))
+                    self.gDCB.SetCellValue(25, index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
+                    self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_SERIALCODE']))
+                    self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_SENSOR']))
+                    self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_STATUS']))
 
         self.gDCB.AutoSizeColumns()
 
@@ -982,7 +990,7 @@ class Frame(MainFrame):
                     selected = 0
 
                 self.fill_bat()
-                
+
                 if selected != wx.NOT_FOUND:
                     if self.cbBATIndex.GetCount() > selected:
                         self.cbBATIndex.SetSelection(selected)
