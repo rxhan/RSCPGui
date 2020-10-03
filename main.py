@@ -20,6 +20,22 @@ from gui import MainFrame
 from e3dc.rscp_helper import rscp_helper
 import datetime
 import configparser
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
 
 try:
     import thread
@@ -42,21 +58,44 @@ class MessageBox(wx.Dialog):
 
 class Frame(MainFrame):
     _serverApp = None
-    _data_bat = None
-    _data_dcdc = None
-    _data_ems = None
-    _data_info = None
-    _data_pvi = None
-    _data_pm = None
-    _data_wb = None
     _curpmcols = 0
     _extsrcavailable = 0
     _gui = None
     _time_format = '%d.%m.%Y %H:%M:%S.%f'
 
+    def __init__(self, parent):
+        self.clear_values()
+        MainFrame.__init__(self, parent)
+
+        self.ConfigFilename = 'rscpe3dc.conf.ini'
+
+        for tz in pytz.all_timezones:
+            self.cbTimezone.Append(str(tz))
+
+        self.loadConfig()
+
+        self.Bind(wx.EVT_BUTTON, self.bTestClick, self.bTest)
+        self.Bind(wx.EVT_BUTTON, self.bSaveClick, self.bSave)
+        self.Bind(wx.EVT_BUTTON, self.bUpdateClick, self.bUpdate)
+
+        self.gDCB_row_voltages = None
+        self.gDCB_row_temp = None
+
+        self._gui = None
+
+        self._wsthread = threading.Thread(target=self.check_e3dcwebgui, args=())
+        self._wsthread.start()
+
+        try:
+            self.bUpdateClick(None)
+        except:
+            traceback.print_exc()
+
     def loadConfig(self):
+        logger.info('Lade Konfigurationsdatei ' + self.ConfigFilename)
+
         config = configparser.ConfigParser()
-        config.read('rscpe3dc.conf.ini')
+        config.read(self.ConfigFilename)
 
         if 'Login' in config:
 
@@ -84,8 +123,10 @@ class Frame(MainFrame):
             self.txtConfigWebsocket.SetValue('wss://s10.e3dc.com/ws')
 
     def saveConfig(self):
+        logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
+
         config = configparser.ConfigParser()
-        config.read('rscpe3dc.conf.ini')
+        config.read(self.ConfigFilename)
         config['Login'] = {'username':self.txtUsername.GetValue(),
                            'password':self.txtPassword.GetValue(),
                            'address':self.txtIP.GetValue(),
@@ -94,33 +135,9 @@ class Frame(MainFrame):
                            'websocketaddr':self.txtConfigWebsocket.GetValue(),
                            'usewebsocket':'true' if self.chConfigWebsocket.GetValue() else 'false'}
 
-        with open('rscpe3dc.conf.ini', 'w') as configfile:
+        with open(self.ConfigFilename, 'w') as configfile:
             config.write(configfile)
 
-    def __init__(self, parent):
-        MainFrame.__init__(self, parent)
-
-        for tz in pytz.all_timezones:
-            self.cbTimezone.Append(str(tz))
-
-        self.loadConfig()
-
-        self.Bind(wx.EVT_BUTTON, self.bTestClick, self.bTest)
-        self.Bind(wx.EVT_BUTTON, self.bSaveClick, self.bSave)
-        self.Bind(wx.EVT_BUTTON, self.bUpdateClick, self.bUpdate)
-
-        self.gDCB_row_voltages = None
-        self.gDCB_row_temp = None
-
-        self._gui = None
-
-        self._wsthread = threading.Thread(target=self.check_e3dcwebgui, args=())
-        self._wsthread.start()
-
-        try:
-            self.bUpdateClick(None)
-        except:
-            traceback.print_exc()
 
     @property
     def gui(self):
@@ -144,12 +161,13 @@ class Frame(MainFrame):
 
         if self._username and self._password and self._address and self._rscppass and not self._usewebsocket:
             self._gui = E3DCGui(self._username, self._password, self._address, self._rscppass)
-            print('Verwende Direkte Verbindung')
+            logger.info('Verwende Direkte Verbindung')
         elif self._username and self._password and self._seriennummer and self._websocketaddr and self._usewebsocket:
             self._gui = E3DCWebGui(self._username, self._password, self._seriennummer)
-            print('Verwende Websocket')
+            logger.info('Verwende Websocket')
         else:
             self._gui = None
+            logger.info('Kein Verbindungstyp kann verwendet werden, es fehlen Verbindungsdaten')
 
         self.gDCB_last_row = 28
 
@@ -492,19 +510,15 @@ class Frame(MainFrame):
         else:
             indexes = None
 
-        data = self.gui.get_data(self.gui.getPMData(pm_indexes = indexes), True)
-        self._data_pm = data
-        if not isinstance(data, list):
-            if isinstance(data, RSCPDTO) and data.tag != RSCPTag.LIST_TYPE:
-                data = [data]
-
         self._curpmcols = -1
         self.gPM.DeleteCols()
-        for pm in data:
-            if pm.name == 'PM_DATA':
-                d = pm
-                if 'PM_DEVICE_STATE' not in pm or pm['PM_DEVICE_STATE'].type != RSCPType.Error:
-                    index = pm['PM_INDEX'].data
+
+        for index in indexes:
+            try:
+                d = self.gui.get_data(self.gui.getPMData(pm_index=index), True)
+                self._data_pm.append(d)
+                if 'PM_DEVICE_STATE' not in d or d['PM_DEVICE_STATE'].type != RSCPType.Error:
+                    index = d['PM_INDEX'].data
                     if index > self._curpmcols:
                         if index >= self.gPM.GetNumberCols():
                             self.gPM.AppendCols(1)
@@ -551,29 +565,36 @@ class Frame(MainFrame):
                         self.gPM.SetCellValue(26, index, repr(d['PM_CS_UNK_FRAMES']))
                         self.gPM.SetCellValue(27, index, repr(d['PM_CS_ERR_FRAME']))
 
+                    logger.info('PM #' + str(index) + ' erfolgreich abgerufen')
+            except:
+                logger.exception('PM #' + str(index) + ' konnte nicht abgerufen werden.')
 
         self.gPM.AutoSize()
 
     def fill_dcdc(self):
-        for index in [0,1]:
-            data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
-            #self._data_dcdc[index] = data
-            d = data
+        for index in [0,1,2,3]:
+            try:
+                data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
+                self._data_dcdc.append(data)
+                d = data
 
-            index = int(d['DCDC_INDEX'])
+                index = int(d['DCDC_INDEX'])
 
-            self.gDCDC.SetCellValue(0,index, str(round(d['DCDC_I_BAT'].data,5)) + ' A')
-            self.gDCDC.SetCellValue(1,index, str(round(d['DCDC_U_BAT'].data,2)) + ' V')
-            self.gDCDC.SetCellValue(2,index, str(round(d['DCDC_P_BAT'].data,2)) + ' W')
-            self.gDCDC.SetCellValue(3,index, str(round(d['DCDC_I_DCL'].data,5)) + ' A')
-            self.gDCDC.SetCellValue(4,index, str(round(d['DCDC_U_DCL'].data,2)) + ' V')
-            self.gDCDC.SetCellValue(5,index, str(round(d['DCDC_P_DCL'].data,2)) + ' W')
-            self.gDCDC.SetCellValue(6,index, repr(d['DCDC_FIRMWARE_VERSION']))
-            self.gDCDC.SetCellValue(7,index, repr(d['DCDC_FPGA_FIRMWARE']))
-            self.gDCDC.SetCellValue(8,index, repr(d['DCDC_SERIAL_NUMBER']))
-            self.gDCDC.SetCellValue(9,index, str(repr(d['DCDC_BOARD_VERSION'])))
-            self.gDCDC.SetCellValue(10,index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_STATE_AS_STRING']))
-            self.gDCDC.SetCellValue(11,index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_SUBSTATE_AS_STRING']))
+                self.gDCDC.SetCellValue(0,index, str(round(d['DCDC_I_BAT'].data,5)) + ' A')
+                self.gDCDC.SetCellValue(1,index, str(round(d['DCDC_U_BAT'].data,2)) + ' V')
+                self.gDCDC.SetCellValue(2,index, str(round(d['DCDC_P_BAT'].data,2)) + ' W')
+                self.gDCDC.SetCellValue(3,index, str(round(d['DCDC_I_DCL'].data,5)) + ' A')
+                self.gDCDC.SetCellValue(4,index, str(round(d['DCDC_U_DCL'].data,2)) + ' V')
+                self.gDCDC.SetCellValue(5,index, str(round(d['DCDC_P_DCL'].data,2)) + ' W')
+                self.gDCDC.SetCellValue(6,index, repr(d['DCDC_FIRMWARE_VERSION']))
+                self.gDCDC.SetCellValue(7,index, repr(d['DCDC_FPGA_FIRMWARE']))
+                self.gDCDC.SetCellValue(8,index, repr(d['DCDC_SERIAL_NUMBER']))
+                self.gDCDC.SetCellValue(9,index, str(repr(d['DCDC_BOARD_VERSION'])))
+                self.gDCDC.SetCellValue(10,index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_STATE_AS_STRING']))
+                self.gDCDC.SetCellValue(11,index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_SUBSTATE_AS_STRING']))
+                logger.info('DCDC #' + str(index) + ' wurde erfolgreich abgefragt.')
+            except:
+                logger.exception('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
 
         self.gDCDC.AutoSizeColumns()
 
@@ -662,32 +683,51 @@ class Frame(MainFrame):
 
 
     def fill_bat(self):
-        f = self.gui.get_data(self.gui.getBatDcbData(), True)
-        self._data_bat = f
+        for index in [0,1]:
+            try:
+                requests = self.gui.getBatDcbData(bat_index=index)
+                if len(requests) > 0:
+                    f = self.gui.get_data(requests, True)
+                    self._data_bat.append(f)
+                    logger.exception('Erfolgreich BAT #' + str(index) + ' abgerufen')
+            except:
+                logger.exception('Fehler beim Abruf von BAT #' + str(index))
+
+        self.cbBATIndex.Clear()
+
+        for bat in self._data_bat:
+            self.cbBATIndex.Append('BAT #' + str(bat['BAT_INDEX'].data))
+
+        selected = self.cbBATIndex.GetSelection()
+        if selected != wx.NOT_FOUND:
+            self.fill_bat_index(selected)
+
+    def fill_bat_index(self, index):
+        f = self._data_bat[index]
         self.gDCB.DeleteCols()
-        self.txtUsableCapacity.SetValue(str(round(f['BAT_USABLE_CAPACITY'],5)) + ' Ah')
-        self.txtUsableRemainingCapacity.SetValue(str(round(f['BAT_USABLE_REMAINING_CAPACITY'],5)) + ' Ah')
-        self.txtASOC.SetValue(str(round(f['BAT_ASOC'],1)) + '%')
+        self.txtUsableCapacity.SetValue(str(round(f['BAT_USABLE_CAPACITY'], 5)) + ' Ah')
+        self.txtUsableRemainingCapacity.SetValue(str(round(f['BAT_USABLE_REMAINING_CAPACITY'], 5)) + ' Ah')
+        self.txtASOC.SetValue(str(round(f['BAT_ASOC'], 1)) + '%')
         self.txtFCC.SetValue(str(round(f['BAT_FCC'], 3)))
         self.txtRC.SetValue(str(round(f['BAT_RC'], 1)) + '%')
-        self.txtRSOC.SetValue(str(round(f['BAT_INFO']['BAT_RSOC'],1)) + '%')
-        self.txtRSOCREAL.SetValue(str(round(f['BAT_RSOC_REAL'],1)) + '%')
-        self.txtModuleVoltage.SetValue(str(round(f['BAT_INFO']['BAT_MODULE_VOLTAGE'],3)) + ' V')
-        self.txtCurrent.SetValue(str(round(f['BAT_INFO']['BAT_CURRENT'],5)) + ' A')
+        self.txtRSOC.SetValue(str(round(f['BAT_INFO']['BAT_RSOC'], 1)) + '%')
+        self.txtRSOCREAL.SetValue(str(round(f['BAT_RSOC_REAL'], 1)) + '%')
+        self.txtModuleVoltage.SetValue(str(round(f['BAT_INFO']['BAT_MODULE_VOLTAGE'], 3)) + ' V')
+        self.txtCurrent.SetValue(str(round(f['BAT_INFO']['BAT_CURRENT'], 5)) + ' A')
         self.txtBatStatusCode.SetValue(repr(f['BAT_INFO']['BAT_STATUS_CODE']))
         self.txtErrorCode.SetValue(repr(f['BAT_INFO']['BAT_ERROR_CODE']))
         self.txtDcbCount.SetValue(repr(f['BAT_DCB_COUNT']))
-        self.gDCB.AppendCols(int(f['BAT_DCB_COUNT'])-1)
+        self.gDCB.AppendCols(int(f['BAT_DCB_COUNT']) - 1)
         for i in range(0, int(f['BAT_DCB_COUNT'])):
-            self.gDCB.SetColLabelValue(i,'DCB #' + str(i))
+            self.gDCB.SetColLabelValue(i, 'DCB #' + str(i))
         self.txtMaxBatVoltage.SetValue(repr(f['BAT_MAX_BAT_VOLTAGE']) + ' V')
         self.txtMaxChargeCurrent.SetValue(repr(f['BAT_MAX_CHARGE_CURRENT']) + ' A')
-        self.txtEodVoltage.SetValue(repr(f['BAT_EOD_VOLTAGE'])+ ' V')
-        self.txtMaxDischargeCurrent.SetValue(repr(f['BAT_MAX_DISCHARGE_CURRENT'])+ ' A')
+        self.txtEodVoltage.SetValue(repr(f['BAT_EOD_VOLTAGE']) + ' V')
+        self.txtMaxDischargeCurrent.SetValue(repr(f['BAT_MAX_DISCHARGE_CURRENT']) + ' A')
         self.txtChargeCycles.SetValue(repr(f['BAT_CHARGE_CYCLES']))
         self.txtTerminalVoltage.SetValue(repr(f['BAT_TERMINAL_VOLTAGE']) + ' V')
-        self.txtMaxDcbCellTemperature.SetValue(str(round(f['BAT_MAX_DCB_CELL_TEMPERATURE'],2)) + ' °C')
-        self.txtMinDcbCellTemperature.SetValue(str(round(f['BAT_MIN_DCB_CELL_TEMPERATURE'],2)) + ' °C')
+        self.txtMaxDcbCellTemperature.SetValue(str(round(f['BAT_MAX_DCB_CELL_TEMPERATURE'], 2)) + ' °C')
+        self.txtMinDcbCellTemperature.SetValue(str(round(f['BAT_MIN_DCB_CELL_TEMPERATURE'], 2)) + ' °C')
 
         self.chBATDeviceConnected.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_CONNECTED'].data)
         self.chBATDeviceWorking.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_WORKING'].data)
@@ -711,65 +751,75 @@ class Frame(MainFrame):
             s = ' - '
         self.txtBatTrainingMode.SetValue(s)
         self.txtBatDeviceName.SetValue(repr(f['BAT_DEVICE_NAME']))
-        for d in f['BAT_DCB_ALL_CELL_VOLTAGES']:
-            index = int(d['BAT_DCB_INDEX'])
-            i = 1
-            if index == 0 and not self.gDCB_row_voltages:
-                self.gDCB.AppendRows(len(d['BAT_DATA']))
-                self.gDCB_row_voltages = self.gDCB_last_row
-                self.gDCB_last_row += len(d['BAT_DATA'])
 
-            for volt in d['BAT_DATA']:
-                self.gDCB.SetRowLabelValue(self.gDCB_row_voltages + i, u"Spannung #" + str(i))
-                self.gDCB.SetCellValue(self.gDCB_row_voltages + i, index, str(round(volt,4)) + ' V')
-                i+=1
+        for d in f['BAT_DCB_ALL_CELL_VOLTAGES']:
+            if d.type == RSCPType.Error:
+                logger.warning('BAT_DCB_ALL_CELL_VOLTAGES konnte nicht abgerufen werden')
+            else:
+                index = int(d['BAT_DCB_INDEX'])
+                if index == 0 and not self.gDCB_row_voltages:
+                    self.gDCB.AppendRows(len(d['BAT_DATA']))
+                    self.gDCB_row_voltages = self.gDCB_last_row
+                    self.gDCB_last_row += len(d['BAT_DATA'])
+
+                i = 1
+                for volt in d['BAT_DATA']:
+                    self.gDCB.SetRowLabelValue(self.gDCB_row_voltages + i, u"Spannung #" + str(i))
+                    self.gDCB.SetCellValue(self.gDCB_row_voltages + i, index, str(round(volt, 4)) + ' V')
+                    i += 1
 
         for d in f['BAT_DCB_ALL_CELL_TEMPERATURES']:
-            index = int(d['BAT_DCB_INDEX'])
-            i = 1
-            if index == 0 and not self.gDCB_row_temp:
-                self.gDCB.AppendRows(len(d['BAT_DATA']))
-                self.gDCB_row_temp = self.gDCB_last_row
-                self.gDCB_last_row += len(d['BAT_DATA'])
+            if d.type == RSCPType.Error:
+                logger.warning('BAT_DCB_ALL_CELL_TEMPERATURES konnte nicht abgerufen werden')
+            else:
+                index = int(d['BAT_DCB_INDEX'])
+                if index == 0 and not self.gDCB_row_temp:
+                    self.gDCB.AppendRows(len(d['BAT_DATA']))
+                    self.gDCB_row_temp = self.gDCB_last_row
+                    self.gDCB_last_row += len(d['BAT_DATA'])
 
-            for temp in d['BAT_DATA']:
-                self.gDCB.SetRowLabelValue(self.gDCB_row_temp + i, u"Temperatur #" + str(i))
-                self.gDCB.SetCellValue(self.gDCB_row_temp + i, index, str(round(temp,4)) + ' °C')
-                i+=1
+                i = 1
+                for temp in d['BAT_DATA']:
+                    self.gDCB.SetRowLabelValue(self.gDCB_row_temp + i, u"Temperatur #" + str(i))
+                    self.gDCB.SetCellValue(self.gDCB_row_temp + i, index, str(round(temp, 4)) + ' °C')
+                    i += 1
 
         for d in f['BAT_DCB_INFO']:
-            index = int(d['BAT_DCB_INDEX'])
-            dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP'])/1000)
-            self.gDCB.SetCellValue(0,index, str(dd))
-            self.gDCB.SetCellValue(1,index, repr(d['BAT_DCB_MAX_CHARGE_VOLTAGE']) + ' V')
-            self.gDCB.SetCellValue(2,index, repr(d['BAT_DCB_MAX_CHARGE_CURRENT']) + ' A')
-            self.gDCB.SetCellValue(3,index, repr(d['BAT_DCB_END_OF_DISCHARGE']) + ' V')
-            self.gDCB.SetCellValue(4,index, repr(d['BAT_DCB_MAX_DISCHARGE_CURRENT']) + ' A')
-            self.gDCB.SetCellValue(5,index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'],5)) + ' Ah')
-            self.gDCB.SetCellValue(6,index, str(round(d['BAT_DCB_REMAINING_CAPACITY'],5)) + ' Ah')
-            self.gDCB.SetCellValue(7,index, repr(d['BAT_DCB_SOC']) + '%')
-            self.gDCB.SetCellValue(8,index, repr(d['BAT_DCB_SOH']) + '%')
-            self.gDCB.SetCellValue(9,index, repr(d['BAT_DCB_CYCLE_COUNT']))
-            self.gDCB.SetCellValue(10,index, str(round(d['BAT_DCB_CURRENT'],5)) + ' A')
-            self.gDCB.SetCellValue(11,index, str(round(d['BAT_DCB_VOLTAGE'],2)) + ' V')
-            self.gDCB.SetCellValue(12,index, str(round(d['BAT_DCB_CURRENT_AVG_30S'],5)) + ' A')
-            self.gDCB.SetCellValue(13,index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'],2)) + ' V')
-            self.gDCB.SetCellValue(14,index, str(round(d['BAT_DCB_DESIGN_CAPACITY'],5)) + ' Ah')
-            self.gDCB.SetCellValue(15,index, repr(d['BAT_DCB_DESIGN_VOLTAGE']) + ' V')
-            self.gDCB.SetCellValue(16,index, repr(d['BAT_DCB_CHARGE_LOW_TEMPERATURE']) + ' °C')
-            self.gDCB.SetCellValue(17,index, repr(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE']) + ' °C')
-            self.gDCB.SetCellValue(18,index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
-            self.gDCB.SetCellValue(19,index, repr(d['BAT_DCB_SERIALNO']))
-            self.gDCB.SetCellValue(20,index, repr(d['BAT_DCB_FW_VERSION']))
-            self.gDCB.SetCellValue(21,index, repr(d['BAT_DCB_PCB_VERSION']))
-            self.gDCB.SetCellValue(22,index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
-            self.gDCB.SetCellValue(23,index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
-            self.gDCB.SetCellValue(24,index, repr(d['BAT_DCB_NR_SERIES_CELL']))
-            self.gDCB.SetCellValue(25,index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
-            self.gDCB.SetCellValue(26,index, repr(d['BAT_DCB_SERIALCODE']))
-            self.gDCB.SetCellValue(27,index, repr(d['BAT_DCB_NR_SENSOR']))
-            self.gDCB.SetCellValue(28,index, repr(d['BAT_DCB_STATUS']))
-            self.gDCB_last_row = 28
+            if d.type == RSCPType.Error:
+                logger.warning('BAT_DCB_INFO konnte nicht abgerufen werden')
+            else:
+                index = int(d['BAT_DCB_INDEX'])
+                dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP']) / 1000)
+                self.gDCB.SetCellValue(0, index, str(dd))
+                self.gDCB.SetCellValue(1, index, repr(d['BAT_DCB_MAX_CHARGE_VOLTAGE']) + ' V')
+                self.gDCB.SetCellValue(2, index, repr(d['BAT_DCB_MAX_CHARGE_CURRENT']) + ' A')
+                self.gDCB.SetCellValue(3, index, repr(d['BAT_DCB_END_OF_DISCHARGE']) + ' V')
+                self.gDCB.SetCellValue(4, index, repr(d['BAT_DCB_MAX_DISCHARGE_CURRENT']) + ' A')
+                self.gDCB.SetCellValue(5, index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'], 5)) + ' Ah')
+                self.gDCB.SetCellValue(6, index, str(round(d['BAT_DCB_REMAINING_CAPACITY'], 5)) + ' Ah')
+                self.gDCB.SetCellValue(7, index, repr(d['BAT_DCB_SOC']) + '%')
+                self.gDCB.SetCellValue(8, index, repr(d['BAT_DCB_SOH']) + '%')
+                self.gDCB.SetCellValue(9, index, repr(d['BAT_DCB_CYCLE_COUNT']))
+                self.gDCB.SetCellValue(10, index, str(round(d['BAT_DCB_CURRENT'], 5)) + ' A')
+                self.gDCB.SetCellValue(11, index, str(round(d['BAT_DCB_VOLTAGE'], 2)) + ' V')
+                self.gDCB.SetCellValue(12, index, str(round(d['BAT_DCB_CURRENT_AVG_30S'], 5)) + ' A')
+                self.gDCB.SetCellValue(13, index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'], 2)) + ' V')
+                self.gDCB.SetCellValue(14, index, str(round(d['BAT_DCB_DESIGN_CAPACITY'], 5)) + ' Ah')
+                self.gDCB.SetCellValue(15, index, repr(d['BAT_DCB_DESIGN_VOLTAGE']) + ' V')
+                self.gDCB.SetCellValue(16, index, repr(d['BAT_DCB_CHARGE_LOW_TEMPERATURE']) + ' °C')
+                self.gDCB.SetCellValue(17, index, repr(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE']) + ' °C')
+                self.gDCB.SetCellValue(18, index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
+                self.gDCB.SetCellValue(19, index, repr(d['BAT_DCB_SERIALNO']))
+                self.gDCB.SetCellValue(20, index, repr(d['BAT_DCB_FW_VERSION']))
+                self.gDCB.SetCellValue(21, index, repr(d['BAT_DCB_PCB_VERSION']))
+                self.gDCB.SetCellValue(22, index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
+                self.gDCB.SetCellValue(23, index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
+                self.gDCB.SetCellValue(24, index, repr(d['BAT_DCB_NR_SERIES_CELL']))
+                self.gDCB.SetCellValue(25, index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
+                self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_SERIALCODE']))
+                self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_SENSOR']))
+                self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_STATUS']))
+                self.gDCB_last_row = 28
 
         self.gDCB.AutoSizeColumns()
 
@@ -908,77 +958,93 @@ class Frame(MainFrame):
         else:
             wx.MessageBox('Updatecheck konnte nicht ausgeführt werden')
 
+    def clear_values(self):
+        self._data_bat = []
+        self._data_dcdc = []
+        self._data_ems = None
+        self._data_info = None
+        self._data_pvi = None
+        self._data_pm = []
+        self._data_wb = None
 
     def bUpdateClick(self, event):
         if self.gui:
+            self.clear_values()
 
             try:
                 self.fill_info()
             except:
-                traceback.print_exc()
+                logger.exception('Fehler beim Abruf der INFO-Daten')
 
             try:
+                selected = self.cbBATIndex.GetSelection()
+                if selected in [wx.NOT_FOUND, '', None, False]:
+                    selected = 0
+
                 self.fill_bat()
+                
+                if selected != wx.NOT_FOUND:
+                    if self.cbBATIndex.GetCount() > selected:
+                        self.cbBATIndex.SetSelection(selected)
+                        self.fill_bat_index(selected)
             except:
-                traceback.print_exc()
+                logger.exception('Fehler beim Abruf der BAT-Daten')
 
             try:
                 self.fill_dcdc()
             except:
-                traceback.print_exc()
+                logger.exception('Fehler beim Abruf der DCDC-Daten')
 
             try:
                 self.fill_pvi()
             except:
-                traceback.print_exc()
+                logger.exception('Fehler beim Abruf der PVI-Daten')
 
             try:
                 self.fill_ems()
             except:
-                traceback.print_exc()
+                logger.exception('Fehler beim Abruf der EMS-Daten')
 
             try:
                 self.fill_pm()
             except:
-                traceback.print_exc()
+                logger.exception('Fehler beim Abruf der PM-Daten')
 
             try:
                 self.fill_wb()
             except:
-                traceback.print_exc()
+                logger.exception('Fehler beim Abruf der WB-Daten')
+
+    def bSaveRSCPDataOnClick( self, event ):
+        with wx.FileDialog(self, "als JSON speichern", wildcard="JSON files (*.json)|*.json",
+                           style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT) as fileDialog:
+
+            if fileDialog.ShowModal() == wx.ID_CANCEL:
+                return  # the user changed their mind
+
+            # save the current contents in the file
+            pathname = fileDialog.GetPath()
+            try:
+                data = self.sammle_data()
+
+                with open(pathname, 'w') as file:
+                    json.dump(data, file)
+
+            except IOError:
+                wx.LogError("Cannot save current data in file '%s'." % pathname)
+
+
+        event.Skip()
 
     def sendToServer(self, event):
         ret = wx.MessageBox('Achtung, es werden alle angezeigten Daten an externe Stelle übermittelt.\nSeriennummern werden in anonymisierter Form übermittelt.\nZugangsdaten werden nicht übermittelt.\nDie Datenübertragung erfolgt verschlüsselt.\nWirklich fortfahren?',
                             caption = 'Ausgelesene Daten übermitteln',
                             style=wx.YES_NO)
         if ret == wx.YES:
-            anonymize = ['DCDC_SERIAL_NUMBER','BAT_DCB_SERIALNO','BAT_DCB_SERIALCODE','INFO_SERIAL_NUMBER','INFO_A35_SERIAL_NUMBER','PVI_SERIAL_NUMBER']
-            remove = ['INFO_IP_ADDRESS']
-            data = {}
-            if self._data_bat:
-                data['BAT_DATA'] = self._data_bat.asDict()
-
-            if self._data_dcdc:
-                data['DCDC_DATA'] = self._data_dcdc.asDict()
-
-            if self._data_ems:
-                data['EMS_DATA'] = self._data_ems.asDict()
-
-            if self._data_info:
-                data['INFO_DATA'] = self._data_info.asDict()
-
-            if self._data_pvi:
-                data['PVI_DATA'] = self._data_pvi.asDict()
-
-            if self._data_pm:
-                data['PM_DATA'] = self._data_pm.asDict()
-
-            if self._data_wb:
-                data['WB_DATA'] = self._data_wb.asDict()
-
-            data = self.anonymize_data(data, anonymize, remove)
             status = 'NO CODE'
             try:
+                data = self.sammle_data()
+
                 r = requests.post(url = self.txtDBServer.GetValue(), json = data)
                 status = r.status_code
                 r.raise_for_status()
@@ -993,6 +1059,44 @@ class Frame(MainFrame):
             except:
                 traceback.print_exc()
                 wx.MessageBox('Es gab einen Fehler bei der Übermittlung. (HTTP-Status: ' + str(r.status_code) + ')')
+
+    def sammle_data(self):
+        anonymize = ['DCDC_SERIAL_NUMBER', 'INFO_MAC_ADDRESS', 'BAT_DCB_SERIALNO', 'BAT_DCB_SERIALCODE', 'INFO_SERIAL_NUMBER',
+                     'INFO_A35_SERIAL_NUMBER', 'PVI_SERIAL_NUMBER', 'INFO_PRODUCTION_DATE']
+        remove = ['INFO_IP_ADDRESS']
+        data = {}
+        if self._data_bat:
+            data['BAT_DATA'] = []
+            print(data)
+            print(type(data['BAT_DATA']))
+            for d in self._data_bat:
+                data['BAT_DATA'].append(d.asDict())
+
+        if self._data_dcdc:
+            data['DCDC_DATA'] = []
+            for d in self._data_dcdc:
+                data['DCDC_DATA'].append(d.asDict())
+
+        if self._data_ems:
+            data['EMS_DATA'] = self._data_ems.asDict()
+
+        if self._data_info:
+            data['INFO_DATA'] = self._data_info.asDict()
+
+        if self._data_pvi:
+            data['PVI_DATA'] = self._data_pvi.asDict()
+
+        if self._data_pm:
+            data['PM_DATA'] = []
+            for d in self._data_pm:
+                data['PM_DATA'].append(d.asDict())
+
+        if self._data_wb:
+            data['WB_DATA'] = self._data_wb.asDict()
+
+        data = self.anonymize_data(data, anonymize, remove)
+
+        return data
 
     def anonymize_data(self, data, anonymize, remove):
         if isinstance(data, dict):
@@ -1167,6 +1271,13 @@ class Frame(MainFrame):
                 self.setWSDisconnected()
 
             time.sleep(1)
+
+    def cbBATIndexOnCombobox( self, event ):
+        selected = self.cbBATIndex.GetSelection()
+        if selected != wx.NOT_FOUND:
+            self.fill_bat_index(selected)
+
+        event.Skip()
 
     def bINFOSaveOnClick( self, event ):
         r = []
