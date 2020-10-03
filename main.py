@@ -1,5 +1,8 @@
+import configparser
+import datetime
 import hashlib
 import json
+import logging
 import re
 import threading
 import time
@@ -12,15 +15,12 @@ import wx.dataview
 
 from e3dc._rscp_dto import RSCPDTO
 from e3dc._rscp_exceptions import RSCPCommunicationError
-from e3dc.e3dc import E3DC
-from e3dcwebgui import E3DCWebGui
+from e3dc.rscp_helper import rscp_helper
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
+from e3dcwebgui import E3DCWebGui
 from gui import MainFrame
-from e3dc.rscp_helper import rscp_helper
-import datetime
-import configparser
-import logging
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 

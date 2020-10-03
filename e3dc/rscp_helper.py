@@ -1,10 +1,6 @@
 # -*- coding: latin-1 -*-
 
 import datetime
-import hashlib
-import time
-import json
-import traceback
 import logging
 
 from e3dc._rscp_dto import RSCPDTO

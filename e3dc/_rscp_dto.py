@@ -70,6 +70,9 @@ class RSCPDTO:
                 ret = self.data[self.current_pos]
                 self.current_pos += 1
                 return ret
+        elif self.current_pos == 0:
+            self.current_pos += 1
+            return self.data
 
         self.current_pos = 0
         raise StopIteration()
