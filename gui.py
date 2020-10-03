@@ -1596,7 +1596,7 @@ class MainFrame ( wx.Frame ):
 		self.pEMS.SetSizer( bSizer12 )
 		self.pEMS.Layout()
 		bSizer12.Fit( self.pEMS )
-		self.pMainregister.AddPage( self.pEMS, u"EMS", True )
+		self.pMainregister.AddPage( self.pEMS, u"EMS", False )
 		self.pDCDC = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer41 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1649,295 +1649,300 @@ class MainFrame ( wx.Frame ):
 		self.pBAT = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer42 = wx.BoxSizer( wx.VERTICAL )
 
-		self.m_notebook3 = wx.Notebook( self.pBAT, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_panel10 = wx.Panel( self.m_notebook3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		cbBATIndexChoices = []
+		self.cbBATIndex = wx.ComboBox( self.pBAT, wx.ID_ANY, u"BAT Index", wx.DefaultPosition, wx.DefaultSize, cbBATIndexChoices, 0 )
+		bSizer42.Add( self.cbBATIndex, 0, wx.ALL, 5 )
+
+		self.m_staticline15 = wx.StaticLine( self.pBAT, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer42.Add( self.m_staticline15, 0, wx.EXPAND |wx.ALL, 5 )
+
 		fgSizer23 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer23.SetFlexibleDirection( wx.BOTH )
 		fgSizer23.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
 		gSizer3 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.m_staticText15 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Modulespannung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText15 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Modulespannung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText15.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText15, 0, wx.ALL, 5 )
 
-		self.txtModuleVoltage = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtModuleVoltage = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtModuleVoltage.Enable( False )
 
 		gSizer3.Add( self.txtModuleVoltage, 0, wx.ALL, 5 )
 
-		self.m_staticText17 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximale Modulspannung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText17 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Maximale Modulspannung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText17.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText17, 0, wx.ALL, 5 )
 
-		self.txtMaxBatVoltage = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMaxBatVoltage = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtMaxBatVoltage.Enable( False )
 
 		gSizer3.Add( self.txtMaxBatVoltage, 0, wx.ALL, 5 )
 
-		self.m_staticText16 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Stromstärke", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText16 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Stromstärke", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText16.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText16, 0, wx.ALL, 5 )
 
-		self.txtCurrent = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtCurrent = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtCurrent.Enable( False )
 
 		gSizer3.Add( self.txtCurrent, 0, wx.ALL, 5 )
 
-		self.m_staticText18 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximaler Ladestrom", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText18 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Maximaler Ladestrom", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText18.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText18, 0, wx.ALL, 5 )
 
-		self.txtMaxChargeCurrent = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMaxChargeCurrent = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtMaxChargeCurrent.Enable( False )
 
 		gSizer3.Add( self.txtMaxChargeCurrent, 0, wx.ALL, 5 )
 
-		self.m_staticText19 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Entladeschlussspannung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText19 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Entladeschlussspannung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText19.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText19, 0, wx.ALL, 5 )
 
-		self.txtEodVoltage = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtEodVoltage = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtEodVoltage.Enable( False )
 
 		gSizer3.Add( self.txtEodVoltage, 0, wx.ALL, 5 )
 
-		self.m_staticText20 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximaler Entladestrom", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText20 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Maximaler Entladestrom", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText20.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText20, 0, wx.ALL, 5 )
 
-		self.txtMaxDischargeCurrent = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMaxDischargeCurrent = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtMaxDischargeCurrent.Enable( False )
 
 		gSizer3.Add( self.txtMaxDischargeCurrent, 0, wx.ALL, 5 )
 
-		self.m_staticText21 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Ladezyklen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText21 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Ladezyklen", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText21.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText21, 0, wx.ALL, 5 )
 
-		self.txtChargeCycles = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtChargeCycles = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtChargeCycles.Enable( False )
 
 		gSizer3.Add( self.txtChargeCycles, 0, wx.ALL, 5 )
 
-		self.m_staticText22 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Terminalspannung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText22 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Terminalspannung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText22.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText22, 0, wx.ALL, 5 )
 
-		self.txtTerminalVoltage = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtTerminalVoltage = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtTerminalVoltage.Enable( False )
 
 		gSizer3.Add( self.txtTerminalVoltage, 0, wx.ALL, 5 )
 
-		self.m_staticText23 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Statuscode", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText23 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Statuscode", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText23.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText23, 0, wx.ALL, 5 )
 
-		self.txtBatStatusCode = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBatStatusCode = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBatStatusCode.Enable( False )
 
 		gSizer3.Add( self.txtBatStatusCode, 0, wx.ALL, 5 )
 
-		self.m_staticText24 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Errorcode", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText24 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Errorcode", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText24.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText24, 0, wx.ALL, 5 )
 
-		self.txtErrorCode = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtErrorCode = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtErrorCode.Enable( False )
 
 		gSizer3.Add( self.txtErrorCode, 0, wx.ALL, 5 )
 
-		self.m_staticText25 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Gerätename", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText25 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Gerätename", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText25.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText25, 0, wx.ALL, 5 )
 
-		self.txtBatDeviceName = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBatDeviceName = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBatDeviceName.Enable( False )
 
 		gSizer3.Add( self.txtBatDeviceName, 0, wx.ALL, 5 )
 
-		self.m_staticText26 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Anzahl Batteriemodule", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText26 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Anzahl Batteriemodule", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText26.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText26, 0, wx.ALL, 5 )
 
-		self.txtDcbCount = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtDcbCount = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtDcbCount.Enable( False )
 
 		gSizer3.Add( self.txtDcbCount, 0, wx.ALL, 5 )
 
-		self.m_staticText163 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"maximale Anzahl Batteriemodule", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText163 = wx.StaticText( self.pBAT, wx.ID_ANY, u"maximale Anzahl Batteriemodule", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText163.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText163, 0, wx.ALL, 5 )
 
-		self.txtBATMaxDCBCount = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMaxDCBCount = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBATMaxDCBCount.Enable( False )
 
 		gSizer3.Add( self.txtBATMaxDCBCount, 0, wx.ALL, 5 )
 
-		self.m_staticText164 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText164 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText164.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText164, 0, wx.ALL, 5 )
 
-		self.txtBATCapacity = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATCapacity = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBATCapacity.Enable( False )
 
 		gSizer3.Add( self.txtBATCapacity, 0, wx.ALL, 5 )
 
-		self.m_staticText165 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximale Ladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText165 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Maximale Ladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText165.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText165, 0, wx.ALL, 5 )
 
-		self.txtBATMaxChargePower = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMaxChargePower = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBATMaxChargePower.Enable( False )
 
 		gSizer3.Add( self.txtBATMaxChargePower, 0, wx.ALL, 5 )
 
-		self.m_staticText166 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximale Entladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText166 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Maximale Entladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText166.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText166, 0, wx.ALL, 5 )
 
-		self.txtBATMaxDischargePower = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMaxDischargePower = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBATMaxDischargePower.Enable( False )
 
 		gSizer3.Add( self.txtBATMaxDischargePower, 0, wx.ALL, 5 )
 
-		self.m_staticText167 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"gemessener Wiederstand", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText167 = wx.StaticText( self.pBAT, wx.ID_ANY, u"gemessener Wiederstand", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText167.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText167, 0, wx.ALL, 5 )
 
-		self.txtBATMeasuredResistance = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATMeasuredResistance = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBATMeasuredResistance.Enable( False )
 
 		gSizer3.Add( self.txtBATMeasuredResistance, 0, wx.ALL, 5 )
 
-		self.m_staticText168 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"gemessener Wiederstand (RUN)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText168 = wx.StaticText( self.pBAT, wx.ID_ANY, u"gemessener Wiederstand (RUN)", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText168.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText168, 0, wx.ALL, 5 )
 
-		self.txtBATRunMeasuredResistance = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBATRunMeasuredResistance = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBATRunMeasuredResistance.Enable( False )
 
 		gSizer3.Add( self.txtBATRunMeasuredResistance, 0, wx.ALL, 5 )
 
-		self.m_staticText27 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Maximale Modultemperatur", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText27 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Maximale Modultemperatur", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText27.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText27, 0, wx.ALL, 5 )
 
-		self.txtMaxDcbCellTemperature = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMaxDcbCellTemperature = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtMaxDcbCellTemperature.Enable( False )
 
 		gSizer3.Add( self.txtMaxDcbCellTemperature, 0, wx.ALL, 5 )
 
-		self.m_staticText28 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Minimale Modultemperatur", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText28 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Minimale Modultemperatur", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText28.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText28, 0, wx.ALL, 5 )
 
-		self.txtMinDcbCellTemperature = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMinDcbCellTemperature = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtMinDcbCellTemperature.Enable( False )
 
 		gSizer3.Add( self.txtMinDcbCellTemperature, 0, wx.ALL, 5 )
 
-		self.m_staticText29 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Training Modus", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText29 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Training Modus", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText29.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText29, 0, wx.ALL, 5 )
 
-		self.txtBatTrainingMode = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtBatTrainingMode = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtBatTrainingMode.Enable( False )
 
 		gSizer3.Add( self.txtBatTrainingMode, 0, wx.ALL, 5 )
 
-		self.m_staticText30 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Nutzbare Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText30 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Nutzbare Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText30.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText30, 0, wx.ALL, 5 )
 
-		self.txtUsableCapacity = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtUsableCapacity = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtUsableCapacity.Enable( False )
 
 		gSizer3.Add( self.txtUsableCapacity, 0, wx.ALL, 5 )
 
-		self.m_staticText31 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Verbleibende Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText31 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Verbleibende Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText31.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText31, 0, wx.ALL, 5 )
 
-		self.txtUsableRemainingCapacity = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtUsableRemainingCapacity = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtUsableRemainingCapacity.Enable( False )
 
 		gSizer3.Add( self.txtUsableRemainingCapacity, 0, wx.ALL, 5 )
 
-		self.m_staticText32 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Verfügbarer SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText32 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Verfügbarer SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText32.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText32, 0, wx.ALL, 5 )
 
-		self.txtASOC = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtASOC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtASOC.Enable( False )
 
 		gSizer3.Add( self.txtASOC, 0, wx.ALL, 5 )
 
-		self.m_staticText14 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Verbleibender SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText14 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Verbleibender SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText14.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText14, 0, wx.ALL, 5 )
 
-		self.txtRSOC = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtRSOC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtRSOC.Enable( False )
 
 		gSizer3.Add( self.txtRSOC, 0, wx.ALL, 5 )
 
-		self.m_staticText341 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"Tatsächlicher SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText341 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Tatsächlicher SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText341.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText341, 0, wx.ALL, 5 )
 
-		self.txtRSOCREAL = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtRSOCREAL = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtRSOCREAL.Enable( False )
 
 		gSizer3.Add( self.txtRSOCREAL, 0, wx.ALL, 5 )
 
-		self.m_staticText33 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"FCC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText33 = wx.StaticText( self.pBAT, wx.ID_ANY, u"FCC", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText33.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText33, 0, wx.ALL, 5 )
 
-		self.txtFCC = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtFCC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtFCC.Enable( False )
 
 		gSizer3.Add( self.txtFCC, 0, wx.ALL, 5 )
 
-		self.m_staticText34 = wx.StaticText( self.m_panel10, wx.ID_ANY, u"RC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText34 = wx.StaticText( self.pBAT, wx.ID_ANY, u"RC", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText34.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText34, 0, wx.ALL, 5 )
 
-		self.txtRC = wx.TextCtrl( self.m_panel10, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtRC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.txtRC.Enable( False )
 
 		gSizer3.Add( self.txtRC, 0, wx.ALL, 5 )
 
-		self.chBATDeviceConnected = wx.CheckBox( self.m_panel10, wx.ID_ANY, u"Gerät verbunden", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chBATDeviceConnected = wx.CheckBox( self.pBAT, wx.ID_ANY, u"Gerät verbunden", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chBATDeviceConnected.Enable( False )
 
 		gSizer3.Add( self.chBATDeviceConnected, 0, wx.ALL, 5 )
@@ -1945,7 +1950,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( ( 0, 0), 1, wx.EXPAND, 5 )
 
-		self.chBATDeviceWorking = wx.CheckBox( self.m_panel10, wx.ID_ANY, u"Gerät arbeitet", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chBATDeviceWorking = wx.CheckBox( self.pBAT, wx.ID_ANY, u"Gerät arbeitet", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chBATDeviceWorking.Enable( False )
 
 		gSizer3.Add( self.chBATDeviceWorking, 0, wx.ALL, 5 )
@@ -1953,7 +1958,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( ( 0, 0), 1, wx.EXPAND, 5 )
 
-		self.chBATDeviceInService = wx.CheckBox( self.m_panel10, wx.ID_ANY, u"Gerät in Wartung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chBATDeviceInService = wx.CheckBox( self.pBAT, wx.ID_ANY, u"Gerät in Wartung", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chBATDeviceInService.Enable( False )
 
 		gSizer3.Add( self.chBATDeviceInService, 0, wx.ALL, 5 )
@@ -1961,15 +1966,9 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer23.Add( gSizer3, 1, wx.EXPAND, 5 )
 
-
-		self.m_panel10.SetSizer( fgSizer23 )
-		self.m_panel10.Layout()
-		fgSizer23.Fit( self.m_panel10 )
-		self.m_notebook3.AddPage( self.m_panel10, u"Basis", True )
-		self.m_panel11 = wx.Panel( self.m_notebook3, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer5 = wx.BoxSizer( wx.VERTICAL )
 
-		self.gDCB = wx.grid.Grid( self.m_panel11, wx.ID_ANY, wx.DefaultPosition, wx.Size( 600,-1 ), 0 )
+		self.gDCB = wx.grid.Grid( self.pBAT, wx.ID_ANY, wx.DefaultPosition, wx.Size( 600,-1 ), 0 )
 
 		# Grid
 		self.gDCB.CreateGrid( 29, 2 )
@@ -2025,12 +2024,10 @@ class MainFrame ( wx.Frame ):
 		bSizer5.Add( self.gDCB, 0, wx.ALL, 5 )
 
 
-		self.m_panel11.SetSizer( bSizer5 )
-		self.m_panel11.Layout()
-		bSizer5.Fit( self.m_panel11 )
-		self.m_notebook3.AddPage( self.m_panel11, u"DCB", False )
+		fgSizer23.Add( bSizer5, 1, wx.EXPAND, 5 )
 
-		bSizer42.Add( self.m_notebook3, 1, wx.EXPAND |wx.ALL, 5 )
+
+		bSizer42.Add( fgSizer23, 1, wx.EXPAND, 5 )
 
 
 		self.pBAT.SetSizer( bSizer42 )
@@ -2644,11 +2641,14 @@ class MainFrame ( wx.Frame ):
 		self.bUpload = wx.Button( self.pEinstellungen, wx.ID_ANY, u"in Datenbank hochladen", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer1.Add( self.bUpload, 0, wx.ALL, 5 )
 
+		self.bSaveRSCPData = wx.Button( self.pEinstellungen, wx.ID_ANY, u"zu übermittelnde Daten ansehen / lokal speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer1.Add( self.bSaveRSCPData, 0, wx.ALL, 5 )
+
 
 		self.pEinstellungen.SetSizer( fgSizer1 )
 		self.pEinstellungen.Layout()
 		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2673,10 +2673,12 @@ class MainFrame ( wx.Frame ):
 		self.sEMSMaxDischargePower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargePowerOnScroll )
 		self.sEMSMaxDischargeStartPower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargeStartPowerOnScroll )
 		self.bEMSUploadChanges.Bind( wx.EVT_BUTTON, self.bEMSUploadChangesOnClick )
+		self.cbBATIndex.Bind( wx.EVT_COMBOBOX, self.cbBATIndexOnCombobox )
 		self.bConfigSetRSCPPassword.Bind( wx.EVT_BUTTON, self.bConfigSetRSCPPasswordOnClick )
 		self.bConfigGetIPAddress.Bind( wx.EVT_BUTTON, self.bConfigGetIPAddressOnClick )
 		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
+		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
 
 	def __del__( self ):
 		pass
@@ -2716,6 +2718,9 @@ class MainFrame ( wx.Frame ):
 	def bEMSUploadChangesOnClick( self, event ):
 		event.Skip()
 
+	def cbBATIndexOnCombobox( self, event ):
+		event.Skip()
+
 	def bConfigSetRSCPPasswordOnClick( self, event ):
 		event.Skip()
 
@@ -2726,6 +2731,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def sendToServer( self, event ):
+		event.Skip()
+
+	def bSaveRSCPDataOnClick( self, event ):
 		event.Skip()
 
 
