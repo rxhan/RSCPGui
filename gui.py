@@ -18,7 +18,7 @@ import wx.grid
 class MainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.DefaultPosition, size = wx.Size( 974,1008 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 790,824 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -1989,7 +1989,7 @@ class MainFrame ( wx.Frame ):
 		self.gDCB.SetRowLabelValue( 0, u"Letzte Meldung" )
 		self.gDCB.SetRowLabelValue( 1, u"Maximale Ladespannung" )
 		self.gDCB.SetRowLabelValue( 2, u"Maximaler Ladestrom" )
-		self.gDCB.SetRowLabelValue( 3, u"Ladeschlussspannung" )
+		self.gDCB.SetRowLabelValue( 3, u"Entladeschlussspannung" )
 		self.gDCB.SetRowLabelValue( 4, u"Maximaler Entladestrom" )
 		self.gDCB.SetRowLabelValue( 5, u"Maximale Kapazität" )
 		self.gDCB.SetRowLabelValue( 6, u"Verbleibende Kapazität" )
@@ -2036,6 +2036,13 @@ class MainFrame ( wx.Frame ):
 		self.pMainregister.AddPage( self.pBAT, u"BAT", False )
 		self.pPVI = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer51 = wx.BoxSizer( wx.VERTICAL )
+
+		chPVIIndexChoices = []
+		self.chPVIIndex = wx.ComboBox( self.pPVI, wx.ID_ANY, u"PVI Index", wx.DefaultPosition, wx.DefaultSize, chPVIIndexChoices, 0 )
+		bSizer51.Add( self.chPVIIndex, 0, wx.ALL, 5 )
+
+		self.m_staticline16 = wx.StaticLine( self.pPVI, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer51.Add( self.m_staticline16, 0, wx.EXPAND |wx.ALL, 5 )
 
 		gSizer51 = wx.GridSizer( 0, 2, 0, 0 )
 
@@ -2420,7 +2427,7 @@ class MainFrame ( wx.Frame ):
 		self.pPVI.SetSizer( bSizer51 )
 		self.pPVI.Layout()
 		bSizer51.Fit( self.pPVI )
-		self.pMainregister.AddPage( self.pPVI, u"PVI", False )
+		self.pMainregister.AddPage( self.pPVI, u"PVI", True )
 		self.pPM = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer17 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2648,7 +2655,7 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer1 )
 		self.pEinstellungen.Layout()
 		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2674,6 +2681,7 @@ class MainFrame ( wx.Frame ):
 		self.sEMSMaxDischargeStartPower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargeStartPowerOnScroll )
 		self.bEMSUploadChanges.Bind( wx.EVT_BUTTON, self.bEMSUploadChangesOnClick )
 		self.cbBATIndex.Bind( wx.EVT_COMBOBOX, self.cbBATIndexOnCombobox )
+		self.chPVIIndex.Bind( wx.EVT_COMBOBOX, self.chPVIIndexOnCombobox )
 		self.bConfigSetRSCPPassword.Bind( wx.EVT_BUTTON, self.bConfigSetRSCPPasswordOnClick )
 		self.bConfigGetIPAddress.Bind( wx.EVT_BUTTON, self.bConfigGetIPAddressOnClick )
 		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
@@ -2719,6 +2727,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def cbBATIndexOnCombobox( self, event ):
+		event.Skip()
+
+	def chPVIIndexOnCombobox( self, event ):
 		event.Skip()
 
 	def bConfigSetRSCPPasswordOnClick( self, event ):

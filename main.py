@@ -572,9 +572,8 @@ class Frame(MainFrame):
     def fill_dcdc(self):
         for index in [0,1,2,3]:
             try:
-                data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
-                self._data_dcdc.append(data)
-                d = data
+                d = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
+                self._data_dcdc.append(d)
 
                 index = int(d['DCDC_INDEX'])
 
@@ -597,8 +596,22 @@ class Frame(MainFrame):
         self.gDCDC.AutoSizeColumns()
 
     def fill_pvi(self):
-        data = self.gui.get_data(self.gui.getPVIData(), True)
-        self._data_pvi = data
+        for index in range(0,4):
+            try:
+                data = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
+                self._data_pvi.append(data)
+                logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
+            except:
+                logger.info('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
+
+        self.chPVIIndex.Clear()
+
+        for pvi in self._data_pvi:
+            self.chPVIIndex.Append('PVI #' + str(pvi['PVI_INDEX'].data))
+
+
+    def fill_pvi_index(self, index):
+        data = self._data_pvi[index]
 
         self.txtPVISerialNumber.SetValue(repr(data['PVI_SERIAL_NUMBER']))
         self.txtPVIType.SetValue(repr(data['PVI_TYPE']))
@@ -667,6 +680,7 @@ class Frame(MainFrame):
         self.gPVIDC.SetCellValue(0,2,str(round(sum_dc_power,3)) + ' W')
         self.gPVIDC.SetCellValue(3,2,str(round(sum_dc_energy,3)/1000) + ' kWh')
         self.gPVIDC.AutoSize()
+
         self.gPVITemps.ClearGrid()
         self.gPVITemps.DeleteRows(numRows=self.gPVITemps.GetNumberRows())
         self.gPVITemps.AppendRows(data['PVI_TEMPERATURE_COUNT'].data)
@@ -984,7 +998,7 @@ class Frame(MainFrame):
         self._data_dcdc = []
         self._data_ems = None
         self._data_info = None
-        self._data_pvi = None
+        self._data_pvi = []
         self._data_pm = []
         self._data_wb = None
 
@@ -1018,7 +1032,16 @@ class Frame(MainFrame):
                 logger.exception('Fehler beim Abruf der DCDC-Daten')
 
             try:
+                selected = self.chPVIIndex.GetSelection()
+                if selected in [wx.NOT_FOUND, '', None, False]:
+                    selected = 0
+
                 self.fill_pvi()
+
+                if selected != wx.NOT_FOUND:
+                    if self.chPVIIndex.GetCount() > selected:
+                        self.chPVIIndex.SetSelection(selected)
+                        self.fill_pvi_index(selected)
             except:
                 logger.exception('Fehler beim Abruf der PVI-Daten')
 
@@ -1090,8 +1113,6 @@ class Frame(MainFrame):
         data = {}
         if self._data_bat:
             data['BAT_DATA'] = []
-            print(data)
-            print(type(data['BAT_DATA']))
             for d in self._data_bat:
                 data['BAT_DATA'].append(d.asDict())
 
@@ -1107,7 +1128,9 @@ class Frame(MainFrame):
             data['INFO_DATA'] = self._data_info.asDict()
 
         if self._data_pvi:
-            data['PVI_DATA'] = self._data_pvi.asDict()
+            data['PVI_DATA'] = []
+            for d in self._data_pvi:
+                data['PVI_DATA'].append(d.asDict())
 
         if self._data_pm:
             data['PM_DATA'] = []
@@ -1299,6 +1322,13 @@ class Frame(MainFrame):
         selected = self.cbBATIndex.GetSelection()
         if selected != wx.NOT_FOUND:
             self.fill_bat_index(selected)
+
+        event.Skip()
+
+    def chPVIIndexOnCombobox( self, event ):
+        selected = self.chPVIIndex.GetSelection()
+        if selected != wx.NOT_FOUND:
+            self.fill_pvi_index(selected)
 
         event.Skip()
 
