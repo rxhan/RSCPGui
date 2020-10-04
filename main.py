@@ -58,7 +58,6 @@ class MessageBox(wx.Dialog):
 
 class Frame(MainFrame):
     _serverApp = None
-    _curpmcols = 0
     _extsrcavailable = 0
     _gui = None
     _time_format = '%d.%m.%Y %H:%M:%S.%f'
@@ -511,20 +510,18 @@ class Frame(MainFrame):
         else:
             indexes = None
 
-        self._curpmcols = -1
         self.gPM.DeleteCols()
 
         for index in indexes:
             try:
+                self.gPM.AppendCols(1)
+                self.gPM.SetColLabelValue(index, 'PM #' + str(index))
+
                 d = self.gui.get_data(self.gui.getPMData(pm_index=index), True)
                 self._data_pm.append(d)
+
                 if 'PM_DEVICE_STATE' not in d or d['PM_DEVICE_STATE'].type != RSCPType.Error:
                     index = d['PM_INDEX'].data
-                    if index > self._curpmcols:
-                        if index >= self.gPM.GetNumberCols():
-                            self.gPM.AppendCols(1)
-                        self.gPM.SetColLabelValue(index, 'LM #' + str(index))
-                        self._curpmcols += 1
                     self.gPM.SetCellValue(0, index, str(round(d['PM_POWER_L1'], 3)) + ' W')
                     self.gPM.SetCellValue(1, index, str(round(d['PM_POWER_L2'], 3)) + ' W')
                     self.gPM.SetCellValue(2, index, str(round(d['PM_POWER_L3'], 3)) + ' W')
