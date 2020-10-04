@@ -64,6 +64,7 @@ class Frame(MainFrame):
     _time_format = '%d.%m.%Y %H:%M:%S.%f'
 
     def __init__(self, parent):
+        logger.info('Programm gestartet, init')
         self.clear_values()
         MainFrame.__init__(self, parent)
 
@@ -594,7 +595,7 @@ class Frame(MainFrame):
                 self.gDCDC.SetCellValue(11,index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_SUBSTATE_AS_STRING']))
                 logger.info('DCDC #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
-                logger.exception('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
+                logger.info('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
 
         self.gDCDC.AutoSizeColumns()
 
@@ -705,6 +706,9 @@ class Frame(MainFrame):
 
         f = self._data_bat[index]
 
+        #if index == 1:
+        #    f['BAT_DCB_COUNT'].data = 1
+
         dcbcount = int(f['BAT_DCB_COUNT'])
         self.gDCB.DeleteCols(pos=0, numCols=self.gDCB.GetNumberCols())
         self.txtUsableCapacity.SetValue(str(round(f['BAT_USABLE_CAPACITY'], 5)) + ' Ah')
@@ -754,7 +758,7 @@ class Frame(MainFrame):
         self.txtBatTrainingMode.SetValue(s)
         self.txtBatDeviceName.SetValue(repr(f['BAT_DEVICE_NAME']))
 
-        for d in f['BAT_DCB_ALL_CELL_VOLTAGES']:
+        def set_voltages(d):
             if d.type == RSCPType.Error:
                 logger.warning('BAT_DCB_ALL_CELL_VOLTAGES konnte nicht abgerufen werden')
             else:
@@ -773,7 +777,7 @@ class Frame(MainFrame):
                         self.gDCB.SetCellValue(self.gDCB_row_voltages + i, index, str(round(volt, 4)) + ' V')
                         i += 1
 
-        for d in f['BAT_DCB_ALL_CELL_TEMPERATURES']:
+        def set_temperatures(d):
             if d.type == RSCPType.Error:
                 logger.warning('BAT_DCB_ALL_CELL_TEMPERATURES konnte nicht abgerufen werden')
             else:
@@ -792,7 +796,7 @@ class Frame(MainFrame):
                         self.gDCB.SetCellValue(self.gDCB_row_temp + i, index, str(round(temp, 4)) + ' °C')
                         i += 1
 
-        for d in f['BAT_DCB_INFO']:
+        def set_info(d):
             if d.type == RSCPType.Error:
                 logger.warning('BAT_DCB_INFO konnte nicht abgerufen werden')
             else:
@@ -828,6 +832,18 @@ class Frame(MainFrame):
                     self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_SERIALCODE']))
                     self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_SENSOR']))
                     self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_STATUS']))
+
+        if dcbcount > 1:
+            for d in f['BAT_DCB_ALL_CELL_TEMPERATURES']:
+                set_temperatures(d)
+            for d in f['BAT_DCB_ALL_CELL_VOLTAGES']:
+                set_voltages(d)
+            for d in f['BAT_DCB_INFO']:
+                set_info(d)
+        else:
+            set_temperatures(f['BAT_DCB_ALL_CELL_TEMPERATURES'])
+            set_voltages(f['BAT_DCB_ALL_CELL_VOLTAGES'])
+            set_info(f['BAT_DCB_INFO'])
 
         self.gDCB.AutoSizeColumns()
 
@@ -977,6 +993,7 @@ class Frame(MainFrame):
 
     def bUpdateClick(self, event):
         if self.gui:
+            logger.info('Aktualisiere Daten')
             self.clear_values()
 
             try:
@@ -1022,6 +1039,7 @@ class Frame(MainFrame):
                 self.fill_wb()
             except:
                 logger.exception('Fehler beim Abruf der WB-Daten')
+
 
     def bSaveRSCPDataOnClick( self, event ):
         with wx.FileDialog(self, "als JSON speichern", wildcard="JSON files (*.json)|*.json",
