@@ -510,7 +510,7 @@ class Frame(MainFrame):
         else:
             indexes = None
 
-        self.gPM.DeleteCols()
+        self.gPM.DeleteCols(numCols=self.gPM.GetNumberCols())
 
         for index in indexes:
             try:
