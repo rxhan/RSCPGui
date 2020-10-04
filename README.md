@@ -1,7 +1,8 @@
 # RSCPGui
 RSCPGui für die Abfrage und Darstellung von Daten aus einem E3DC - System
 
-** Das Programm befindet sich in einem frühen Entwicklungsstatus nicht alle Funktionen stehen zur Verfügung
+**Das Programm befindet sich in einem frühen Entwicklungsstatus nicht alle Funktionen stehen zur Verfügung**
+**Benutzung erfolgt auf eigene Gefahr, für Schäden kann der Author nicht haftbar gemacht werden**
 
 Die Schnittstelle basiert auf der Library von fsantini (https://github.com/fsantini/python-e3dc).
 
