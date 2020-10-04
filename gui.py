@@ -1822,7 +1822,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( self.txtBATMaxDischargePower, 0, wx.ALL, 5 )
 
-		self.m_staticText167 = wx.StaticText( self.pBAT, wx.ID_ANY, u"gemessener Wiederstand", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText167 = wx.StaticText( self.pBAT, wx.ID_ANY, u"gemessener Widerstand", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText167.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText167, 0, wx.ALL, 5 )
@@ -1832,7 +1832,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( self.txtBATMeasuredResistance, 0, wx.ALL, 5 )
 
-		self.m_staticText168 = wx.StaticText( self.pBAT, wx.ID_ANY, u"gemessener Wiederstand (RUN)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText168 = wx.StaticText( self.pBAT, wx.ID_ANY, u"gemessener Widerstand (RUN)", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText168.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText168, 0, wx.ALL, 5 )
@@ -2033,7 +2033,7 @@ class MainFrame ( wx.Frame ):
 		self.pBAT.SetSizer( bSizer42 )
 		self.pBAT.Layout()
 		bSizer42.Fit( self.pBAT )
-		self.pMainregister.AddPage( self.pBAT, u"BAT", False )
+		self.pMainregister.AddPage( self.pBAT, u"BAT", True )
 		self.pPVI = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer51 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2427,7 +2427,7 @@ class MainFrame ( wx.Frame ):
 		self.pPVI.SetSizer( bSizer51 )
 		self.pPVI.Layout()
 		bSizer51.Fit( self.pPVI )
-		self.pMainregister.AddPage( self.pPVI, u"PVI", True )
+		self.pMainregister.AddPage( self.pPVI, u"PVI", False )
 		self.pPM = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer17 = wx.BoxSizer( wx.VERTICAL )
 
