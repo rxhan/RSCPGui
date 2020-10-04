@@ -44,8 +44,8 @@
             <property name="maximum_size"></property>
             <property name="minimum_size"></property>
             <property name="name">MainFrame</property>
-            <property name="pos"></property>
-            <property name="size">974,1008</property>
+            <property name="pos">100,100</property>
+            <property name="size">790,824</property>
             <property name="style">wxDEFAULT_FRAME_STYLE</property>
             <property name="subclass">; ; forward_declare</property>
             <property name="title">E3/DC RSCPGui</property>
