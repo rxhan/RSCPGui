@@ -196,9 +196,17 @@ class Frame(MainFrame):
             testgui = None
             testgui_web = None
             if self._username and self._password and not seriennummer:
-                ret = self.getSerialnoFromWeb(self._username, self._password)
-                if len(ret) == 1:
-                    seriennummer = 'S10-' + ret[0]['serialno']
+                if self._username and self._password and address and self._rscppass:
+                    try:
+                        testgui = E3DCGui(self._username, self._password, address, self._rscppass)
+                        seriennummer = repr(test_connection(testgui)['INFO_SERIAL_NUMBER'])
+                    except:
+                        pass
+
+                if not seriennummer:
+                    ret = self.getSerialnoFromWeb(self._username, self._password)
+                    if len(ret) == 1:
+                        seriennummer = 'S10-' + ret[0]['serialno']
 
             if self._username and self._password and self._rscppass and seriennummer and not address and self._websocketaddr:
                 logger.debug('Versuche IP-Adresse zu ermitteln')
@@ -218,7 +226,10 @@ class Frame(MainFrame):
 
             if self._username and self._password and address and self._rscppass:
                 logger.debug('Teste direkte Verbindungsart')
-                testgui = E3DCGui(self._username, self._password, address, self._rscppass)
+
+                if not isinstance(testgui, E3DCGui):
+                    testgui = E3DCGui(self._username, self._password, address, self._rscppass)
+                    
                 try:
                     result = test_connection(testgui)
                     if not seriennummer:
