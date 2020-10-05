@@ -1607,7 +1607,7 @@ class MainFrame ( wx.Frame ):
 		self.pEMS.SetSizer( bSizer12 )
 		self.pEMS.Layout()
 		bSizer12.Fit( self.pEMS )
-		self.pMainregister.AddPage( self.pEMS, u"EMS", True )
+		self.pMainregister.AddPage( self.pEMS, u"EMS", False )
 		self.pDCDC = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer41 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2550,17 +2550,24 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( fgSizer22, 1, wx.EXPAND, 5 )
 
+		self.m_staticText171 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Verbindungsart", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText171.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText171, 0, wx.ALL, 5 )
+
+		fgSizer271 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer271.SetFlexibleDirection( wx.BOTH )
+		fgSizer271.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		cbConfigVerbindungsartChoices = [ u"auto", u"direkt", u"web" ]
+		self.cbConfigVerbindungsart = wx.ComboBox( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, cbConfigVerbindungsartChoices, 0 )
+		fgSizer271.Add( self.cbConfigVerbindungsart, 0, wx.ALL, 5 )
+
 		self.bTest = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Verbindungstest", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.bTest, 0, wx.ALL, 5 )
+		fgSizer271.Add( self.bTest, 0, wx.ALL, 5 )
 
 
-		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
-
-		self.m_staticline12 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		fgSizer1.Add( self.m_staticline12, 0, wx.EXPAND |wx.ALL, 5 )
-
-		self.m_staticline13 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		fgSizer1.Add( self.m_staticline13, 0, wx.EXPAND |wx.ALL, 5 )
+		fgSizer1.Add( fgSizer271, 1, wx.EXPAND, 5 )
 
 		self.m_staticText7 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"IP-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText7.Wrap( -1 )
@@ -2580,16 +2587,6 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( fgSizer211, 1, wx.EXPAND, 5 )
 
-		self.m_staticText171 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Verbindungsart", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText171.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText171, 0, wx.ALL, 5 )
-
-		self.chConfigWebsocket = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"Websockets", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.chConfigWebsocket.Enable( False )
-
-		fgSizer1.Add( self.chConfigWebsocket, 0, wx.ALL, 5 )
-
 		self.m_staticText169 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Seriennummer", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText169.Wrap( -1 )
 
@@ -2608,27 +2605,17 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( fgSizer20, 1, wx.EXPAND, 5 )
 
-		self.m_staticText170 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Websocket-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText170.Wrap( -1 )
+		self.m_staticText1732 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"aktive Verbindung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1732.Wrap( -1 )
 
-		fgSizer1.Add( self.m_staticText170, 0, wx.ALL, 5 )
+		fgSizer1.Add( self.m_staticText1732, 0, wx.ALL, 5 )
 
-		fgSizer231 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer231.SetFlexibleDirection( wx.BOTH )
-		fgSizer231.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		self.txtConfigAktiveVerbindung = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtConfigAktiveVerbindung.Enable( False )
 
-		self.txtConfigWebsocket = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.txtConfigWebsocket.Enable( False )
+		fgSizer1.Add( self.txtConfigAktiveVerbindung, 0, wx.ALL, 5 )
 
-		fgSizer231.Add( self.txtConfigWebsocket, 0, wx.ALL, 5 )
-
-		self.rConfigWebsocketConnected = wx.RadioButton( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer231.Add( self.rConfigWebsocketConnected, 0, wx.ALL, 5 )
-
-
-		fgSizer1.Add( fgSizer231, 1, wx.EXPAND, 5 )
-
-		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Übernehmen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Einstellungen speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer1.Add( self.bSave, 0, wx.ALL, 5 )
 
 
@@ -2666,7 +2653,7 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer1 )
 		self.pEinstellungen.Layout()
 		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
