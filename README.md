@@ -23,7 +23,7 @@ Aufruf dann mittels python3 main.py
 Es werden mindestens Angaben zu Benutzername und Passwort benötigt. 
 Weitere Informationen werden automatisch ermittelt sofern ein Internetzugriff besteht.
 Soll ein lokaler Zugriff erfolgen muss das RSCP-Passwort angegeben werden. 
-Dies kanna auch vom Programm gesetzt werden.
+Dies kann aber auch vom Programm gesetzt werden.
 
 # Windows-Binary
 
