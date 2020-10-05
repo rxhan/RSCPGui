@@ -1062,6 +1062,8 @@ class Frame(MainFrame):
             wx.MessageBox('Die Ladung von (' + self.txtEMSManualChargeValue.GetValue() + ') Wh ist nicht zulässig, bitte anderen Ganzzahl-Wert wählen', 'Manuelle Ladung', wx.ICON_WARNING)
 
     def bTestClick(self, event):
+        self.disableButtons()
+
         try:
             if not self.gui:
                 raise Exception('Keine Verbindungsart möglich')
@@ -1073,7 +1075,10 @@ class Frame(MainFrame):
             ip = repr(result['INFO_IP_ADDRESS'])
             rel = repr(result['INFO_SW_RELEASE'])
 
-            if isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() == '':
+            if isinstance(self.gui, E3DCWebGui) and self._connectiontype == 'web':
+                msg = wx.MessageBox('Verbindung per Web mit System ' + sn + ' / ' + rel + ' hergestellt', 'Info',
+                                    wx.OK | wx.ICON_INFORMATION)
+            elif isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() == '':
                 msg = wx.MessageBox('Verbindung mit System ' + sn + ' / ' + rel + ' konnte nur über WebSockets hergestellt werden, da kein RSCP-Passwort vergeben wurde.\nDiese Verbindung ist langsamer und auf das Internet angewiesen.\n', 'Info',
                                     wx.OK | wx.ICON_WARNING)
             elif isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() != '':
@@ -1082,7 +1087,7 @@ class Frame(MainFrame):
                     'Info',
                     wx.OK | wx.ICON_WARNING)
             else:
-                msg = wx.MessageBox('Verbindung mit System direkt ' + sn + ' / ' + rel + ' hergestellt', 'Info',
+                msg = wx.MessageBox('Verbindung direkt mit System  ' + sn + ' / ' + rel + ' hergestellt', 'Info',
                           wx.OK | wx.ICON_INFORMATION)
 
             logger.debug('Verbindungstest erfolgreich. Verbindungsart: ' + self.connectiontype)
@@ -1090,6 +1095,8 @@ class Frame(MainFrame):
             logger.exception('Verbindungstest nicht erfolgreich')
             msg = wx.MessageBox('Verbindung konnte nicht aufgebaut werden', 'Error',
                                 wx.OK | wx.ICON_ERROR)
+
+        self.enableButtons()
 
     def bUpdateCheckClick(self, event):
         try:
@@ -1393,22 +1400,39 @@ class Frame(MainFrame):
     def bConfigGetSerialNoOnClick( self, event ):
         username = self.txtUsername.GetValue()
         password = self.txtPassword.GetValue()
-
-        if username and password:
-            ret = self.getSerialnoFromWeb(username, password)
-            if len(ret) == 1:
-                serial = 'S10-' + ret[0]['serialno']
-                self.txtConfigSeriennummer.SetValue(serial)
-                wx.MessageBox('Seriennummer konnte ermittelt werden (WEB): ' + serial, 'Ermittlung Seriennummer')
-            elif len(ret) > 1:
-                sns = '\n'
-                for sn in ret:
-                    sns += '\nS10-' + sn['serialno']
-                wx.MessageBox('Es wurde mehr als eine Seriennummer ermittelt (WEB):' + sns, 'Ermittlung Seriennummer')
-            else:
-                wx.MessageBox('Es konnte keine Seriennummer ermittelt werden (WEB). Zugangsdaten falsch?', 'Ermittlung Seriennummer', wx.ICON_ERROR)
-        else:
+        if not username and not password:
             wx.MessageBox('Zur Ermittlung der Seriennummer sind mindestens Benutzername und Passwort erforderlich!', 'Ermittlung Seriennummer', wx.ICON_WARNING)
+        else:
+            serial = None
+
+            if self.gui:
+                try:
+                    requests = []
+                    requests.append(RSCPTag.INFO_REQ_SERIAL_NUMBER)
+                    result = self.gui.get_data(requests, True)
+                    if result.name == 'INFO_SERIAL_NUMBER':
+                        serial = result.data
+                        self.txtConfigSeriennummer.SetValue(serial)
+                        wx.MessageBox('Seriennummer konnte ermittelt werden (RSCP): ' + serial, 'Ermittlung Seriennummer')
+                except:
+                    logger.exception('Fehler beim Abruf der Seriennummer')
+
+            if username and password and not serial:
+                ret = self.getSerialnoFromWeb(username, password)
+                if len(ret) == 1:
+                    serial = 'S10-' + ret[0]['serialno']
+                    self.txtConfigSeriennummer.SetValue(serial)
+                    wx.MessageBox('Seriennummer konnte ermittelt werden (WEB): ' + serial, 'Ermittlung Seriennummer')
+                elif len(ret) > 1:
+                    sns = '\n'
+                    for sn in ret:
+                        sns += '\nS10-' + sn['serialno']
+                    wx.MessageBox('Es wurde mehr als eine Seriennummer ermittelt (WEB):' + sns, 'Ermittlung Seriennummer')
+                    serial = len(ret)
+
+            if not serial:
+                wx.MessageBox('Es konnte keine Seriennummer ermittelt werden (WEB). Zugangsdaten falsch?',
+                              'Ermittlung Seriennummer', wx.ICON_ERROR)
 
         event.Skip()
 
