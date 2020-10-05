@@ -62,6 +62,9 @@ class Frame(MainFrame):
     _extsrcavailable = 0
     _gui = None
     _time_format = '%d.%m.%Y %H:%M:%S.%f'
+    _connectiontype = None
+    _websocketaddr = None
+    _connected = None
 
     def __init__(self, parent):
         logger.info('Programm gestartet, init')
@@ -83,6 +86,8 @@ class Frame(MainFrame):
         self.loadConfig()
 
         logger.info('Konfigurationsdatei geladen')
+
+        self.cbConfigVerbindungsart.SetValue(self._connectiontype)
 
         self.Bind(wx.EVT_BUTTON, self.bTestClick, self.bTest)
         self.Bind(wx.EVT_BUTTON, self.bSaveClick, self.bSave)
@@ -120,19 +125,17 @@ class Frame(MainFrame):
             if 'seriennummer' in config['Login']:
                 self.txtConfigSeriennummer.SetValue(config['Login']['seriennummer'])
             if 'websocketaddr' in config['Login']:
-                self.txtConfigWebsocket.SetValue(config['Login']['websocketaddr'])
-
-            if 'usewebsocket' in config['Login']:
-                if config['Login']['usewebsocket'] in ('1','true','ja'):
-                    usewebsocket = True
-                else:
-                    usewebsocket = False
-                self.chConfigWebsocket.SetValue(usewebsocket)
+                self._websocketaddr = config['Login']['websocketaddr']
+            if 'connectiontype' in config['Login']:
+                self._connectiontype = config['Login']['connectiontype']
 
         logger.info('Konfigurationsdatei geladen')
                 
-        if self.txtConfigWebsocket.GetValue() == '':
-            self.txtConfigWebsocket.SetValue('wss://s10.e3dc.com/ws')
+        if self._websocketaddr in ('',None):
+            self._websocketaddr = 'wss://s10.e3dc.com/ws'
+
+        if self._connectiontype not in ('auto','direkt','web'):
+            self._connectiontype = 'auto'
 
     def saveConfig(self):
         logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
@@ -144,22 +147,36 @@ class Frame(MainFrame):
                            'address':self.txtIP.GetValue(),
                            'rscppassword':self.txtRSCPPassword.GetValue(),
                            'seriennummer':self.txtConfigSeriennummer.GetValue(),
-                           'websocketaddr':self.txtConfigWebsocket.GetValue(),
-                           'usewebsocket':'true' if self.chConfigWebsocket.GetValue() else 'false'}
+                           'websocketaddr':self._websocketaddr,
+                           'connectiontype':self._connectiontype}
 
         with open(self.ConfigFilename, 'w') as configfile:
             config.write(configfile)
 
         logger.info('Konfigurationsdatei gespeichert')
 
+    @property
+    def connectiontype(self):
+        if isinstance(self._gui, E3DCGui):
+            return 'direkt'
+        elif isinstance(self._gui, E3DCWebGui):
+            return 'web'
+        else:
+            return None
 
     @property
     def gui(self):
+        def test_connection(testgui):
+            requests = []
+            requests.append(RSCPTag.INFO_REQ_SERIAL_NUMBER)
+            requests.append(RSCPTag.INFO_REQ_IP_ADDRESS)
+            return testgui.get_data(requests, True)
+
         if self._gui:
             if self._username == self.txtUsername.GetValue() and self._password == self.txtPassword.GetValue() and \
                     self._address == self.txtIP.GetValue() and self._rscppass == self.txtRSCPPassword.GetValue() and \
-                    self._seriennummer == self.txtConfigSeriennummer.GetValue() and self._websocketaddr == self.txtConfigWebsocket.GetValue() and \
-                    self._usewebsocket == self.chConfigWebsocket.GetValue():
+                    self._seriennummer == self.txtConfigSeriennummer.GetValue() and \
+                    self._connectiontype == self.cbConfigVerbindungsart.GetValue():
                 return self._gui
 
         self._username = self.txtUsername.GetValue()
@@ -167,23 +184,110 @@ class Frame(MainFrame):
         self._address = self.txtIP.GetValue()
         self._rscppass = self.txtRSCPPassword.GetValue()
         self._seriennummer = self.txtConfigSeriennummer.GetValue()
-        self._websocketaddr = self.txtConfigWebsocket.GetValue()
-        self._usewebsocket = self.chConfigWebsocket.GetValue()
+        self._connectiontype = self.cbConfigVerbindungsart.GetValue()
 
         if isinstance(self._gui, E3DCWebGui):
             self._gui.e3dc.ws.close()
 
-        if self._username and self._password and self._address and self._rscppass and not self._usewebsocket:
-            self._gui = E3DCGui(self._username, self._password, self._address, self._rscppass)
-            logger.info('Verwende Direkte Verbindung')
-        elif self._username and self._password and self._seriennummer and self._websocketaddr and self._usewebsocket:
-            self._gui = E3DCWebGui(self._username, self._password, self._seriennummer)
-            logger.info('Verwende Websocket')
+        if self._username and self._password and self._connectiontype == 'auto':
+            logger.debug("Ermittle beste Verbindungsart (Verbindungsart auto)")
+            seriennummer = self._seriennummer
+            address = self._address
+            testgui = None
+            testgui_web = None
+            if self._username and self._password and not seriennummer:
+                if self._username and self._password and address and self._rscppass:
+                    try:
+                        testgui = E3DCGui(self._username, self._password, address, self._rscppass)
+                        seriennummer = repr(test_connection(testgui)['INFO_SERIAL_NUMBER'])
+                    except:
+                        pass
+
+                if not seriennummer:
+                    ret = self.getSerialnoFromWeb(self._username, self._password)
+                    if len(ret) == 1:
+                        seriennummer = 'S10-' + ret[0]['serialno']
+
+            if self._username and self._password and self._rscppass and seriennummer and not address and self._websocketaddr:
+                logger.debug('Versuche IP-Adresse zu ermitteln')
+                try:
+                    testgui = E3DCWebGui(self._username, self._password, seriennummer)
+                    ip = repr(test_connection(testgui)['INFO_IP_ADDRESS'])
+                    if ip:
+                        address = ip
+                        logger.debug('IP-Adresse konnte ermittelt werden: ' + ip)
+                        testgui_web = testgui
+                    else:
+                        raise Exception('IP-Adresse konnte nicht ermittelt werden, kein Inahlt')
+                except:
+                    testgui = None
+                    logger.exception('Bei der Ermittlung der IP-Adresse ist ein Fehler aufgetreten')
+
+
+            if self._username and self._password and address and self._rscppass:
+                logger.debug('Teste direkte Verbindungsart')
+
+                if not isinstance(testgui, E3DCGui):
+                    testgui = E3DCGui(self._username, self._password, address, self._rscppass)
+                    
+                try:
+                    result = test_connection(testgui)
+                    if not seriennummer:
+                        seriennummer = repr(result['INFO_SERIAL_NUMBER'])
+                    logger.info('Verwende Direkte Verbindung / Verbindung mit System ' + repr(result['INFO_SERIAL_NUMBER']) + ' / ' + repr(result['INFO_IP_ADDRESS']))
+                except:
+                    logger.exception('Fehler beim Aufbau der direkten Verbindung')
+                    testgui = None
+
+            if self._username and self._password and seriennummer and self._websocketaddr and not testgui:
+                if testgui_web:
+                    logger.info('Verwende Web Verbindung')
+                    testgui = testgui_web
+                else:
+                    logger.debug('Teste Web Verbindungsart')
+                    testgui = E3DCWebGui(self._username, self._password, seriennummer)
+                    try:
+                        result = test_connection(testgui)
+                        if not address:
+                            address = repr(result['INFO_IP_ADDRESS'])
+                        logger.info('Verwende Web Verbindung / Verbindung mit System ' + repr(result['INFO_SERIAL_NUMBER']) + ' / ' + repr(result['INFO_IP_ADDRESS']))
+                    except:
+                        logger.exception('Fehler beim Aufbau der Web Verbindung')
+                        testgui = None
+
+            if not testgui:
+                logger.error('Es konnte keine Verbindungsart ermittelt werden')
+            else:
+                if self._seriennummer != seriennummer:
+                    self._seriennummer = seriennummer
+                    self.txtConfigSeriennummer.SetValue(seriennummer)
+
+                if self._address != address:
+                    self._address = address
+                    self.txtIP.SetValue(address)
+
+                self._gui = testgui
+        elif self._username and self._password and self._address and self._rscppass and self._connectiontype == 'direkt':
+            testgui = E3DCGui(self._username, self._password, self._address, self._rscppass)
+            try:
+                result = test_connection(testgui)
+                self._gui = testgui
+                logger.info('Verwende Direkte Verbindung')
+            except:
+                self._gui = None
+        elif self._username and self._password and self._seriennummer and self._websocketaddr and self._connectiontype == 'web':
+            testgui = E3DCWebGui(self._username, self._password, self._seriennummer)
+            try:
+                result = test_connection(testgui)
+                self._gui = testgui
+                logger.info('Verwende Websocket')
+            except:
+                self._gui = None
         else:
             self._gui = None
-            logger.info('Kein Verbindungstyp kann verwendet werden, es fehlen Verbindungsdaten')
 
-        self.gDCB_last_row = 28
+        if not self._gui:
+            logger.info('Kein Verbindungstyp kann verwendet werden, es fehlen Verbindungsdaten')
 
         return self._gui
 
@@ -968,34 +1072,24 @@ class Frame(MainFrame):
         else:
             wx.MessageBox('Die Ladung von (' + self.txtEMSManualChargeValue.GetValue() + ') Wh ist nicht zulässig, bitte anderen Ganzzahl-Wert wählen', 'Manuelle Ladung', wx.ICON_WARNING)
 
-    def bTestClick(self, event, method = 'auto'):
+    def bTestClick(self, event):
+        self.disableButtons()
+
         try:
             if not self.gui:
-                self.bConfigGetIPAddressOnClick(event)
+                raise Exception('Keine Verbindungsart möglich')
 
-            if method == 'ws':
-                self.chConfigWebsocket.SetValue(True)
-            elif method == 'direct':
-                self.chConfigWebsocket.SetValue(False)
-            elif method == 'auto':
-                if self.txtRSCPPassword.GetValue() == '':
-                    self.chConfigWebsocket.SetValue(True)
-                else:
-                    self.chConfigWebsocket.SetValue(False)
-
+            logger.debug('Teste Verbindung')
             result = self.gui.get_data(self.gui.getInfo(), True)
 
             sn = repr(result['INFO_SERIAL_NUMBER'])
-            if self.txtConfigSeriennummer.GetValue() == '' and sn:
-                self.txtConfigSeriennummer.SetValue(sn)
-
             ip = repr(result['INFO_IP_ADDRESS'])
-            if self.txtIP.GetValue() == '' and ip:
-                self.txtIP.SetValue(ip)
-
             rel = repr(result['INFO_SW_RELEASE'])
 
-            if isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() == '':
+            if isinstance(self.gui, E3DCWebGui) and self._connectiontype == 'web':
+                msg = wx.MessageBox('Verbindung per Web mit System ' + sn + ' / ' + rel + ' hergestellt', 'Info',
+                                    wx.OK | wx.ICON_INFORMATION)
+            elif isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() == '':
                 msg = wx.MessageBox('Verbindung mit System ' + sn + ' / ' + rel + ' konnte nur über WebSockets hergestellt werden, da kein RSCP-Passwort vergeben wurde.\nDiese Verbindung ist langsamer und auf das Internet angewiesen.\n', 'Info',
                                     wx.OK | wx.ICON_WARNING)
             elif isinstance(self.gui, E3DCWebGui) and self.txtRSCPPassword.GetValue() != '':
@@ -1004,19 +1098,16 @@ class Frame(MainFrame):
                     'Info',
                     wx.OK | wx.ICON_WARNING)
             else:
-                msg = wx.MessageBox('Verbindung mit System ' + sn + ' / ' + rel + ' hergestellt', 'Info',
+                msg = wx.MessageBox('Verbindung direkt mit System  ' + sn + ' / ' + rel + ' hergestellt', 'Info',
                           wx.OK | wx.ICON_INFORMATION)
-        except RSCPCommunicationError:
-            if isinstance(self.gui, E3DCGui) and method == 'auto':
-                self.bTestClick(event, method = 'ws')
-            else:
-                traceback.print_exc()
-                msg = wx.MessageBox('Verbindung konnte nicht aufgebaut werden', 'Error',
-                              wx.OK | wx.ICON_ERROR)
+
+            logger.debug('Verbindungstest erfolgreich. Verbindungsart: ' + self.connectiontype)
         except:
-            traceback.print_exc()
+            logger.exception('Verbindungstest nicht erfolgreich')
             msg = wx.MessageBox('Verbindung konnte nicht aufgebaut werden', 'Error',
                                 wx.OK | wx.ICON_ERROR)
+
+        self.enableButtons()
 
     def bUpdateCheckClick(self, event):
         try:
@@ -1267,6 +1358,7 @@ class Frame(MainFrame):
 
 
     def getSerialnoFromWeb(self, username, password):
+        logger.debug('Ermittle Seriennummer über Webzugriff')
         userlevel = None
 
         try:
@@ -1281,97 +1373,91 @@ class Frame(MainFrame):
             userlevel = int(r_json['CONTENT']['USERLEVEL'])
             cookies = r.cookies
             if userlevel in (1, 128):
+                r = requests.post('https://s10.e3dc.com/s10/phpcmd/cmd.php', data={'DO': 'GETCONTENT',
+                                                                                   'MODID': 'IDOVERVIEWCOMMONTABLE',
+                                                                                   'ARG0': 'undefined',
+                                                                                   'TOS': -7200,
+                                                                                   'DENV': 'E3DC'}, cookies=cookies)
+                r.raise_for_status()
+                r_json = r.json()
+
+                if r_json['ERRNO'] != 0:
+                    raise Exception('Abfrage fehlerhaft #2, Fehlernummer ' + str(r_json['ERRNO']))
+
+                content = r_json['CONTENT']
+                html = None
+                for lst in content:
+                    if 'HTML' in lst:
+                        html = lst['HTML']
+                        break
+
+                if not html:
+                    raise Exception('Abfrage Fehlerhaft #3, Daten nicht gefunden')
+
+                regex = r"s10list = '(\[\{.*\}\])';"
+
                 try:
-                    r = requests.post('https://s10.e3dc.com/s10/phpcmd/cmd.php', data={'DO': 'GETCONTENT',
-                                                                                       'MODID': 'IDOVERVIEWCOMMONTABLE',
-                                                                                       'ARG0': 'undefined',
-                                                                                       'TOS': -7200,
-                                                                                       'DENV': 'E3DC'}, cookies=cookies)
-                    r.raise_for_status()
-                    r_json = r.json()
-
-                    if r_json['ERRNO'] != 0:
-                        raise Exception('Abfrage fehlerhaft #2, Fehlernummer ' + str(r_json['ERRNO']))
-
-                    content = r_json['CONTENT']
-                    html = None
-                    for lst in content:
-                        if 'HTML' in lst:
-                            html = lst['HTML']
-                            break
-
-                    if not html:
-                        raise Exception('Abfrage Fehlerhaft #3, Daten nicht gefunden')
-
-                    regex = r"s10list = '(\[\{.*\}\])';"
-
-                    try:
-                        match = re.search(regex, html, re.MULTILINE).group(1)
-                        obj = json.loads(match)
-                        return obj
-                    except:
-                        raise Exception('Abfrage Fehlerhaft #4, Regex nicht erfolgreich')
-
+                    match = re.search(regex, html, re.MULTILINE).group(1)
+                    obj = json.loads(match)
+                    return obj
                 except:
-                    traceback.print_exc()
+                    raise Exception('Abfrage Fehlerhaft #4, Regex nicht erfolgreich')
+
         except:
-            traceback.print_exc()
+            logger.exception('Fehler beim Abruf der Seriennummer, Zugangsdaten fehlerhaft?')
 
         return []
 
     def bConfigGetSerialNoOnClick( self, event ):
         username = self.txtUsername.GetValue()
         password = self.txtPassword.GetValue()
-
-        if username and password:
-            ret = self.getSerialnoFromWeb(username, password)
-            if len(ret) == 1:
-                serial = 'S10-' + ret[0]['serialno']
-                self.txtConfigSeriennummer.SetValue(serial)
-                wx.MessageBox('Seriennummer konnte ermittelt werden (WEB): ' + serial, 'Ermittlung Seriennummer')
-            elif len(ret) > 1:
-                sns = '\n'
-                for sn in ret:
-                    sns += '\nS10-' + sn['serialno']
-                wx.MessageBox('Es wurde mehr als eine Seriennummer ermittelt (WEB):' + sns, 'Ermittlung Seriennummer')
-            else:
-                wx.MessageBox('Es konnte keine Seriennummer ermittelt werden (WEB). Zugangsdaten falsch?', 'Ermittlung Seriennummer', wx.ICON_ERROR)
-        else:
+        if not username and not password:
             wx.MessageBox('Zur Ermittlung der Seriennummer sind mindestens Benutzername und Passwort erforderlich!', 'Ermittlung Seriennummer', wx.ICON_WARNING)
+        else:
+            serial = None
+
+            if self.gui:
+                try:
+                    requests = []
+                    requests.append(RSCPTag.INFO_REQ_SERIAL_NUMBER)
+                    result = self.gui.get_data(requests, True)
+                    if result.name == 'INFO_SERIAL_NUMBER':
+                        serial = result.data
+                        self.txtConfigSeriennummer.SetValue(serial)
+                        wx.MessageBox('Seriennummer konnte ermittelt werden (RSCP): ' + serial, 'Ermittlung Seriennummer')
+                except:
+                    logger.exception('Fehler beim Abruf der Seriennummer')
+
+            if username and password and not serial:
+                ret = self.getSerialnoFromWeb(username, password)
+                if len(ret) == 1:
+                    serial = 'S10-' + ret[0]['serialno']
+                    self.txtConfigSeriennummer.SetValue(serial)
+                    wx.MessageBox('Seriennummer konnte ermittelt werden (WEB): ' + serial, 'Ermittlung Seriennummer')
+                elif len(ret) > 1:
+                    sns = '\n'
+                    for sn in ret:
+                        sns += '\nS10-' + sn['serialno']
+                    wx.MessageBox('Es wurde mehr als eine Seriennummer ermittelt (WEB):' + sns, 'Ermittlung Seriennummer')
+                    serial = len(ret)
+
+            if not serial:
+                wx.MessageBox('Es konnte keine Seriennummer ermittelt werden (WEB). Zugangsdaten falsch?',
+                              'Ermittlung Seriennummer', wx.ICON_ERROR)
 
         event.Skip()
 
     def bConfigGetIPAddressOnClick( self, event ):
-        username = self.txtUsername.GetValue()
-        password = self.txtPassword.GetValue()
-        serial = self.txtConfigSeriennummer.GetValue()
-        if username and password:
-            if not serial:
-                try:
-                    ret = self.getSerialnoFromWeb(username, password)
-                    if len(ret) > 0:
-                        serial = 'S10-' + ret[0]['serialno']
-                        self.txtConfigSeriennummer.SetValue(serial)
-                except:
-                    wx.MessageBox('Seriennummer fehlt und konnte nicht ermittelt werden', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
+        try:
+            ip = repr(self.gui.get_data(self.gui.getInfo(), True)['INFO_IP_ADDRESS'])
+            if ip:
+                self.txtIP.SetValue(ip)
+                wx.MessageBox('IP-Adresse konnte ermittelt werden: ' + ip, 'Ermittlung IP-Adresse')
+            else:
+                wx.MessageBox('IP-Adresse konnte nicht ermittelt werden, kein Inhalt', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
 
-        if username and password and serial:
-            self.chConfigWebsocket.SetValue(True)
-
-        if isinstance(self.gui, E3DCWebGui):
-            try:
-                ip = repr(self.gui.get_data(self.gui.getInfo(), True)['INFO_IP_ADDRESS'])
-                if ip:
-                    self.txtIP.SetValue(ip)
-                    self.chConfigWebsocket.SetValue(False)
-                    wx.MessageBox('IP-Adresse konnte ermittelt werden: ' + ip, 'Ermittlung IP-Adresse')
-                else:
-                    wx.MessageBox('IP-Adresse konnte nicht ermittelt werden, kein Inahlt', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
-
-            except:
-                wx.MessageBox('Bei der Ermittlung der IP-Adresse ist ein Fehler aufgetreten #2', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
-
-        event.Skip()
+        except:
+            wx.MessageBox('Bei der Ermittlung der IP-Adresse ist ein Fehler aufgetreten #2', 'Ermittlung IP-Adresse', wx.ICON_ERROR)
 
     def bConfigSetRSCPPasswordOnClick( self, event ):
         ret = wx.MessageBox('Soll das angegebene RSCP-Kennwort mit dem bisherigen überschrieben werden?', 'RSCP-Passwort ändern', wx.YES_NO | wx.ICON_WARNING)
@@ -1390,22 +1476,32 @@ class Frame(MainFrame):
 
         event.Skip()
 
-    def setWSConnected(self):
-        self.rConfigWebsocketConnected.SetValue(True)
-
-    def setWSDisconnected(self):
-        self.rConfigWebsocketConnected.SetValue(False)
-
     def check_e3dcwebgui(self):
         while True:
             try:
-                if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
-                    self.setWSConnected()
+                if self.connectiontype == 'web':
+                    try:
+                        if self.gui.e3dc.connected:
+                            self._connected = True
+                            self.txtConfigAktiveVerbindung.SetValue('web - active')
+                        else:
+                            self._connected = False
+                            self.txtConfigAktiveVerbindung.SetValue('web - inactive')
+                    except:
+                        self._connected = None
+                        self.txtConfigAktiveVerbindung.SetValue('unknown')
+                elif self.connectiontype == 'direkt':
+                    self._connected = True
+                    self.txtConfigAktiveVerbindung.SetValue('direct')
                 else:
-                    self.setWSDisconnected()
-            except:
+                    self._connected = False
+                    self.txtConfigAktiveVerbindung.SetValue('no con')
+            except RuntimeError:
                 logger.debug('Beende check_e3dcwebgui')
                 os._exit(1)
+            except:
+                self._connected = None
+                logger.exception('check_e3dcwebgui')
 
             time.sleep(1)
 

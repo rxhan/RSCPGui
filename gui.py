@@ -18,7 +18,7 @@ import wx.grid
 class MainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 790,824 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 1029,867 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -236,7 +236,7 @@ class MainFrame ( wx.Frame ):
 		self.pMain.SetSizer( fgSizer21 )
 		self.pMain.Layout()
 		fgSizer21.Fit( self.pMain )
-		self.pMainregister.AddPage( self.pMain, u"INFO", True )
+		self.pMainregister.AddPage( self.pMain, u"INFO", False )
 		self.pEMS = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer12 = wx.BoxSizer( wx.VERTICAL )
 
@@ -737,17 +737,143 @@ class MainFrame ( wx.Frame ):
 		self.m_panel7.SetSizer( fgSizer10 )
 		self.m_panel7.Layout()
 		fgSizer10.Fit( self.m_panel7 )
-		self.m_notebook2.AddPage( self.m_panel7, u"Basis", True )
+		self.m_notebook2.AddPage( self.m_panel7, u"Basis", False )
 		self.m_panel8 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer7 = wx.BoxSizer( wx.VERTICAL )
+
+		fgSizer26 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer26.SetFlexibleDirection( wx.BOTH )
+		fgSizer26.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		bSizer15 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_staticText1731 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Ladeverhalten", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1731.Wrap( -1 )
+
+		bSizer15.Add( self.m_staticText1731, 0, wx.ALL, 5 )
+
+		self.m_staticline4 = wx.StaticLine( self.m_panel8, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer15.Add( self.m_staticline4, 0, wx.EXPAND |wx.ALL, 5 )
+
+		fgSizer27 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer27.SetFlexibleDirection( wx.BOTH )
+		fgSizer27.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText87 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Leistungslimit verwenden", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText87.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText87, 0, wx.ALL, 5 )
+
+		self.chEMSPowerLimitsUsed = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer27.Add( self.chEMSPowerLimitsUsed, 0, wx.ALL, 5 )
+
+		self.m_staticText88 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Maximale Ladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText88.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText88, 0, wx.ALL, 5 )
+
+		fgSizer7 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer7.SetFlexibleDirection( wx.BOTH )
+		fgSizer7.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.sEMSMaxChargePower = wx.Slider( self.m_panel8, wx.ID_ANY, 50, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		fgSizer7.Add( self.sEMSMaxChargePower, 0, wx.ALL, 5 )
+
+		self.txtEMSMaxChargePower = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
+		self.txtEMSMaxChargePower.Enable( False )
+
+		fgSizer7.Add( self.txtEMSMaxChargePower, 0, wx.ALL, 5 )
+
+
+		fgSizer27.Add( fgSizer7, 1, wx.EXPAND, 5 )
+
+		self.m_staticText89 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Maximale Entladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText89.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText89, 0, wx.ALL, 5 )
+
+		fgSizer8 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer8.SetFlexibleDirection( wx.BOTH )
+		fgSizer8.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.sEMSMaxDischargePower = wx.Slider( self.m_panel8, wx.ID_ANY, 50, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		fgSizer8.Add( self.sEMSMaxDischargePower, 0, wx.ALL, 5 )
+
+		self.txtEMSMaxDischargePower = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
+		self.txtEMSMaxDischargePower.Enable( False )
+
+		fgSizer8.Add( self.txtEMSMaxDischargePower, 0, wx.ALL, 5 )
+
+
+		fgSizer27.Add( fgSizer8, 1, wx.EXPAND, 5 )
+
+		self.m_staticText142 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"untere Lade-/Entladeschwelle", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText142.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText142, 0, wx.ALL, 5 )
+
+		fgSizer9 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer9.SetFlexibleDirection( wx.BOTH )
+		fgSizer9.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.sEMSMaxDischargeStartPower = wx.Slider( self.m_panel8, wx.ID_ANY, 50, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		fgSizer9.Add( self.sEMSMaxDischargeStartPower, 0, wx.ALL, 5 )
+
+		self.txtEMSMaxDischargeStartPower = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
+		self.txtEMSMaxDischargeStartPower.Enable( False )
+
+		fgSizer9.Add( self.txtEMSMaxDischargeStartPower, 0, wx.ALL, 5 )
+
+
+		fgSizer27.Add( fgSizer9, 1, wx.EXPAND, 5 )
+
+		self.m_staticText90 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Stromsparen aktiviert", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText90.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText90, 0, wx.ALL, 5 )
+
+		self.chEMSPowerSaveEnabled = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer27.Add( self.chEMSPowerSaveEnabled, 0, wx.ALL, 5 )
+
+		self.m_staticText91 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Wetterprognose verwenden", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText91.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText91, 0, wx.ALL, 5 )
+
+		self.chEMSWeatherRegulatedChargeEnabled = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer27.Add( self.chEMSWeatherRegulatedChargeEnabled, 0, wx.ALL, 5 )
+
+		self.m_staticText139 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Wallbox priorisiert", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText139.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText139, 0, wx.ALL, 5 )
+
+		self.chEMSBatteryBeforeCarMode = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer27.Add( self.chEMSBatteryBeforeCarMode, 0, wx.ALL, 5 )
+
+		self.m_staticText140 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Batterieentladung durch Wallbox", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText140.Wrap( -1 )
+
+		fgSizer27.Add( self.m_staticText140, 0, wx.ALL, 5 )
+
+		self.chEMSBatteryToCarMode = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer27.Add( self.chEMSBatteryToCarMode, 0, wx.ALL, 5 )
+
+
+		bSizer15.Add( fgSizer27, 1, wx.EXPAND, 5 )
+
+
+		fgSizer26.Add( bSizer15, 1, wx.EXPAND, 5 )
+
+		bSizer14 = wx.BoxSizer( wx.VERTICAL )
 
 		self.m_staticText93 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Ladesperrzeiten", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText93.Wrap( -1 )
 
-		bSizer7.Add( self.m_staticText93, 0, wx.ALL, 5 )
+		bSizer14.Add( self.m_staticText93, 0, wx.ALL, 5 )
 
 		self.m_staticline5 = wx.StaticLine( self.m_panel8, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		bSizer7.Add( self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5 )
+		bSizer14.Add( self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5 )
 
 		fgSizer11 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer11.SetFlexibleDirection( wx.BOTH )
@@ -853,16 +979,8 @@ class MainFrame ( wx.Frame ):
 
 		gSizer13 = wx.GridSizer( 0, 2, 0, 0 )
 
-		gSizer48 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.tpEMSChargeMoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer48.Add( self.tpEMSChargeMoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		gSizer48.Add( ( 0, 0), 1, wx.EXPAND, 5 )
-
-
-		gSizer13.Add( gSizer48, 1, wx.EXPAND, 5 )
+		self.tpEMSChargeMoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
+		gSizer13.Add( self.tpEMSChargeMoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer14 = wx.GridSizer( 0, 2, 0, 0 )
 
@@ -871,7 +989,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer14.Add( self.m_staticText95, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSChargeMoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeMoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer14.Add( self.tpEMSChargeMoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -882,7 +1000,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer131 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSChargeDiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeDiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131.Add( self.tpEMSChargeDiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer141 = wx.GridSizer( 0, 2, 0, 0 )
@@ -892,7 +1010,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer141.Add( self.m_staticText951, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSChargeDiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeDiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer141.Add( self.tpEMSChargeDiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -903,7 +1021,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer1311 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSChargeMiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeMiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1311.Add( self.tpEMSChargeMiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer1411 = wx.GridSizer( 0, 2, 0, 0 )
@@ -913,7 +1031,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer1411.Add( self.m_staticText9511, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSChargeMiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeMiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1411.Add( self.tpEMSChargeMiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -924,7 +1042,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer13111 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSChargeDoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeDoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13111.Add( self.tpEMSChargeDoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer14111 = wx.GridSizer( 0, 2, 0, 0 )
@@ -934,7 +1052,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer14111.Add( self.m_staticText95111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSChargeDoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeDoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer14111.Add( self.tpEMSChargeDoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -945,7 +1063,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer13112 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSChargeFrVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeFrVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13112.Add( self.tpEMSChargeFrVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer14112 = wx.GridSizer( 0, 2, 0, 0 )
@@ -955,7 +1073,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer14112.Add( self.m_staticText95112, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSChargeFrBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeFrBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer14112.Add( self.tpEMSChargeFrBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -966,7 +1084,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer13113 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSChargeSaVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeSaVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13113.Add( self.tpEMSChargeSaVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer14113 = wx.GridSizer( 0, 2, 0, 0 )
@@ -976,7 +1094,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer14113.Add( self.m_staticText95113, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSChargeSaBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeSaBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer14113.Add( self.tpEMSChargeSaBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -987,7 +1105,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer131131 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSChargeSoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeSoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131131.Add( self.tpEMSChargeSoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer141131 = wx.GridSizer( 0, 2, 0, 0 )
@@ -997,7 +1115,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer141131.Add( self.m_staticText951131, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSChargeSoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSChargeSoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer141131.Add( self.tpEMSChargeSoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1010,15 +1128,15 @@ class MainFrame ( wx.Frame ):
 		fgSizer11.Add( bSizer9, 1, wx.EXPAND, 5 )
 
 
-		bSizer7.Add( fgSizer11, 1, wx.EXPAND, 5 )
+		bSizer14.Add( fgSizer11, 1, wx.EXPAND, 5 )
 
 		self.m_staticText931 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Entladesperrzeiten", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText931.Wrap( -1 )
 
-		bSizer7.Add( self.m_staticText931, 0, wx.ALL, 5 )
+		bSizer14.Add( self.m_staticText931, 0, wx.ALL, 5 )
 
-		self.m_staticline4 = wx.StaticLine( self.m_panel8, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		bSizer7.Add( self.m_staticline4, 0, wx.EXPAND |wx.ALL, 5 )
+		self.m_staticline31 = wx.StaticLine( self.m_panel8, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer14.Add( self.m_staticline31, 0, wx.EXPAND |wx.ALL, 5 )
 
 		fgSizer111 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer111.SetFlexibleDirection( wx.HORIZONTAL )
@@ -1126,7 +1244,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer481 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSDischargeMoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeMoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer481.Add( self.tpEMSDischargeMoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1142,7 +1260,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer142.Add( self.m_staticText952, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSDischargeMoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeMoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer142.Add( self.tpEMSDischargeMoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1153,7 +1271,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer1312 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSDischargeDiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeDiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1312.Add( self.tpEMSDischargeDiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer1412 = wx.GridSizer( 0, 2, 0, 0 )
@@ -1163,7 +1281,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer1412.Add( self.m_staticText9512, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSDischargeDiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeDiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1412.Add( self.tpEMSDischargeDiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1174,7 +1292,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer13114 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSDischargeMiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeMiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13114.Add( self.tpEMSDischargeMiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer14114 = wx.GridSizer( 0, 2, 0, 0 )
@@ -1184,7 +1302,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer14114.Add( self.m_staticText95114, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSDischargeMiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeMiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer14114.Add( self.tpEMSDischargeMiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1195,7 +1313,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer131111 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSDischargeDoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeDoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131111.Add( self.tpEMSDischargeDoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer141111 = wx.GridSizer( 0, 2, 0, 0 )
@@ -1205,7 +1323,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer141111.Add( self.m_staticText951111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSDischargeDoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeDoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer141111.Add( self.tpEMSDischargeDoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1216,7 +1334,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer131121 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSDischargeFrVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeFrVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131121.Add( self.tpEMSDischargeFrVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer141121 = wx.GridSizer( 0, 2, 0, 0 )
@@ -1226,7 +1344,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer141121.Add( self.m_staticText951121, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSDischargeFrBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeFrBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer141121.Add( self.tpEMSDischargeFrBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1237,7 +1355,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer131132 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSDischargeSaVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeSaVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131132.Add( self.tpEMSDischargeSaVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer141132 = wx.GridSizer( 0, 2, 0, 0 )
@@ -1247,7 +1365,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer141132.Add( self.m_staticText951132, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSDischargeSaBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeSaBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer141132.Add( self.tpEMSDischargeSaBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1258,7 +1376,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer1311311 = wx.GridSizer( 0, 2, 0, 0 )
 
-		self.tpEMSDischargeSoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeSoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1311311.Add( self.tpEMSDischargeSoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		gSizer1411311 = wx.GridSizer( 0, 2, 0, 0 )
@@ -1268,7 +1386,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer1411311.Add( self.m_staticText9511311, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		self.tpEMSDischargeSoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tpEMSDischargeSoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1411311.Add( self.tpEMSDischargeSoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
@@ -1281,129 +1399,22 @@ class MainFrame ( wx.Frame ):
 		fgSizer111.Add( bSizer91, 1, wx.EXPAND, 5 )
 
 
-		bSizer7.Add( fgSizer111, 1, wx.EXPAND, 5 )
-
-		self.m_staticText143 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Ladeeinstellungen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText143.Wrap( -1 )
-
-		bSizer7.Add( self.m_staticText143, 0, wx.ALL, 5 )
-
-		self.m_staticline31 = wx.StaticLine( self.m_panel8, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		bSizer7.Add( self.m_staticline31, 0, wx.EXPAND |wx.ALL, 5 )
-
-		gSizer57 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText87 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Leistungslimit verwenden", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText87.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText87, 0, wx.ALL, 5 )
-
-		self.chEMSPowerLimitsUsed = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer57.Add( self.chEMSPowerLimitsUsed, 0, wx.ALL, 5 )
-
-		self.m_staticText88 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Maximale Ladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText88.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText88, 0, wx.ALL, 5 )
-
-		fgSizer7 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer7.SetFlexibleDirection( wx.BOTH )
-		fgSizer7.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.sEMSMaxChargePower = wx.Slider( self.m_panel8, wx.ID_ANY, 50, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		fgSizer7.Add( self.sEMSMaxChargePower, 0, wx.ALL, 5 )
-
-		self.txtEMSMaxChargePower = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
-		self.txtEMSMaxChargePower.Enable( False )
-
-		fgSizer7.Add( self.txtEMSMaxChargePower, 0, wx.ALL, 5 )
+		bSizer14.Add( fgSizer111, 1, wx.EXPAND, 5 )
 
 
-		gSizer57.Add( fgSizer7, 1, wx.EXPAND, 5 )
-
-		self.m_staticText89 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Maximale Entladeleistung", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText89.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText89, 0, wx.ALL, 5 )
-
-		fgSizer8 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer8.SetFlexibleDirection( wx.BOTH )
-		fgSizer8.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.sEMSMaxDischargePower = wx.Slider( self.m_panel8, wx.ID_ANY, 50, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		fgSizer8.Add( self.sEMSMaxDischargePower, 0, wx.ALL, 5 )
-
-		self.txtEMSMaxDischargePower = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
-		self.txtEMSMaxDischargePower.Enable( False )
-
-		fgSizer8.Add( self.txtEMSMaxDischargePower, 0, wx.ALL, 5 )
-
-
-		gSizer57.Add( fgSizer8, 1, wx.EXPAND, 5 )
-
-		self.m_staticText142 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"untere Lade-/Entladeschwelle", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText142.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText142, 0, wx.ALL, 5 )
-
-		fgSizer9 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer9.SetFlexibleDirection( wx.BOTH )
-		fgSizer9.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.sEMSMaxDischargeStartPower = wx.Slider( self.m_panel8, wx.ID_ANY, 50, 0, 100, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
-		fgSizer9.Add( self.sEMSMaxDischargeStartPower, 0, wx.ALL, 5 )
-
-		self.txtEMSMaxDischargeStartPower = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
-		self.txtEMSMaxDischargeStartPower.Enable( False )
-
-		fgSizer9.Add( self.txtEMSMaxDischargeStartPower, 0, wx.ALL, 5 )
-
-
-		gSizer57.Add( fgSizer9, 1, wx.EXPAND, 5 )
-
-		self.m_staticText90 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Stromsparen aktiviert", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText90.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText90, 0, wx.ALL, 5 )
-
-		self.chEMSPowerSaveEnabled = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer57.Add( self.chEMSPowerSaveEnabled, 0, wx.ALL, 5 )
-
-		self.m_staticText91 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Wetterprognose verwenden", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText91.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText91, 0, wx.ALL, 5 )
-
-		self.chEMSWeatherRegulatedChargeEnabled = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer57.Add( self.chEMSWeatherRegulatedChargeEnabled, 0, wx.ALL, 5 )
-
-		self.m_staticText139 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Wallbox priorisiert", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText139.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText139, 0, wx.ALL, 5 )
-
-		self.chEMSBatteryBeforeCarMode = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer57.Add( self.chEMSBatteryBeforeCarMode, 0, wx.ALL, 5 )
-
-		self.m_staticText140 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Batterieentladung durch Wallbox", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText140.Wrap( -1 )
-
-		gSizer57.Add( self.m_staticText140, 0, wx.ALL, 5 )
-
-		self.chEMSBatteryToCarMode = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer57.Add( self.chEMSBatteryToCarMode, 0, wx.ALL, 5 )
+		fgSizer26.Add( bSizer14, 1, wx.EXPAND, 5 )
 
 		self.bEMSUploadChanges = wx.Button( self.m_panel8, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer57.Add( self.bEMSUploadChanges, 0, wx.ALL, 5 )
+		fgSizer26.Add( self.bEMSUploadChanges, 0, wx.ALL, 5 )
 
 
-		bSizer7.Add( gSizer57, 1, wx.EXPAND, 5 )
+		bSizer7.Add( fgSizer26, 1, wx.EXPAND, 5 )
 
 
 		self.m_panel8.SetSizer( bSizer7 )
 		self.m_panel8.Layout()
 		bSizer7.Fit( self.m_panel8 )
-		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", False )
+		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", True )
 		self.m_panel9 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		fgSizer12 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer12.SetFlexibleDirection( wx.BOTH )
@@ -2529,7 +2540,7 @@ class MainFrame ( wx.Frame ):
 		fgSizer22.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
 		self.txtRSCPPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
-		self.txtRSCPPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
+		self.txtRSCPPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
 
 		fgSizer22.Add( self.txtRSCPPassword, 0, wx.ALL, 5 )
 
@@ -2539,17 +2550,24 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( fgSizer22, 1, wx.EXPAND, 5 )
 
+		self.m_staticText171 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Verbindungsart", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText171.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText171, 0, wx.ALL, 5 )
+
+		fgSizer271 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer271.SetFlexibleDirection( wx.BOTH )
+		fgSizer271.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		cbConfigVerbindungsartChoices = [ u"auto", u"direkt", u"web" ]
+		self.cbConfigVerbindungsart = wx.ComboBox( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, cbConfigVerbindungsartChoices, 0 )
+		fgSizer271.Add( self.cbConfigVerbindungsart, 0, wx.ALL, 5 )
+
 		self.bTest = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Verbindungstest", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.bTest, 0, wx.ALL, 5 )
+		fgSizer271.Add( self.bTest, 0, wx.ALL, 5 )
 
 
-		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
-
-		self.m_staticline12 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		fgSizer1.Add( self.m_staticline12, 0, wx.EXPAND |wx.ALL, 5 )
-
-		self.m_staticline13 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		fgSizer1.Add( self.m_staticline13, 0, wx.EXPAND |wx.ALL, 5 )
+		fgSizer1.Add( fgSizer271, 1, wx.EXPAND, 5 )
 
 		self.m_staticText7 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"IP-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText7.Wrap( -1 )
@@ -2569,16 +2587,6 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( fgSizer211, 1, wx.EXPAND, 5 )
 
-		self.m_staticText171 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Verbindungsart", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText171.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText171, 0, wx.ALL, 5 )
-
-		self.chConfigWebsocket = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"Websockets", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.chConfigWebsocket.Enable( False )
-
-		fgSizer1.Add( self.chConfigWebsocket, 0, wx.ALL, 5 )
-
 		self.m_staticText169 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Seriennummer", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText169.Wrap( -1 )
 
@@ -2597,27 +2605,17 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( fgSizer20, 1, wx.EXPAND, 5 )
 
-		self.m_staticText170 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Websocket-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText170.Wrap( -1 )
+		self.m_staticText1732 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"aktive Verbindung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1732.Wrap( -1 )
 
-		fgSizer1.Add( self.m_staticText170, 0, wx.ALL, 5 )
+		fgSizer1.Add( self.m_staticText1732, 0, wx.ALL, 5 )
 
-		fgSizer231 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer231.SetFlexibleDirection( wx.BOTH )
-		fgSizer231.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		self.txtConfigAktiveVerbindung = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtConfigAktiveVerbindung.Enable( False )
 
-		self.txtConfigWebsocket = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.txtConfigWebsocket.Enable( False )
+		fgSizer1.Add( self.txtConfigAktiveVerbindung, 0, wx.ALL, 5 )
 
-		fgSizer231.Add( self.txtConfigWebsocket, 0, wx.ALL, 5 )
-
-		self.rConfigWebsocketConnected = wx.RadioButton( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer231.Add( self.rConfigWebsocketConnected, 0, wx.ALL, 5 )
-
-
-		fgSizer1.Add( fgSizer231, 1, wx.EXPAND, 5 )
-
-		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Übernehmen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Einstellungen speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer1.Add( self.bSave, 0, wx.ALL, 5 )
 
 
@@ -2655,7 +2653,7 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer1 )
 		self.pEinstellungen.Layout()
 		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
