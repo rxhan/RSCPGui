@@ -1,5 +1,6 @@
 import binascii
 import hashlib
+import logging
 import math
 import struct
 import threading
@@ -20,6 +21,22 @@ import websocket
 from e3dc._rscp_dto import RSCPDTO
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
 
 class E3DCWebGui(rscp_helper):
     timeout = 5
@@ -54,6 +71,7 @@ class E3DCWebGui(rscp_helper):
 
 class E3DCWeb(E3DC):
     def __init__(self, username, password, identifier, url = None):
+        logger.debug('Initialisiere E3DC-Websockets')
         if not url:
             url = 'wss://s10.e3dc.com/ws'
         self.password = password
@@ -61,6 +79,7 @@ class E3DCWeb(E3DC):
         self.rscp_utils = RSCPUtils()
         self.identifier = identifier
         self.url = url
+        logger.debug('Init abgeschlossen')
 
     server_connection_id = None
     server_auth_level = None
@@ -106,6 +125,7 @@ class E3DCWeb(E3DC):
         requests = []
         for res in data:
             if res.name == 'SERVER_REGISTER_CONNECTION':
+                logger.debug(res.name)
                 self.server_connection_id = res['SERVER_CONNECTION_ID'].data
                 self.server_auth_level = res['SERVER_AUTH_LEVEL'].data
                 self.server_type = res['SERVER_TYPE'].data
@@ -119,6 +139,7 @@ class E3DCWeb(E3DC):
                 requests.append(r)
 
             if res.name == 'SERVER_UNREGISTER_CONNECTION':
+                logger.debug(res.name)
                 self.server_connection_id = None
                 self.server_auth_level = None
                 r = self.getWeblogin()
@@ -126,10 +147,9 @@ class E3DCWeb(E3DC):
 
             elif res.name == 'SERVER_REQ_RSCP_CMD':
                 if res['SERVER_RSCP_DATA']:
+                    logger.debug(res.name)
                     p = []
                     rscp_data = res['SERVER_RSCP_DATA']
-
-                    print(rscp_data)
 
                     if self.next_response:
                         if isinstance(rscp_data.data, RSCPDTO):
@@ -185,6 +205,7 @@ class E3DCWeb(E3DC):
                         requests.append(self.getRSCPToServer(p))
 
             elif res.name == 'SERVER_REQ_PING':
+                logger.debug(res.name)
                 r = RSCPDTO(tag=RSCPTag.SERVER_PING)
                 requests.append(r)
 
@@ -200,7 +221,6 @@ class E3DCWeb(E3DC):
                 x = RSCPDTO(payload_element)
             else:
                 x = payload_element
-            print(x)
             payload += self.rscp_utils.encode_data(x)
 
         payload = self.rscp_utils.encode_frame(payload)
@@ -217,6 +237,7 @@ class E3DCWeb(E3DC):
             ws = self.ws
         dataframe = self.rscp_utils.encode_data(r)
         bindat = self.rscp_utils.encode_frame(dataframe, crc=True)
+        logger.debug('Sende Daten ' + str(len(bindat)))
         ws.send(bindat, websocket.ABNF.OPCODE_BINARY)
 
     def start_ws(self):
@@ -225,33 +246,25 @@ class E3DCWeb(E3DC):
                 data = self.rscp_utils.decode_server_data(message)
                 res = self.interpreter_serverdata(data)
                 for r in res:
-                    print(' > ')
-                    print(r)
                     self.send_data(r, ws)
 
             except:
                 traceback.print_exc()
 
         def on_error(ws, error):
-            print(error)
+            logger.info('Verbindungsfehler', error)
 
         def on_close(ws):
-            print("### closed ###")
+            logger.info('Verbindung geschlossen')
 
-        websocket.enableTrace(True)
+        #websocket.enableTrace(True)
         ws = websocket.WebSocketApp(self.url,
                                     on_message=on_message,
                                     on_error=on_error,
-                                    on_close=on_close,
-                                    header={'Sec-WebSocket-Extensions': 'permessage-deflate; client_max_windows_bits',
-                                            'Accept-Encoding': 'gzip, deflate, br',
-                                            'Accept-Language': 'de-DE,de;q=0.9,en-US;q=0.8,en;q=0.7',
-                                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.102 Safari/537.36',
-                                            'Pragma': 'no-cache',
-                                            'Cache-Control': 'no-cache',
-                                            })
+                                    on_close=on_close)
 
         self.ws = ws
+        logger.debug('Starte Websocket-Verbindung mit ' + self.url)
         ws.run_forever()
 
     def __del__(self):

@@ -236,7 +236,7 @@ class MainFrame ( wx.Frame ):
 		self.pMain.SetSizer( fgSizer21 )
 		self.pMain.Layout()
 		fgSizer21.Fit( self.pMain )
-		self.pMainregister.AddPage( self.pMain, u"INFO", False )
+		self.pMainregister.AddPage( self.pMain, u"INFO", True )
 		self.pEMS = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer12 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2033,7 +2033,7 @@ class MainFrame ( wx.Frame ):
 		self.pBAT.SetSizer( bSizer42 )
 		self.pBAT.Layout()
 		bSizer42.Fit( self.pBAT )
-		self.pMainregister.AddPage( self.pBAT, u"BAT", True )
+		self.pMainregister.AddPage( self.pBAT, u"BAT", False )
 		self.pPVI = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer51 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2661,6 +2661,10 @@ class MainFrame ( wx.Frame ):
 
 		self.bUpdate = wx.Button( self, wx.ID_ANY, u"aktualisieren", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer1.Add( self.bUpdate, 0, wx.ALL, 5 )
+
+		self.gaUpdate = wx.Gauge( self, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL )
+		self.gaUpdate.SetValue( 0 )
+		bSizer1.Add( self.gaUpdate, 0, wx.ALL, 5 )
 
 
 		self.SetSizer( bSizer1 )

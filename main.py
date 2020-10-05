@@ -67,12 +67,21 @@ class Frame(MainFrame):
         self.clear_values()
         MainFrame.__init__(self, parent)
 
+        logger.info('Oberfläche geladen')
+
         self.ConfigFilename = 'rscpe3dc.conf.ini'
 
-        for tz in pytz.all_timezones:
-            self.cbTimezone.Append(str(tz))
+        def load_timezones():
+            logger.info('Lade Zeitzonen geladen')
+            for tz in pytz.common_timezones:
+                self.cbTimezone.Append(str(tz))
+            logger.info('Zeitzonen geladen')
+
+        threading.Thread(target=load_timezones, args=()).start()
 
         self.loadConfig()
+
+        logger.info('Konfigurationsdatei geladen')
 
         self.Bind(wx.EVT_BUTTON, self.bTestClick, self.bTest)
         self.Bind(wx.EVT_BUTTON, self.bSaveClick, self.bSave)
@@ -86,10 +95,10 @@ class Frame(MainFrame):
         self._wsthread = threading.Thread(target=self.check_e3dcwebgui, args=())
         self._wsthread.start()
 
-        try:
-            self.bUpdateClick(None)
-        except:
-            traceback.print_exc()
+        self._updatethread = threading.Thread(target=self.updateData, args=())
+        self._updatethread.start()
+
+        logger.info('Init abgeschlossen')
 
     def loadConfig(self):
         logger.info('Lade Konfigurationsdatei ' + self.ConfigFilename)
@@ -118,6 +127,8 @@ class Frame(MainFrame):
                 else:
                     usewebsocket = False
                 self.chConfigWebsocket.SetValue(usewebsocket)
+
+        logger.info('Konfigurationsdatei geladen')
                 
         if self.txtConfigWebsocket.GetValue() == '':
             self.txtConfigWebsocket.SetValue('wss://s10.e3dc.com/ws')
@@ -137,6 +148,8 @@ class Frame(MainFrame):
 
         with open(self.ConfigFilename, 'w') as configfile:
             config.write(configfile)
+
+        logger.info('Konfigurationsdatei gespeichert')
 
 
     @property
@@ -174,6 +187,7 @@ class Frame(MainFrame):
         return self._gui
 
     def fill_info(self):
+        logger.debug('Rufe PVI-Daten ab')
         d = self.gui.get_data(self.gui.getInfo() + self.gui.getUpdateStatus(), True)
         self._data_info = d
 
@@ -196,6 +210,8 @@ class Frame(MainFrame):
         self.chSRVIsOnline.SetValue(d['SRV_IS_ONLINE'].data)
         self.chSYSReboot.SetValue(d['SYS_IS_SYSTEM_REBOOTING'].data)
         self.txtRSCPUserLevel.SetValue(repr(d['RSCP_USER_LEVEL']))
+
+        logger.debug('Abruf INFO-Daten abgeschlossen')
 
 
 
@@ -324,13 +340,16 @@ class Frame(MainFrame):
                 except:
                     traceback.print_exc()
                     wx.MessageBox('Übertragung fehlgeschlagen')
-        self.bUpdateClick(None)
+        self.updateData()
 
     def fill_wb(self):
+        logger.debug('Rufe WB-Daten ab')
         d = self.gui.get_data(self.gui.getWB(), True)
         print(d)
+        logger.debug('Abruf WB-Daten abgeschlossen')
 
     def fill_ems(self):
+        logger.debug('Rufe EMS-Daten ab')
         self._extsrcavailable = 0
         d = self.gui.get_data(self.gui.getEMSData(), True)
         self._data_ems = d
@@ -485,6 +504,7 @@ class Frame(MainFrame):
             self.__getattribute__(ch).SetValue(idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data)
             self.__getattribute__(von).SetValue(str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
             self.__getattribute__(bis).SetValue(str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+        logger.debug('Abruf EMS-Daten abgeschlossen')
 
     def sEMSMaxChargePowerOnScroll(self, event):
         self.txtEMSMaxChargePower.SetValue(str(self.sEMSMaxChargePower.GetValue()) + ' W')
@@ -496,6 +516,7 @@ class Frame(MainFrame):
         self.txtEMSMaxDischargeStartPower.SetValue(str(self.sEMSMaxDischargeStartPower.GetValue()) + ' W')
 
     def fill_pm(self):
+        logger.debug('Rufe PM-Daten ab')
         def get_einheit(value):
             if abs(value) > 10000:
                 if abs(value) > 10000000:
@@ -568,8 +589,10 @@ class Frame(MainFrame):
                 logger.exception('PM #' + str(index) + ' konnte nicht abgerufen werden.')
 
         self.gPM.AutoSize()
+        logger.debug('Abruf PM-Daten abgeschlossen')
 
     def fill_dcdc(self):
+        logger.debug('Rufe DCDC-Daten ab')
         for index in [0,1,2,3]:
             try:
                 d = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
@@ -594,8 +617,10 @@ class Frame(MainFrame):
                 logger.info('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
 
         self.gDCDC.AutoSizeColumns()
+        logger.debug('Abruf DCDC-Daten abgeschlossen')
 
     def fill_pvi(self):
+        logger.debug('Rufe PVI-Daten ab')
         for index in range(0,4):
             try:
                 data = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
@@ -609,6 +634,7 @@ class Frame(MainFrame):
         for pvi in self._data_pvi:
             self.chPVIIndex.Append('PVI #' + str(pvi['PVI_INDEX'].data))
 
+        logger.debug('Abruf PVI-Daten abgeschlossen')
 
     def fill_pvi_index(self, index):
         data = self._data_pvi[index]
@@ -698,13 +724,15 @@ class Frame(MainFrame):
 
 
     def fill_bat(self):
+        logger.debug('Rufe BAT-Daten ab')
+
         for index in [0,1]:
             try:
                 requests = self.gui.getBatDcbData(bat_index=index)
                 if len(requests) > 0:
                     f = self.gui.get_data(requests, True)
                     self._data_bat.append(f)
-                    logger.exception('Erfolgreich BAT #' + str(index) + ' abgerufen')
+                    logger.info('Erfolgreich BAT #' + str(index) + ' abgerufen')
             except:
                 logger.exception('Fehler beim Abruf von BAT #' + str(index))
 
@@ -713,7 +741,12 @@ class Frame(MainFrame):
         for bat in self._data_bat:
             self.cbBATIndex.Append('BAT #' + str(bat['BAT_INDEX'].data))
 
+        logger.debug('BAT-Daten abgerufen')
+
+
     def fill_bat_index(self, index):
+        logger.debug('Fülle BAT-Datenfelder')
+
         self.gDCB_row_voltages = None
         self.gDCB_row_temp = None
         self.gDCB_last_row = 28
@@ -860,6 +893,7 @@ class Frame(MainFrame):
             set_info(f['BAT_DCB_INFO'])
 
         self.gDCB.AutoSizeColumns()
+        logger.debug('BAT-Datenfelder füllen abgeschlossen')
 
     def bSaveClick(self, event):
         self.saveConfig()
@@ -1005,63 +1039,112 @@ class Frame(MainFrame):
         self._data_pm = []
         self._data_wb = None
 
-    def bUpdateClick(self, event):
-        if self.gui:
-            logger.info('Aktualisiere Daten')
-            self.clear_values()
+    def disableButtons(self):
+        logger.debug('Deaktiviere Buttons')
+        self.enableDisableButtons(False)
 
-            try:
-                self.fill_info()
-            except:
-                logger.exception('Fehler beim Abruf der INFO-Daten')
+    def enableButtons(self):
+        logger.debug('Aktiviere Buttons')
+        self.enableDisableButtons(True)
 
-            try:
-                selected = self.cbBATIndex.GetSelection()
-                if selected in [wx.NOT_FOUND, '', None, False]:
-                    selected = 0
+    def enableDisableButtons(self, value= True):
+        self.bUpdate.Enable(value)
+        self.bEMSEPTest.Enable(value)
+        self.bEMSManualChargeStart.Enable(value)
+        self.bSave.Enable(value)
+        self.bTest.Enable(value)
+        self.bConfigGetIPAddress.Enable(value)
+        self.bConfigGetSerialNo.Enable(value)
+        self.bConfigSetRSCPPassword.Enable(value)
+        self.bEMSUploadChanges.Enable(value)
+        self.bINFOSave.Enable(value)
+        self.bSaveRSCPData.Enable(value)
+        self.bSYSApplicationRestart.Enable(value)
+        self.bSYSReboot.Enable(value)
+        self.btnUpdatecheck.Enable(value)
+        self.bUpload.Enable(value)
 
-                self.fill_bat()
+    def bUpdateClick(self, event = None):
+        self._updatethread = threading.Thread(target=self.updateData, args=())
+        self._updatethread.start()
 
-                if selected != wx.NOT_FOUND:
-                    if self.cbBATIndex.GetCount() > selected:
-                        self.cbBATIndex.SetSelection(selected)
-                        self.fill_bat_index(selected)
-            except:
-                logger.exception('Fehler beim Abruf der BAT-Daten')
+    def updateData(self):
+        self.disableButtons()
+        self.gaUpdate.SetValue(0)
+        try:
+            self.gaUpdate.SetValue(5)
+            if self.gui:
+                self.gaUpdate.SetValue(10)
+                logger.info('Aktualisiere Daten')
+                self.clear_values()
 
-            try:
-                self.fill_dcdc()
-            except:
-                logger.exception('Fehler beim Abruf der DCDC-Daten')
+                try:
+                    self.fill_info()
+                except:
+                    logger.exception('Fehler beim Abruf der INFO-Daten')
 
-            try:
-                selected = self.chPVIIndex.GetSelection()
-                if selected in [wx.NOT_FOUND, '', None, False]:
-                    selected = 0
+                self.gaUpdate.SetValue(20)
+                try:
+                    selected = self.cbBATIndex.GetSelection()
+                    if selected in [wx.NOT_FOUND, '', None, False]:
+                        selected = 0
 
-                self.fill_pvi()
+                    self.fill_bat()
 
-                if selected != wx.NOT_FOUND:
-                    if self.chPVIIndex.GetCount() > selected:
-                        self.chPVIIndex.SetSelection(selected)
-                        self.fill_pvi_index(selected)
-            except:
-                logger.exception('Fehler beim Abruf der PVI-Daten')
+                    if selected != wx.NOT_FOUND:
+                        if self.cbBATIndex.GetCount() > selected:
+                            self.cbBATIndex.SetSelection(selected)
+                            self.fill_bat_index(selected)
+                except:
+                    logger.exception('Fehler beim Abruf der BAT-Daten')
 
-            try:
-                self.fill_ems()
-            except:
-                logger.exception('Fehler beim Abruf der EMS-Daten')
+                self.gaUpdate.SetValue(35)
+                try:
+                    self.fill_dcdc()
+                except:
+                    logger.exception('Fehler beim Abruf der DCDC-Daten')
 
-            try:
-                self.fill_pm()
-            except:
-                logger.exception('Fehler beim Abruf der PM-Daten')
+                self.gaUpdate.SetValue(45)
+                try:
+                    selected = self.chPVIIndex.GetSelection()
+                    if selected in [wx.NOT_FOUND, '', None, False]:
+                        selected = 0
 
-            try:
-                self.fill_wb()
-            except:
-                logger.exception('Fehler beim Abruf der WB-Daten')
+                    self.fill_pvi()
+
+                    if selected != wx.NOT_FOUND:
+                        if self.chPVIIndex.GetCount() > selected:
+                            self.chPVIIndex.SetSelection(selected)
+                            self.fill_pvi_index(selected)
+                except:
+                    logger.exception('Fehler beim Abruf der PVI-Daten')
+
+                self.gaUpdate.SetValue(55)
+                try:
+                    self.fill_ems()
+                except:
+                    logger.exception('Fehler beim Abruf der EMS-Daten')
+
+                self.gaUpdate.SetValue(70)
+                try:
+                    self.fill_pm()
+                except:
+                    logger.exception('Fehler beim Abruf der PM-Daten')
+
+                self.gaUpdate.SetValue(85)
+                try:
+                    self.fill_wb()
+                except:
+                    logger.exception('Fehler beim Abruf der WB-Daten')
+
+                self.gaUpdate.SetValue(90)
+            else:
+                logger.warning('Konfiguration unvollständig, Verbindung nicht möglich')
+
+        except:
+            logger.exception('Fehler beim Aktualisieren der Daten')
+        self.gaUpdate.SetValue(100)
+        self.enableButtons()
 
 
     def bSaveRSCPDataOnClick( self, event ):
@@ -1392,7 +1475,7 @@ class Frame(MainFrame):
                     traceback.print_exc()
                     wx.MessageBox('Übertragung fehlgeschlagen')
 
-                self.bUpdateClick(event)
+                self.updateData()
 
 
 app = wx.App()
