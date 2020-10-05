@@ -3,6 +3,7 @@ import datetime
 import hashlib
 import json
 import logging
+import os
 import re
 import threading
 import time
@@ -1397,10 +1398,14 @@ class Frame(MainFrame):
 
     def check_e3dcwebgui(self):
         while True:
-            if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
-                self.setWSConnected()
-            else:
-                self.setWSDisconnected()
+            try:
+                if isinstance(self.gui, E3DCWebGui) and self.gui.e3dc.connected:
+                    self.setWSConnected()
+                else:
+                    self.setWSDisconnected()
+            except:
+                logger.debug('Beende check_e3dcwebgui')
+                os._exit(1)
 
             time.sleep(1)
 
@@ -1482,3 +1487,5 @@ app = wx.App()
 g = Frame(None)
 g.Show()
 app.MainLoop()
+
+logger.debug('Programm beendet')
