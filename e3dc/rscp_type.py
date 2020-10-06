@@ -102,6 +102,10 @@ class EMS_SET_EMERGENCY_POWER(Enum):
     EMERGENCY_MODE = 0x01
     ISLAND_NO_POWER_MODE = 0x02
 
+class WB_MODE(Enum):
+    LOADING = 144
+    NOT_LOADING = 128
+
 class RSCP_USER_LEVEL(Enum):
     NO_AUTH = 0
     USER = 10

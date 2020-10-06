@@ -172,13 +172,22 @@ class RSCPDTO:
         return {self.name:obj}
 
     def __round__(self, n=None):
-        return round(self.data, n)
+        if self.type != RSCPType.Error:
+            return round(self.data, n)
+        else:
+            return 0.0
 
     def __int__(self):
-        return int(self.data)
+        if self.type != RSCPType.Error:
+            return int(self.data)
+        else:
+            return 0
 
     def __float__(self):
-        return float(self.data)
+        if self.type != RSCPType.Error:
+            return float(self.data)
+        else:
+            return 0.0
 
     def __str__(self):
         messages = []

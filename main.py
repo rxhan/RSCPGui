@@ -449,9 +449,49 @@ class Frame(MainFrame):
 
     def fill_wb(self):
         logger.debug('Rufe WB-Daten ab')
-        d = self.gui.get_data(self.gui.getWB(), True)
+        self.cbWallbox.Clear()
+
+        index = 0
+        d = self.gui.get_data(self.gui.getWB(index=index), True)
+        self._data_wb.append(d)
         print(d)
-        logger.debug('Abruf WB-Daten abgeschlossen')
+
+        d = d['WB_DATA']
+        index = d['WB_INDEX'].data
+
+        self.cbWallbox.Clear()
+        self.cbWallbox.Append('WB #' + str(index))
+
+        self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
+        self.txtWBEnergyAll.SetValue(repr(d['WB_ENERGY_ALL']))
+        self.txtWBEnergySolar.SetValue(repr(d['WB_ENERGY_SOLAR']))
+        self.txtWBSOC.SetValue(repr(d['WB_SOC']))
+        self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
+        self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
+        self.txtWBMode.SetValue(repr(d['WB_MODE']))
+
+        self.gWBData.SetCellValue(0,1,str(round(d['WB_PM_POWER_L1'],3)) + ' W')
+        self.gWBData.SetCellValue(0,2,str(round(d['WB_PM_POWER_L2'],3)) + ' W')
+        self.gWBData.SetCellValue(0,3,str(round(d['WB_PM_POWER_L3'],3)) + ' W')
+        self.gWBData.SetCellValue(0,4,str(round(d['WB_PM_POWER_L1'],3)+round(d['WB_PM_POWER_L2'],3)+round(d['WB_PM_POWER_L3'],3)) + ' W')
+
+        self.gWBData.SetCellValue(1,1,str(round(d['WB_PM_ENERGY_L1'],3)) + ' kWh')
+        self.gWBData.SetCellValue(1,2,str(round(d['WB_PM_ENERGY_L2'],3)) + ' kWh')
+        self.gWBData.SetCellValue(1,3,str(round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
+        self.gWBData.SetCellValue(1,3,str(round(d['WB_PM_ENERGY_L1'],3)+round(d['WB_PM_ENERGY_L2'],3)+round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
+
+
+    logger.debug('Abruf WB-Daten abgeschlossen')
+        # Bedeutung???
+        #WB_REQ_SET_MODE = 0x0E000030
+        #WB_REQ_SET_EXTERN = 0x0E041010
+        #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
+        #WB_REQ_SET_ENERGY_ALL = 0x0E041016
+        #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
+        #WB_REQ_SET_PARAM_1 = 0x0E041018
+        #WB_REQ_SET_PARAM_2 = 0x0E041019
+        #WB_REQ_SET_PW = 0x0E041020
+        # WB_REQ_SET_DEVICE_NAME
 
     def fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
@@ -1129,7 +1169,7 @@ class Frame(MainFrame):
         self._data_info = None
         self._data_pvi = []
         self._data_pm = []
-        self._data_wb = None
+        self._data_wb = []
 
     def disableButtons(self):
         logger.debug('Deaktiviere Buttons')
@@ -1155,6 +1195,10 @@ class Frame(MainFrame):
         self.bSYSReboot.Enable(value)
         self.btnUpdatecheck.Enable(value)
         self.bUpload.Enable(value)
+        self.bWBSave.Enable(value)
+
+    def sWBLadestromOnScroll( self, event ):
+        self.stWBLadestrom.SetLabel(str(self.sWBLadestrom.GetValue()) + ' A')
 
     def bUpdateClick(self, event = None):
         self._updatethread = threading.Thread(target=self.updateData, args=())
@@ -1316,7 +1360,9 @@ class Frame(MainFrame):
                 data['PM_DATA'].append(d.asDict())
 
         if self._data_wb:
-            data['WB_DATA'] = self._data_wb.asDict()
+            data['WB_DATA'] = []
+            for d in self._data_wb:
+                data['WB_DATA'].append(d.asDict())
 
         data = self.anonymize_data(data, anonymize, remove)
 
