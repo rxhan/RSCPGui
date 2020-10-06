@@ -453,6 +453,32 @@ class Frame(MainFrame):
         print(d)
         logger.debug('Abruf WB-Daten abgeschlossen')
 
+    def fill_mbs(self):
+        logger.debug('Rufe Modbus-Daten ab')
+        d = self.gui.get_data(self.gui.getModbus(), True)
+        self._data_mbs = d
+        self.cbMBSProtokoll.Clear()
+
+        self.chMBSEnabled.SetValue(d['MBS_MODBUS_ENABLED'].data)
+        if d['MBS_MODBUS_CONNECTORS']:
+            for mbs in d['MBS_MODBUS_CONNECTORS']:
+                if mbs.name == 'MBS_MODBUS_CONNECTOR_CONTAINER':
+                    self.txtMBSName.SetValue(mbs['MBS_MODBUS_CONNECTOR_NAME'].data)
+                    self.txtMBSID.SetValue(repr(mbs['MBS_MODBUS_CONNECTOR_ID']))
+
+                    for setup in mbs['MBS_MODBUS_CONNECTOR_SETUP']:
+                        if setup:
+                            if setup['MBS_MODBUS_SETUP_NAME'].data == 'Protocol':
+                                for value in setup['MBS_MODBUS_SETUP_VALUES']:
+                                    self.cbMBSProtokoll.Append(value.data)
+                                self.cbMBSProtokoll.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+                            elif setup['MBS_MODBUS_SETUP_NAME'].data == 'Device':
+                                self.txtMBSDevice.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+                            elif setup['MBS_MODBUS_SETUP_NAME'].data == 'Port':
+                                self.txtMBSPort.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+
+        logger.debug('Abruf Modbus-Daten abgeschlossen')
+
     def fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
         self._extsrcavailable = 0
@@ -1130,6 +1156,7 @@ class Frame(MainFrame):
         self._data_pvi = []
         self._data_pm = []
         self._data_wb = None
+        self._data_mbs = None
 
     def disableButtons(self):
         logger.debug('Deaktiviere Buttons')
@@ -1155,6 +1182,7 @@ class Frame(MainFrame):
         self.bSYSReboot.Enable(value)
         self.btnUpdatecheck.Enable(value)
         self.bUpload.Enable(value)
+        self.bMBSSave.Enable(value)
 
     def bUpdateClick(self, event = None):
         self._updatethread = threading.Thread(target=self.updateData, args=())
@@ -1229,6 +1257,11 @@ class Frame(MainFrame):
                 except:
                     logger.exception('Fehler beim Abruf der WB-Daten')
 
+                try:
+                    self.fill_mbs()
+                except:
+                    logger.exception('Fehler beim Abruf der Modbus-Daten')
+
                 self.gaUpdate.SetValue(90)
             else:
                 logger.warning('Konfiguration unvollständig, Verbindung nicht möglich')
@@ -1237,6 +1270,31 @@ class Frame(MainFrame):
             logger.exception('Fehler beim Aktualisieren der Daten')
         self.gaUpdate.SetValue(100)
         self.enableButtons()
+
+    def bMBSSaveOnClick( self, event ):
+        r = []
+        test = self.chMBSEnabled.GetValue()
+        if test != self._data_mbs['MBS_MODBUS_ENABLED'].data:
+            r.append(RSCPDTO(tag = RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) == 0:
+            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Info speichern', wx.YES_NO)
+            if res == wx.YES:
+                test = self.chMBSEnabled.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) > 0:
+            try:
+                res = self.gui.get_data(r, True)
+                print(res)
+                wx.MessageBox('Übertragung abgeschlossen')
+            except:
+                traceback.print_exc()
+                wx.MessageBox('Übertragung fehlgeschlagen')
+
+            self.updateData()
+
+        event.Skip()
 
 
     def bSaveRSCPDataOnClick( self, event ):
