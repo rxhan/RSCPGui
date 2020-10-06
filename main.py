@@ -65,6 +65,7 @@ class Frame(MainFrame):
     _connectiontype = None
     _websocketaddr = None
     _connected = None
+    _mbsSettings = {}
 
     def __init__(self, parent):
         logger.info('Programm gestartet, init')
@@ -459,6 +460,8 @@ class Frame(MainFrame):
         self._data_mbs = d
         self.cbMBSProtokoll.Clear()
 
+        self._mbsSettings = {}
+
         self.chMBSEnabled.SetValue(d['MBS_MODBUS_ENABLED'].data)
         if d['MBS_MODBUS_CONNECTORS']:
             for mbs in d['MBS_MODBUS_CONNECTORS']:
@@ -476,6 +479,9 @@ class Frame(MainFrame):
                                 self.txtMBSDevice.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
                             elif setup['MBS_MODBUS_SETUP_NAME'].data == 'Port':
                                 self.txtMBSPort.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+
+                            self._mbsSettings[setup['MBS_MODBUS_SETUP_NAME'].data] = setup['MBS_MODBUS_SETUP_VALUE']
+
 
         logger.debug('Abruf Modbus-Daten abgeschlossen')
 
@@ -1278,21 +1284,22 @@ class Frame(MainFrame):
             r.append(RSCPDTO(tag = RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
 
         if len(r) == 0:
-            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Info speichern', wx.YES_NO)
+            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Modbus-Einstellungen speichern', wx.YES_NO)
             if res == wx.YES:
                 test = self.chMBSEnabled.GetValue()
                 r.append(RSCPDTO(tag=RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
 
         if len(r) > 0:
-            try:
-                res = self.gui.get_data(r, True)
-                print(res)
-                wx.MessageBox('Übertragung abgeschlossen')
-            except:
-                traceback.print_exc()
-                wx.MessageBox('Übertragung fehlgeschlagen')
+            res = wx.MessageBox('Eine Änderung der Modbus-Einstellungen unterbricht kurz die Kommunikation, laufende RSCP-Verbindungen werden direkt beendet. Fortfahren?', 'Modbus-Einstellungen speichern', wx.YES_NO | wx.ICON_WARNING)
+            if res == wx.YES:
+                try:
+                    res = self.gui.get_data(r, True)
+                    wx.MessageBox('Übertragung abgeschlossen')
+                except:
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
 
-            self.updateData()
+                self.updateData()
 
         event.Skip()
 
