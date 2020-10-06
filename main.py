@@ -452,6 +452,16 @@ class Frame(MainFrame):
         d = self.gui.get_data(self.gui.getWB(), True)
         print(d)
         logger.debug('Abruf WB-Daten abgeschlossen')
+        # Bedeutung???
+        #WB_REQ_SET_MODE = 0x0E000030
+        #WB_REQ_SET_EXTERN = 0x0E041010
+        #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
+        #WB_REQ_SET_ENERGY_ALL = 0x0E041016
+        #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
+        #WB_REQ_SET_PARAM_1 = 0x0E041018
+        #WB_REQ_SET_PARAM_2 = 0x0E041019
+        #WB_REQ_SET_PW = 0x0E041020
+        # WB_REQ_SET_DEVICE_NAME
 
     def fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
