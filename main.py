@@ -739,58 +739,58 @@ class Frame(MainFrame):
             indexes = None
 
         self.gPM.DeleteCols(numCols=self.gPM.GetNumberCols())
-        self._data_pm = []
+        self._data_pm = {}
 
         for index in indexes:
             try:
-                self.gPM.AppendCols(1)
-                self.gPM.SetColLabelValue(index, 'PM #' + str(index))
-
                 d = self.gui.get_data(self.gui.getPMData(pm_index=index), True)
-                self._data_pm.append(d)
 
                 if 'PM_DEVICE_STATE' not in d or d['PM_DEVICE_STATE'].type != RSCPType.Error:
                     index = d['PM_INDEX'].data
-                    self.gPM.SetCellValue(0, index, str(round(d['PM_POWER_L1'], 3)) + ' W')
-                    self.gPM.SetCellValue(1, index, str(round(d['PM_POWER_L2'], 3)) + ' W')
-                    self.gPM.SetCellValue(2, index, str(round(d['PM_POWER_L3'], 3)) + ' W')
-                    self.gPM.SetCellValue(3, index, str(round(d['PM_POWER_L1'].data+d['PM_POWER_L2'].data+d['PM_POWER_L3'].data, 3)) + ' W')
-                    self.gPM.SetCellValue(4, index, str(round(d['PM_VOLTAGE_L1'], 3)) + ' V')
-                    self.gPM.SetCellValue(5, index, str(round(d['PM_VOLTAGE_L2'], 3)) + ' V')
-                    self.gPM.SetCellValue(6, index, str(round(d['PM_VOLTAGE_L3'], 3)) + ' V')
+                    self.gPM.AppendCols(1)
+                    curcol = self.gPM.GetNumberCols() - 1
+                    self.gPM.SetColLabelValue(index, 'PM #' + str(index))
+                    self._data_pm[index] = d
+                    self.gPM.SetCellValue(0, curcol, str(round(d['PM_POWER_L1'], 3)) + ' W')
+                    self.gPM.SetCellValue(1, curcol, str(round(d['PM_POWER_L2'], 3)) + ' W')
+                    self.gPM.SetCellValue(2, curcol, str(round(d['PM_POWER_L3'], 3)) + ' W')
+                    self.gPM.SetCellValue(3, curcol, str(round(d['PM_POWER_L1'].data+d['PM_POWER_L2'].data+d['PM_POWER_L3'].data, 3)) + ' W')
+                    self.gPM.SetCellValue(4, curcol, str(round(d['PM_VOLTAGE_L1'], 3)) + ' V')
+                    self.gPM.SetCellValue(5, curcol, str(round(d['PM_VOLTAGE_L2'], 3)) + ' V')
+                    self.gPM.SetCellValue(6, curcol, str(round(d['PM_VOLTAGE_L3'], 3)) + ' V')
 
                     energy, einheit = get_einheit(d['PM_ENERGY_L1'].data)
-                    self.gPM.SetCellValue(7, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(7, curcol, str(round(energy, 3)) + ' ' + einheit)
                     energy, einheit = get_einheit(d['PM_ENERGY_L2'].data)
-                    self.gPM.SetCellValue(8, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(8, curcol, str(round(energy, 3)) + ' ' + einheit)
                     energy, einheit = get_einheit(d['PM_ENERGY_L3'].data)
-                    self.gPM.SetCellValue(9, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(9, curcol, str(round(energy, 3)) + ' ' + einheit)
                     energy, einheit = get_einheit(d['PM_ENERGY_L1'].data+d['PM_ENERGY_L2'].data+d['PM_ENERGY_L3'].data)
-                    self.gPM.SetCellValue(10, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(10, curcol, str(round(energy, 3)) + ' ' + einheit)
 
-                    self.gPM.SetCellValue(11, index, repr(d['PM_FIRMWARE_VERSION']))
-                    self.gPM.SetCellValue(12, index, repr(d['PM_ACTIVE_PHASES']))
-                    self.gPM.SetCellValue(13, index, repr(d['PM_MODE']))
-                    self.gPM.SetCellValue(14, index, repr(d['PM_ERROR_CODE']))
-                    self.gPM.SetCellValue(15, index, repr(d['PM_TYPE']))
-                    self.gPM.SetCellValue(16, index, repr(d['PM_DEVICE_ID']))
-                    self.gPM.SetCellValue(17, index, repr(d['PM_IS_CAN_SILENCE']))
-                    self.gPM.SetCellValue(28, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_CONNECTED']))
-                    self.gPM.SetCellValue(29, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_WORKING']))
-                    self.gPM.SetCellValue(30, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_IN_SERVICE']))
+                    self.gPM.SetCellValue(11, curcol, repr(d['PM_FIRMWARE_VERSION']))
+                    self.gPM.SetCellValue(12, curcol, repr(d['PM_ACTIVE_PHASES']))
+                    self.gPM.SetCellValue(13, curcol, repr(d['PM_MODE']))
+                    self.gPM.SetCellValue(14, curcol, repr(d['PM_ERROR_CODE']))
+                    self.gPM.SetCellValue(15, curcol, repr(d['PM_TYPE']))
+                    self.gPM.SetCellValue(16, curcol, repr(d['PM_DEVICE_ID']))
+                    self.gPM.SetCellValue(17, curcol, repr(d['PM_IS_CAN_SILENCE']))
+                    self.gPM.SetCellValue(28, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_CONNECTED']))
+                    self.gPM.SetCellValue(29, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_WORKING']))
+                    self.gPM.SetCellValue(30, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_IN_SERVICE']))
 
                     if 'PM_COMM_STATE' in d:
                         d = d['PM_COMM_STATE']
-                        self.gPM.SetCellValue(18, index, repr(d['PM_CS_START_TIME']))
-                        self.gPM.SetCellValue(19, index, repr(d['PM_CS_LAST_TIME']))
-                        self.gPM.SetCellValue(20, index, repr(d['PM_CS_SUCC_FRAMES_ALL']))
-                        self.gPM.SetCellValue(21, index, repr(d['PM_CS_SUCC_FRAMES_100']))
-                        self.gPM.SetCellValue(22, index, repr(d['PM_CS_EXP_FRAMES_ALL']))
-                        self.gPM.SetCellValue(23, index, repr(d['PM_CS_EXP_FRAMES_100']))
-                        self.gPM.SetCellValue(24, index, repr(d['PM_CS_ERR_FRAMES_ALL']))
-                        self.gPM.SetCellValue(25, index, repr(d['PM_CS_ERR_FRAMES_100']))
-                        self.gPM.SetCellValue(26, index, repr(d['PM_CS_UNK_FRAMES']))
-                        self.gPM.SetCellValue(27, index, repr(d['PM_CS_ERR_FRAME']))
+                        self.gPM.SetCellValue(18, curcol, repr(d['PM_CS_START_TIME']))
+                        self.gPM.SetCellValue(19, curcol, repr(d['PM_CS_LAST_TIME']))
+                        self.gPM.SetCellValue(20, curcol, repr(d['PM_CS_SUCC_FRAMES_ALL']))
+                        self.gPM.SetCellValue(21, curcol, repr(d['PM_CS_SUCC_FRAMES_100']))
+                        self.gPM.SetCellValue(22, curcol, repr(d['PM_CS_EXP_FRAMES_ALL']))
+                        self.gPM.SetCellValue(23, curcol, repr(d['PM_CS_EXP_FRAMES_100']))
+                        self.gPM.SetCellValue(24, curcol, repr(d['PM_CS_ERR_FRAMES_ALL']))
+                        self.gPM.SetCellValue(25, curcol, repr(d['PM_CS_ERR_FRAMES_100']))
+                        self.gPM.SetCellValue(26, curcol, repr(d['PM_CS_UNK_FRAMES']))
+                        self.gPM.SetCellValue(27, curcol, repr(d['PM_CS_ERR_FRAME']))
 
                     logger.info('PM #' + str(index) + ' erfolgreich abgerufen')
             except:
@@ -830,18 +830,19 @@ class Frame(MainFrame):
 
     def fill_pvi(self):
         logger.debug('Rufe PVI-Daten ab')
-        self._data_pvi = []
+        self._data_pvi = {}
         for index in range(0,4):
             try:
                 data = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
-                self._data_pvi.append(data)
+                self._data_pvi[index] = data
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
                 logger.info('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
 
         self.chPVIIndex.Clear()
 
-        for pvi in self._data_pvi:
+        for k in self._data_pvi:
+            pvi = self._data_pvi[k]
             self.chPVIIndex.Append('PVI #' + str(pvi['PVI_INDEX'].data))
 
         logger.debug('Abruf PVI-Daten abgeschlossen')
@@ -1232,8 +1233,8 @@ class Frame(MainFrame):
         self._data_dcdc = []
         self._data_ems = None
         self._data_info = None
-        self._data_pvi = []
-        self._data_pm = []
+        self._data_pvi = {}
+        self._data_pm = {}
         self._data_wb = None
 
     def disableButtons(self):
@@ -1262,8 +1263,13 @@ class Frame(MainFrame):
         self.bUpload.Enable(value)
 
     def bUpdateClick(self, event = None):
-        self._updatethread = threading.Thread(target=self.updateData, args=())
-        self._updatethread.start()
+        page = self.pMainregister.GetCurrentPage()
+        name = page.GetName()
+        if name == 'CONFIG':
+            self._updatethread = threading.Thread(target=self.updateData, args=())
+            self._updatethread.start()
+        else:
+            self.pMainChanged()
 
     def updateData(self):
         if not self._updateRunning:
@@ -1419,24 +1425,27 @@ class Frame(MainFrame):
             data['INFO_DATA'] = self._data_info.asDict()
 
         if self._data_pvi:
-            data['PVI_DATA'] = []
-            for d in self._data_pvi:
-                data['PVI_DATA'].append(d.asDict())
+            data['PVI_DATA'] = {}
+            for k in self._data_pvi:
+                d = self._data_pvi[k]
+                data['PVI_DATA'][k] = d.asDict()
 
         if self._data_pm:
-            data['PM_DATA'] = []
-            for d in self._data_pm:
-                data['PM_DATA'].append(d.asDict())
+            data['PM_DATA'] = {}
+            for k in self._data_pm:
+                d = self._data_pm[k]
+                data['PM_DATA'][k] = d.asDict()
 
         if self._data_wb:
             data['WB_DATA'] = self._data_wb.asDict()
 
+        logger.debug('Anonymisiere Daten')
         data = self.anonymize_data(data, anonymize, remove)
+        logger.debug('Daten wurden anonymisiert')
         logger.debug('Datensammlung beendet')
         return data
 
     def anonymize_data(self, data, anonymize, remove):
-        logger.debug('Anonymisiere Daten')
         if isinstance(data, dict):
             toremove = []
             for i in data.keys():
@@ -1460,7 +1469,6 @@ class Frame(MainFrame):
             for i in data:
                 nl += [self.anonymize_data(i, anonymize, remove)]
             data = nl
-        logger.debug('Daten wurden anonymisiert')
         return data
 
 
