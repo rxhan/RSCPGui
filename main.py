@@ -449,11 +449,7 @@ class Frame(MainFrame):
 
     def fill_wb(self):
         logger.debug('Rufe WB-Daten ab')
-        self.cbWallbox.Clear()
-
-        index = 0
-        d = self.gui.get_data(self.gui.getWB(index=index), True)
-        self._data_wb.append(d)
+        d = self.gui.get_data(self.gui.getWB(), True)
         print(d)
 
         d = d['WB_DATA']
