@@ -24,8 +24,8 @@ class MainFrame ( wx.Frame ):
 
 		bSizer1 = wx.BoxSizer( wx.VERTICAL )
 
-		self.pMainregister = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.pMain = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pMainregister = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0, u"EMS" )
+		self.pMain = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"INFO" )
 		fgSizer21 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer21.SetFlexibleDirection( wx.BOTH )
 		fgSizer21.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -237,7 +237,7 @@ class MainFrame ( wx.Frame ):
 		self.pMain.Layout()
 		fgSizer21.Fit( self.pMain )
 		self.pMainregister.AddPage( self.pMain, u"INFO", False )
-		self.pEMS = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pEMS = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"EMS" )
 		bSizer12 = wx.BoxSizer( wx.VERTICAL )
 
 		self.m_notebook2 = wx.Notebook( self.pEMS, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -737,7 +737,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel7.SetSizer( fgSizer10 )
 		self.m_panel7.Layout()
 		fgSizer10.Fit( self.m_panel7 )
-		self.m_notebook2.AddPage( self.m_panel7, u"Basis", False )
+		self.m_notebook2.AddPage( self.m_panel7, u"Basis", True )
 		self.m_panel8 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer7 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1414,7 +1414,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel8.SetSizer( bSizer7 )
 		self.m_panel8.Layout()
 		bSizer7.Fit( self.m_panel8 )
-		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", True )
+		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", False )
 		self.m_panel9 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		fgSizer12 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer12.SetFlexibleDirection( wx.BOTH )
@@ -1608,7 +1608,7 @@ class MainFrame ( wx.Frame ):
 		self.pEMS.Layout()
 		bSizer12.Fit( self.pEMS )
 		self.pMainregister.AddPage( self.pEMS, u"EMS", False )
-		self.pDCDC = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pDCDC = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"DCDC" )
 		bSizer41 = wx.BoxSizer( wx.VERTICAL )
 
 		self.gDCDC = wx.grid.Grid( self.pDCDC, wx.ID_ANY, wx.DefaultPosition, wx.Size( -1,500 ), 0 )
@@ -1657,7 +1657,7 @@ class MainFrame ( wx.Frame ):
 		self.pDCDC.Layout()
 		bSizer41.Fit( self.pDCDC )
 		self.pMainregister.AddPage( self.pDCDC, u"DCDC", False )
-		self.pBAT = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pBAT = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"BAT" )
 		bSizer42 = wx.BoxSizer( wx.VERTICAL )
 
 		cbBATIndexChoices = []
@@ -2045,7 +2045,7 @@ class MainFrame ( wx.Frame ):
 		self.pBAT.Layout()
 		bSizer42.Fit( self.pBAT )
 		self.pMainregister.AddPage( self.pBAT, u"BAT", False )
-		self.pPVI = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pPVI = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"PVI" )
 		bSizer51 = wx.BoxSizer( wx.VERTICAL )
 
 		chPVIIndexChoices = []
@@ -2439,7 +2439,7 @@ class MainFrame ( wx.Frame ):
 		self.pPVI.Layout()
 		bSizer51.Fit( self.pPVI )
 		self.pMainregister.AddPage( self.pPVI, u"PVI", False )
-		self.pPM = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pPM = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"PM" )
 		bSizer17 = wx.BoxSizer( wx.VERTICAL )
 
 		self.gPM = wx.grid.Grid( self.pPM, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -2505,7 +2505,7 @@ class MainFrame ( wx.Frame ):
 		self.pPM.Layout()
 		bSizer17.Fit( self.pPM )
 		self.pMainregister.AddPage( self.pPM, u"PM", False )
-		self.pEinstellungen = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pEinstellungen = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"CONFIG" )
 		fgSizer1 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer1.SetFlexibleDirection( wx.BOTH )
 		fgSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -2615,6 +2615,14 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( self.txtConfigAktiveVerbindung, 0, wx.ALL, 5 )
 
+		self.m_staticText1733 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Autoupdate (s)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1733.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText1733, 0, wx.ALL, 5 )
+
+		self.scAutoUpdate = wx.SpinCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 60,-1 ), wx.SP_ARROW_KEYS, 0, 3600, 0 )
+		fgSizer1.Add( self.scAutoUpdate, 0, wx.ALL, 5 )
+
 		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Einstellungen speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer1.Add( self.bSave, 0, wx.ALL, 5 )
 
@@ -2672,6 +2680,7 @@ class MainFrame ( wx.Frame ):
 
 		# Connect Events
 		self.Bind( wx.EVT_CLOSE, self.mainOnClose )
+		self.pMainregister.Bind( wx.EVT_NOTEBOOK_PAGE_CHANGED, self.pMainChanged )
 		self.btnUpdatecheck.Bind( wx.EVT_BUTTON, self.bUpdateCheckClick )
 		self.bSYSReboot.Bind( wx.EVT_BUTTON, self.bSYSRebootOnClick )
 		self.bSYSApplicationRestart.Bind( wx.EVT_BUTTON, self.bSYSApplicationRestartOnClick )
@@ -2687,6 +2696,7 @@ class MainFrame ( wx.Frame ):
 		self.bConfigSetRSCPPassword.Bind( wx.EVT_BUTTON, self.bConfigSetRSCPPasswordOnClick )
 		self.bConfigGetIPAddress.Bind( wx.EVT_BUTTON, self.bConfigGetIPAddressOnClick )
 		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
+		self.scAutoUpdate.Bind( wx.EVT_SPINCTRL, self.scAutoUpdateOnChange )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
 
@@ -2696,6 +2706,9 @@ class MainFrame ( wx.Frame ):
 
 	# Virtual event handlers, overide them in your derived class
 	def mainOnClose( self, event ):
+		event.Skip()
+
+	def pMainChanged( self, event ):
 		event.Skip()
 
 	def bUpdateCheckClick( self, event ):
@@ -2741,6 +2754,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bConfigGetSerialNoOnClick( self, event ):
+		event.Skip()
+
+	def scAutoUpdateOnChange( self, event ):
 		event.Skip()
 
 	def sendToServer( self, event ):
