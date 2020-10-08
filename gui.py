@@ -1601,6 +1601,8 @@ class MainFrame ( wx.Frame ):
 		fgSizer12.Fit( self.m_panel9 )
 		self.m_notebook2.AddPage( self.m_panel9, u"SYS", False )
 		self.m_panel11 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.m_panel11.Enable( False )
+
 		fgSizer272 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer272.SetFlexibleDirection( wx.BOTH )
 		fgSizer272.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -1641,6 +1643,8 @@ class MainFrame ( wx.Frame ):
 
 		cbMBSProtokollChoices = []
 		self.cbMBSProtokoll = wx.ComboBox( self.m_panel11, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, cbMBSProtokollChoices, 0 )
+		self.cbMBSProtokoll.Enable( False )
+
 		fgSizer272.Add( self.cbMBSProtokoll, 0, wx.ALL, 5 )
 
 		self.m_staticText177 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"Gerät", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -1649,6 +1653,8 @@ class MainFrame ( wx.Frame ):
 		fgSizer272.Add( self.m_staticText177, 0, wx.ALL, 5 )
 
 		self.txtMBSDevice = wx.TextCtrl( self.m_panel11, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMBSDevice.Enable( False )
+
 		fgSizer272.Add( self.txtMBSDevice, 0, wx.ALL, 5 )
 
 		self.m_staticText178 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"TCP-Port", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -1657,6 +1663,8 @@ class MainFrame ( wx.Frame ):
 		fgSizer272.Add( self.m_staticText178, 0, wx.ALL, 5 )
 
 		self.txtMBSPort = wx.TextCtrl( self.m_panel11, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMBSPort.Enable( False )
+
 		fgSizer272.Add( self.txtMBSPort, 0, wx.ALL, 5 )
 
 		self.bMBSSave = wx.Button( self.m_panel11, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )

@@ -194,6 +194,7 @@ class Frame(MainFrame):
                     elif page == self.pEMS:
                         try:
                             self.fill_ems()
+                            self.fill_mbs()
                         except:
                             logger.exception('Fehler beim Abruf der EMS-Daten')
                     elif page == self.pPM:
@@ -317,7 +318,7 @@ class Frame(MainFrame):
                 if not seriennummer:
                     ret = self.getSerialnoFromWeb(self._username, self._password)
                     if len(ret) == 1:
-                        seriennummer = 'S10-' + ret[0]['serialno']
+                        seriennummer = self.getSNFromNumbers(ret[0]['serialno'])
 
             if self._username and self._password and self._rscppass and seriennummer and not address and self._websocketaddr:
                 logger.debug('Versuche IP-Adresse zu ermitteln')
@@ -1368,6 +1369,7 @@ class Frame(MainFrame):
                     self.gaUpdate.SetValue(55)
                     try:
                         self.fill_ems()
+                        self.fill_mbs()
                     except:
                         logger.exception('Fehler beim Abruf der EMS-Daten')
 
