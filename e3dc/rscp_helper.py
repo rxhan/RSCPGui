@@ -68,7 +68,6 @@ class rscp_helper():
 
     def getWB(self, index=0):
         requests = []
-        requests.append(RSCPTag.WB_REQ_CONNECTED_DEVICES)
         r = RSCPDTO(RSCPTag.WB_REQ_DATA, rscp_type=RSCPType.Container)
         r += RSCPDTO(RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data = index)
         r += RSCPTag.WB_REQ_STATUS

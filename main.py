@@ -448,15 +448,41 @@ class Frame(MainFrame):
         self.updateData()
 
     def fill_wb(self):
-        logger.debug('Rufe WB-Daten ab')
-        d = self.gui.get_data(self.gui.getWB(), True)
-        print(d)
-
-        d = d['WB_DATA']
-        index = d['WB_INDEX'].data
-
         self.cbWallbox.Clear()
-        self.cbWallbox.Append('WB #' + str(index))
+        self._data_wb = []
+        logger.debug('Rufe WB-Daten ab')
+        try:
+            #from e3dc._rscp_utils import RSCPUtils
+            #import binascii
+            #r = RSCPUtils()
+            #t = 'e3dc0011fc367f5f0000000090d1290b12001c10840e0e0b000100040e06040000000000221881f3'
+            #bin = binascii.unhexlify(t)
+            #data = r.decode_data(bin)
+            data = self.gui.get_data(self.gui.getWBCount(), True)
+            if data.type == RSCPType.Error:
+                raise RSCPCommunicationError()
+        except RSCPCommunicationError:
+            logger.debug('Keine Wallbox vorhanden')
+            self.cbWallbox.Append('keine Wallbox vorhanden')
+            return False
+
+        for index in data:
+            index = data['WB_INDEX'].data
+            #t = 'e3dc0011fc367f5f0000000080588a0bc0020000840e0eb9020100040e05020000000400800e030100000100800e070400579900000200800e070400b99600000300800e05020003000400800e030100000500800e030100000600800e030100900700800e030100000800800e030100000900800e030100000a00800e05020000000b00800e030100000000860e0e18000100860e010100010200860e010100010300860e010100000c00800e0b08000000c00a001895400d00800e0b080000000000000000000e00800e0b080000000000000000000f00800e030100071100800e030100001200800e0b080090faf7fa4e4777401300800e0b0800b082f2514de04e3f1400800e0b0800b082f2514de04e3f1500800e070400000000001600800e030100002900800e0e18003000800e010100013100800e010100013200800e010100001700800e0301000a1800800e070400000000001900800e070400102700001a00800e05020000001b00800e030100061c00800e030100e71d00800e030100001e00800e030100001f00800e05020000002000800e05020000002100800e05020000002200800e030100002300800e030100002400800e030100432500800e030100142600800e030100002700800e010100012800800e010100014000800e0b080000000000000000004200800e0d0c004561737920436f6e6e6563740010040eff0400070000001110840e0e1a001120040e060400080000001020040e1008004605b996000003001210840e0e1a001120040e060400080000001020040e10080000009e02000000001310840e0e1a001120040e060400080000001020040e10080046055799000000031410840e0e1a001120040e060400080000001020040e1008000301b006000000001b10840e0e1a001120040e060400080000001020040e10080000000600000000001a10840e0e1a001120040e060400080000001020040e100800000000000000000017e6647c'
+            #bin = binascii.unhexlify(t)
+            #d = r.decode_data(bin)
+
+            d = self.gui.get_data(self.gui.getWB(index=index), True)
+            print(d)
+
+            self._data_wb.append(d)
+            self.cbWallbox.Append('WB #' + str(index))
+
+    def fill_wb_index(self, index):
+
+        d = self._data_wb[index]
+
+        index = d['WB_INDEX'].data
 
         self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
         self.txtWBEnergyAll.SetValue(repr(d['WB_ENERGY_ALL']))
@@ -476,18 +502,46 @@ class Frame(MainFrame):
         self.gWBData.SetCellValue(1,2,str(round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
         self.gWBData.SetCellValue(1,3,str(round(d['WB_PM_ENERGY_L1'],3)+round(d['WB_PM_ENERGY_L2'],3)+round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
 
+        self.chWBDeviceConnected.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_CONNECTED'].data)
+        self.chWBDeviceInService.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_IN_SERVICE'].data)
+        self.chWBDeviceWorking.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_WORKING'].data)
+
+        alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
+        sb = alg_data[2]
+        self.chWBSunmode.SetValue((sb & 128) == 128)
+
+        if (sb & 64) == 64:
+            logger.debug('WB charging canceld True')
+        else:
+            logger.debug('WB charging canceld False')
+        if (sb & 32) == 32:
+            logger.debug('WB charging active True')
+        else:
+            logger.debug('WB charging active False')
+
+        self.chWB1PH.SetValue(alg_data[1] == 1)
+
+        def get_load(data):
+            return data[1] << 8 | data[0]
+
+        sunload = get_load(d['WB_EXTERN_DATA_SUN']['WB_EXTERN_DATA'].data)
+        logger.debug('WB Sunload %d', sunload)
+        netload = get_load(d['WB_EXTERN_DATA_NET']['WB_EXTERN_DATA'].data)
+        logger.debug('WB Netload %d', netload)
+
+
 
         logger.debug('Abruf WB-Daten abgeschlossen')
-            # Bedeutung???
-            #WB_REQ_SET_MODE = 0x0E000030
-            #WB_REQ_SET_EXTERN = 0x0E041010
-            #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
-            #WB_REQ_SET_ENERGY_ALL = 0x0E041016
-            #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
-            #WB_REQ_SET_PARAM_1 = 0x0E041018
-            #WB_REQ_SET_PARAM_2 = 0x0E041019
-            #WB_REQ_SET_PW = 0x0E041020
-            # WB_REQ_SET_DEVICE_NAME
+        # Bedeutung???
+        #WB_REQ_SET_MODE = 0x0E000030
+        #WB_REQ_SET_EXTERN = 0x0E041010
+        #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
+        #WB_REQ_SET_ENERGY_ALL = 0x0E041016
+        #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
+        #WB_REQ_SET_PARAM_1 = 0x0E041018
+        #WB_REQ_SET_PARAM_2 = 0x0E041019
+        #WB_REQ_SET_PW = 0x0E041020
+        # WB_REQ_SET_DEVICE_NAME
 
     def bWBSaveOnClick( self, event ):
         return False
@@ -1300,7 +1354,16 @@ class Frame(MainFrame):
 
                 self.gaUpdate.SetValue(85)
                 try:
+                    selected = self.cbWallbox.GetSelection()
+                    if selected in [wx.NOT_FOUND, '', None, False]:
+                        selected = 0
+
                     self.fill_wb()
+
+                    if selected != wx.NOT_FOUND:
+                        if self.cbWallbox.GetCount() > selected:
+                            self.cbWallbox.SetSelection(selected)
+                            self.fill_wb_index(selected)
                 except:
                     logger.exception('Fehler beim Abruf der WB-Daten')
 

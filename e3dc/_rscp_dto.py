@@ -213,7 +213,6 @@ class RSCPDTO:
                 traceback.print_exc()
                 pass
             if self.type == RSCPType.ByteArray:
-                print(type(self.data))
                 data = binascii.hexlify(self.data)
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(data))
             else:
