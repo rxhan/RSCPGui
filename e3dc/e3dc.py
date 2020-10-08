@@ -1,3 +1,4 @@
+import binascii
 import logging
 import socket
 from typing import Union
@@ -80,6 +81,8 @@ class E3DC:
             encode_data = self.rscp_utils.encode_data(payload)
             prepared_data = self.rscp_utils.encode_frame(encode_data)
             
+        rawdata = binascii.hexlify(prepared_data)
+        logger.debug('Send RAW: ' + rawdata)
         encrypted_data = self.encrypt_decrypt.encrypt(prepared_data)
         self.socket.send(encrypted_data)
         response = self._receive()
@@ -116,6 +119,8 @@ class E3DC:
             raise RSCPCommunicationError("Did not receive data from e3dc", logger)
         self.rscp_utils = RSCPUtils()
         decrypted_data = self.encrypt_decrypt.decrypt(data)
+        rawdata = binascii.hexlify(decrypted_data)
+        logger.debug('Response RAW: ' + rawdata)
         rscp_dto = self.rscp_utils.decode_data(decrypted_data)
         logger.debug("Received DTO Type: " + rscp_dto.type.name + ", DTO Tag: " + rscp_dto.tag.name)
         return rscp_dto

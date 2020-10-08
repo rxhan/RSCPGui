@@ -2912,6 +2912,7 @@ class MainFrame ( wx.Frame ):
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
 		self.sWBLadestrom.Bind( wx.EVT_SCROLL, self.sWBLadestromOnScroll )
+		self.bWBSave.Bind( wx.EVT_BUTTON, self.bWBSaveOnClick )
 
 	def __del__( self ):
 		pass
@@ -2973,6 +2974,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def sWBLadestromOnScroll( self, event ):
+		event.Skip()
+
+	def bWBSaveOnClick( self, event ):
 		event.Skip()
 
 

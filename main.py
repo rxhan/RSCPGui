@@ -466,28 +466,62 @@ class Frame(MainFrame):
         self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
         self.txtWBMode.SetValue(repr(d['WB_MODE']))
 
-        self.gWBData.SetCellValue(0,1,str(round(d['WB_PM_POWER_L1'],3)) + ' W')
-        self.gWBData.SetCellValue(0,2,str(round(d['WB_PM_POWER_L2'],3)) + ' W')
-        self.gWBData.SetCellValue(0,3,str(round(d['WB_PM_POWER_L3'],3)) + ' W')
-        self.gWBData.SetCellValue(0,4,str(round(d['WB_PM_POWER_L1'],3)+round(d['WB_PM_POWER_L2'],3)+round(d['WB_PM_POWER_L3'],3)) + ' W')
+        self.gWBData.SetCellValue(0,0,str(round(d['WB_PM_POWER_L1'],3)) + ' W')
+        self.gWBData.SetCellValue(0,1,str(round(d['WB_PM_POWER_L2'],3)) + ' W')
+        self.gWBData.SetCellValue(0,2,str(round(d['WB_PM_POWER_L3'],3)) + ' W')
+        self.gWBData.SetCellValue(0,3,str(round(d['WB_PM_POWER_L1'],3)+round(d['WB_PM_POWER_L2'],3)+round(d['WB_PM_POWER_L3'],3)) + ' W')
 
-        self.gWBData.SetCellValue(1,1,str(round(d['WB_PM_ENERGY_L1'],3)) + ' kWh')
-        self.gWBData.SetCellValue(1,2,str(round(d['WB_PM_ENERGY_L2'],3)) + ' kWh')
-        self.gWBData.SetCellValue(1,3,str(round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
+        self.gWBData.SetCellValue(1,0,str(round(d['WB_PM_ENERGY_L1'],3)) + ' kWh')
+        self.gWBData.SetCellValue(1,1,str(round(d['WB_PM_ENERGY_L2'],3)) + ' kWh')
+        self.gWBData.SetCellValue(1,2,str(round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
         self.gWBData.SetCellValue(1,3,str(round(d['WB_PM_ENERGY_L1'],3)+round(d['WB_PM_ENERGY_L2'],3)+round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
 
 
-    logger.debug('Abruf WB-Daten abgeschlossen')
-        # Bedeutung???
-        #WB_REQ_SET_MODE = 0x0E000030
-        #WB_REQ_SET_EXTERN = 0x0E041010
-        #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
-        #WB_REQ_SET_ENERGY_ALL = 0x0E041016
-        #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
-        #WB_REQ_SET_PARAM_1 = 0x0E041018
-        #WB_REQ_SET_PARAM_2 = 0x0E041019
-        #WB_REQ_SET_PW = 0x0E041020
-        # WB_REQ_SET_DEVICE_NAME
+        logger.debug('Abruf WB-Daten abgeschlossen')
+            # Bedeutung???
+            #WB_REQ_SET_MODE = 0x0E000030
+            #WB_REQ_SET_EXTERN = 0x0E041010
+            #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
+            #WB_REQ_SET_ENERGY_ALL = 0x0E041016
+            #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
+            #WB_REQ_SET_PARAM_1 = 0x0E041018
+            #WB_REQ_SET_PARAM_2 = 0x0E041019
+            #WB_REQ_SET_PW = 0x0E041020
+            # WB_REQ_SET_DEVICE_NAME
+
+    def bWBSaveOnClick( self, event ):
+        return False
+
+        #index = self.cbWallbox.GetValue()
+        #
+        #data = self._data_wb[index]
+        #
+        #r = []
+        #test = self.chWBSunmode.GetValue()
+        #data = data['WB_EXTERN_DATA_SUN'].data
+        #if test != data['WB_EXTERN_DATA_SUN'].data:
+        #    r.append(RSCPDTO(tag = RSCPTag.EMS_REQ_SET_BATTERY_BEFORE_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
+        #
+        #if len(r) > 0:
+        #    try:
+        #        res = self.gui.get_data(r, True)
+        #        wx.MessageBox('Übertragung abgeschlossen')
+        #    except:
+        #        traceback.print_exc()
+        #        wx.MessageBox('Übertragung fehlgeschlagen')
+        #else:
+        #    res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Wallbox speichern', wx.YES_NO)
+        #    if res == wx.YES:
+        #        test = 1 if self.chEMSBatteryBeforeCarMode.GetValue() == False else 0
+        #        r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_BATTERY_BEFORE_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
+        #
+        #        try:
+        #            res = self.gui.get_data(r, True)
+        #            wx.MessageBox('Übertragung abgeschlossen')
+        #        except:
+        #            traceback.print_exc()
+        #            wx.MessageBox('Übertragung fehlgeschlagen')
+        #self.updateData()
 
     def fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
@@ -766,6 +800,7 @@ class Frame(MainFrame):
             try:
                 data = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
                 self._data_pvi.append(data)
+                print(data)
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
                 logger.info('PVI #' + str(index) + ' konnte nicht abgefragt werden.')

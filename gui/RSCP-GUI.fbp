@@ -29864,6 +29864,7 @@
                                                     <property name="window_extra_style"></property>
                                                     <property name="window_name"></property>
                                                     <property name="window_style"></property>
+                                                    <event name="OnButtonClick">bWBSaveOnClick</event>
                                                 </object>
                                             </object>
                                         </object>
