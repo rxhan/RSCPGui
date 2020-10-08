@@ -67,6 +67,15 @@ class rscp_helper():
         r += RSCPTag.WB_REQ_STATUS
         return r
 
+    def getModbus(self):
+        # TODO: Modbus darstellen
+        requests = []
+        requests.append(RSCPTag.MBS_REQ_MODBUS_ENABLED)
+        requests.append(RSCPTag.MBS_REQ_MODBUS_CONNECTORS)
+
+        return requests
+
+
     def getInfo(self):
         requests = []
         requests.append(RSCPTag.INFO_REQ_PRODUCTION_DATE)

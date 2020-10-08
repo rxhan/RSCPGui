@@ -70,6 +70,7 @@ class Frame(MainFrame):
     _websocketaddr = None
     _connected = None
     _updateRunning = None
+    _mbsSettings = {}
 
     def __init__(self, parent):
         logger.info('Programm gestartet, init')
@@ -554,6 +555,37 @@ class Frame(MainFrame):
         d = self.gui.get_data(self.gui.getWB(), True)
         print(d)
         logger.debug('Abruf WB-Daten abgeschlossen')
+
+    def fill_mbs(self):
+        logger.debug('Rufe Modbus-Daten ab')
+        d = self.gui.get_data(self.gui.getModbus(), True)
+        self._data_mbs = d
+        self.cbMBSProtokoll.Clear()
+
+        self._mbsSettings = {}
+
+        self.chMBSEnabled.SetValue(d['MBS_MODBUS_ENABLED'].data)
+        if d['MBS_MODBUS_CONNECTORS']:
+            for mbs in d['MBS_MODBUS_CONNECTORS']:
+                if mbs.name == 'MBS_MODBUS_CONNECTOR_CONTAINER':
+                    self.txtMBSName.SetValue(mbs['MBS_MODBUS_CONNECTOR_NAME'].data)
+                    self.txtMBSID.SetValue(repr(mbs['MBS_MODBUS_CONNECTOR_ID']))
+
+                    for setup in mbs['MBS_MODBUS_CONNECTOR_SETUP']:
+                        if setup:
+                            if setup['MBS_MODBUS_SETUP_NAME'].data == 'Protocol':
+                                for value in setup['MBS_MODBUS_SETUP_VALUES']:
+                                    self.cbMBSProtokoll.Append(value.data)
+                                self.cbMBSProtokoll.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+                            elif setup['MBS_MODBUS_SETUP_NAME'].data == 'Device':
+                                self.txtMBSDevice.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+                            elif setup['MBS_MODBUS_SETUP_NAME'].data == 'Port':
+                                self.txtMBSPort.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+
+                            self._mbsSettings[setup['MBS_MODBUS_SETUP_NAME'].data] = setup['MBS_MODBUS_SETUP_VALUE']
+
+
+        logger.debug('Abruf Modbus-Daten abgeschlossen')
 
     def fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
@@ -1261,6 +1293,7 @@ class Frame(MainFrame):
         self.bSYSReboot.Enable(value)
         self.btnUpdatecheck.Enable(value)
         self.bUpload.Enable(value)
+        self.bMBSSave.Enable(value)
 
     def bUpdateClick(self, event = None):
         page = self.pMainregister.GetCurrentPage()
@@ -1342,6 +1375,11 @@ class Frame(MainFrame):
                     except:
                         logger.exception('Fehler beim Abruf der WB-Daten')
 
+                    try:
+                        self.fill_mbs()
+                    except:
+                        logger.exception('Fehler beim Abruf der Modbus-Daten')
+
                     self.gaUpdate.SetValue(90)
                 else:
                     logger.warning('Konfiguration unvollständig, Verbindung nicht möglich')
@@ -1351,6 +1389,32 @@ class Frame(MainFrame):
             self.gaUpdate.SetValue(100)
             self.enableButtons()
             self._updateRunning = False
+
+    def bMBSSaveOnClick( self, event ):
+        r = []
+        test = self.chMBSEnabled.GetValue()
+        if test != self._data_mbs['MBS_MODBUS_ENABLED'].data:
+            r.append(RSCPDTO(tag = RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) == 0:
+            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Modbus-Einstellungen speichern', wx.YES_NO)
+            if res == wx.YES:
+                test = self.chMBSEnabled.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) > 0:
+            res = wx.MessageBox('Eine Änderung der Modbus-Einstellungen unterbricht kurz die Kommunikation, laufende RSCP-Verbindungen werden direkt beendet. Fortfahren?', 'Modbus-Einstellungen speichern', wx.YES_NO | wx.ICON_WARNING)
+            if res == wx.YES:
+                try:
+                    res = self.gui.get_data(r, True)
+                    wx.MessageBox('Übertragung abgeschlossen')
+                except:
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
+
+                self.updateData()
+
+        event.Skip()
 
 
     def bSaveRSCPDataOnClick( self, event ):

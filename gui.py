@@ -1600,6 +1600,73 @@ class MainFrame ( wx.Frame ):
 		self.m_panel9.Layout()
 		fgSizer12.Fit( self.m_panel9 )
 		self.m_notebook2.AddPage( self.m_panel9, u"SYS", False )
+		self.m_panel11 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		fgSizer272 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer272.SetFlexibleDirection( wx.BOTH )
+		fgSizer272.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText1733 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"aktiv", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1733.Wrap( -1 )
+
+		fgSizer272.Add( self.m_staticText1733, 0, wx.ALL, 5 )
+
+		self.chMBSEnabled = wx.CheckBox( self.m_panel11, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chMBSEnabled.SetValue(True)
+		fgSizer272.Add( self.chMBSEnabled, 0, wx.ALL, 5 )
+
+		self.m_staticText174 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"Name", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText174.Wrap( -1 )
+
+		fgSizer272.Add( self.m_staticText174, 0, wx.ALL, 5 )
+
+		self.txtMBSName = wx.TextCtrl( self.m_panel11, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMBSName.Enable( False )
+
+		fgSizer272.Add( self.txtMBSName, 0, wx.ALL, 5 )
+
+		self.m_staticText175 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"ID", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText175.Wrap( -1 )
+
+		fgSizer272.Add( self.m_staticText175, 0, wx.ALL, 5 )
+
+		self.txtMBSID = wx.TextCtrl( self.m_panel11, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtMBSID.Enable( False )
+
+		fgSizer272.Add( self.txtMBSID, 0, wx.ALL, 5 )
+
+		self.m_staticText176 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"Protokoll", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText176.Wrap( -1 )
+
+		fgSizer272.Add( self.m_staticText176, 0, wx.ALL, 5 )
+
+		cbMBSProtokollChoices = []
+		self.cbMBSProtokoll = wx.ComboBox( self.m_panel11, wx.ID_ANY, u"none", wx.DefaultPosition, wx.DefaultSize, cbMBSProtokollChoices, 0 )
+		fgSizer272.Add( self.cbMBSProtokoll, 0, wx.ALL, 5 )
+
+		self.m_staticText177 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"Gerät", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText177.Wrap( -1 )
+
+		fgSizer272.Add( self.m_staticText177, 0, wx.ALL, 5 )
+
+		self.txtMBSDevice = wx.TextCtrl( self.m_panel11, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer272.Add( self.txtMBSDevice, 0, wx.ALL, 5 )
+
+		self.m_staticText178 = wx.StaticText( self.m_panel11, wx.ID_ANY, u"TCP-Port", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText178.Wrap( -1 )
+
+		fgSizer272.Add( self.m_staticText178, 0, wx.ALL, 5 )
+
+		self.txtMBSPort = wx.TextCtrl( self.m_panel11, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer272.Add( self.txtMBSPort, 0, wx.ALL, 5 )
+
+		self.bMBSSave = wx.Button( self.m_panel11, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer272.Add( self.bMBSSave, 0, wx.ALL, 5 )
+
+
+		self.m_panel11.SetSizer( fgSizer272 )
+		self.m_panel11.Layout()
+		fgSizer272.Fit( self.m_panel11 )
+		self.m_notebook2.AddPage( self.m_panel11, u"Modbus", False )
 
 		bSizer12.Add( self.m_notebook2, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2691,6 +2758,7 @@ class MainFrame ( wx.Frame ):
 		self.sEMSMaxDischargePower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargePowerOnScroll )
 		self.sEMSMaxDischargeStartPower.Bind( wx.EVT_SCROLL, self.sEMSMaxDischargeStartPowerOnScroll )
 		self.bEMSUploadChanges.Bind( wx.EVT_BUTTON, self.bEMSUploadChangesOnClick )
+		self.bMBSSave.Bind( wx.EVT_BUTTON, self.bMBSSaveOnClick )
 		self.cbBATIndex.Bind( wx.EVT_COMBOBOX, self.cbBATIndexOnCombobox )
 		self.chPVIIndex.Bind( wx.EVT_COMBOBOX, self.chPVIIndexOnCombobox )
 		self.bConfigSetRSCPPassword.Bind( wx.EVT_BUTTON, self.bConfigSetRSCPPasswordOnClick )
@@ -2739,6 +2807,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bEMSUploadChangesOnClick( self, event ):
+		event.Skip()
+
+	def bMBSSaveOnClick( self, event ):
 		event.Skip()
 
 	def cbBATIndexOnCombobox( self, event ):
