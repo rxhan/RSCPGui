@@ -1627,13 +1627,13 @@ class Frame(MainFrame):
             if username and password and not serial:
                 ret = self.getSerialnoFromWeb(username, password)
                 if len(ret) == 1:
-                    serial = 'S10-' + ret[0]['serialno']
+                    serial = self.getSNFromNumbers(ret[0]['serialno'])
                     self.txtConfigSeriennummer.SetValue(serial)
                     wx.MessageBox('Seriennummer konnte ermittelt werden (WEB): ' + serial, 'Ermittlung Seriennummer')
                 elif len(ret) > 1:
                     sns = '\n'
                     for sn in ret:
-                        sns += '\nS10-' + sn['serialno']
+                        sns += '\n' + self.getSNFromNumbers(sn['serialno'])
                     wx.MessageBox('Es wurde mehr als eine Seriennummer ermittelt (WEB):' + sns, 'Ermittlung Seriennummer')
                     serial = len(ret)
 
@@ -1642,6 +1642,12 @@ class Frame(MainFrame):
                               'Ermittlung Seriennummer', wx.ICON_ERROR)
 
         event.Skip()
+
+    def getSNFromNumbers(self, sn):
+        if sn[0:2] == '70':
+            return 'P10-' + sn
+        else:
+            return 'S10-' + sn
 
     def bConfigGetIPAddressOnClick( self, event ):
         try:
