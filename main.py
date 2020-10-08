@@ -1,4 +1,5 @@
 import logging
+from socket import setdefaulttimeout
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -91,6 +92,8 @@ class Frame(MainFrame):
 
         self.loadConfig()
 
+        setdefaulttimeout(2)
+
         logger.info('Konfigurationsdatei geladen')
 
         self.cbConfigVerbindungsart.SetValue(self._connectiontype)
@@ -107,8 +110,13 @@ class Frame(MainFrame):
         self._wsthread = threading.Thread(target=self.check_e3dcwebgui, args=())
         self._wsthread.start()
 
-        #self._updatethread = threading.Thread(target=self.updateData, args=())
-        #self._updatethread.start()
+        def preConnect():
+            try:
+                g = self.gui
+            except:
+                pass
+
+        threading.Thread(target=preConnect, args=()).start()
 
         self._autothread = threading.Thread(target=self.autoUpdate, args=())
         self._autothread.start()
