@@ -60,12 +60,71 @@ class rscp_helper():
 
         return requests
 
-    def getWB(self):
-        # TODO: Werte auslesen und in der Oberfläche darstellen
-        r = RSCPDTO(RSCPTag.WB_REQ_CONNECTED_DEVICES, rscp_type=RSCPType.Container)
-        r += RSCPDTO(RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data = 0)
+    def getWBCount(self):
+        requests = []
+        requests.append(RSCPTag.WB_REQ_CONNECTED_DEVICES)
+        return requests
+
+
+    def getWB(self, index=0):
+        requests = []
+        r = RSCPDTO(RSCPTag.WB_REQ_DATA, rscp_type=RSCPType.Container)
+        r += RSCPDTO(RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data = index)
         r += RSCPTag.WB_REQ_STATUS
-        return r
+        r += RSCPTag.WB_REQ_ENERGY_ALL
+        r += RSCPTag.WB_REQ_ENERGY_SOLAR
+        r += RSCPTag.WB_REQ_SOC
+        r += RSCPTag.WB_REQ_STATUS
+        r += RSCPTag.WB_REQ_ERROR_CODE
+        r += RSCPTag.WB_REQ_MODE
+        r += RSCPTag.WB_REQ_APP_SOFTWARE
+        r += RSCPTag.WB_REQ_BOOTLOADER_SOFTWARE
+        r += RSCPTag.WB_REQ_HW_VERSION
+        r += RSCPTag.WB_REQ_FLASH_VERSION
+        r += RSCPTag.WB_REQ_DEVICE_ID
+        r += RSCPTag.WB_REQ_DEVICE_STATE
+        r += RSCPTag.WB_REQ_PM_POWER_L1
+        r += RSCPTag.WB_REQ_PM_POWER_L2
+        r += RSCPTag.WB_REQ_PM_POWER_L3
+        r += RSCPTag.WB_REQ_PM_ACTIVE_PHASES
+        r += RSCPTag.WB_REQ_PM_MODE
+        r += RSCPTag.WB_REQ_PM_ENERGY_L1
+        r += RSCPTag.WB_REQ_PM_ENERGY_L2
+        r += RSCPTag.WB_REQ_PM_ENERGY_L3
+        r += RSCPTag.WB_REQ_PM_DEVICE_ID
+        r += RSCPTag.WB_REQ_PM_ERROR_CODE
+        r += RSCPTag.WB_REQ_PM_DEVICE_STATE
+        r += RSCPTag.WB_REQ_PM_FIRMWARE_VERSION
+        r += RSCPTag.WB_REQ_DIAG_DEVICE_ID
+        r += RSCPTag.WB_REQ_DIAG_BAT_CAPACITY
+        r += RSCPTag.WB_REQ_DIAG_USER_PARAM
+        r += RSCPTag.WB_REQ_DIAG_MAX_CURRENT
+        r += RSCPTag.WB_REQ_DIAG_PHASE_VOLTAGE
+        r += RSCPTag.WB_REQ_DIAG_DISPLAY_SPEECH
+        r += RSCPTag.WB_REQ_DIAG_DESIGN
+        r += RSCPTag.WB_REQ_DIAG_INFOS
+        r += RSCPTag.WB_REQ_DIAG_WARNINGS
+        r += RSCPTag.WB_REQ_DIAG_ERRORS
+        r += RSCPTag.WB_REQ_DIAG_TEMP_1
+        r += RSCPTag.WB_REQ_DIAG_TEMP_2
+        r += RSCPTag.WB_REQ_DIAG_CP_PEGEL
+        r += RSCPTag.WB_REQ_DIAG_PP_IN_A
+        r += RSCPTag.WB_REQ_DIAG_STATUS_DIODE
+        r += RSCPTag.WB_REQ_DIAG_DIG_IN_1
+        r += RSCPTag.WB_REQ_DIAG_DIG_IN_2
+        r += RSCPTag.WB_REQ_PM_MAX_PHASE_POWER
+        r += RSCPTag.WB_REQ_DEVICE_NAME
+        r += RSCPTag.WB_REQ_AVAILABLE_SOLAR_POWER
+        r += RSCPTag.WB_REQ_EXTERN_DATA_SUN
+        r += RSCPTag.WB_REQ_EXTERN_DATA_NET
+        r += RSCPTag.WB_REQ_EXTERN_DATA_ALL
+        r += RSCPTag.WB_REQ_EXTERN_DATA_ALG
+        r += RSCPTag.WB_REQ_PARAM_1
+        r += RSCPTag.WB_REQ_PARAM_2
+
+        requests.append(r)
+
+        return requests
 
     def getModbus(self):
         # TODO: Modbus darstellen
@@ -163,6 +222,8 @@ class rscp_helper():
             r += RSCPTag.BAT_REQ_DEVICE_STATE
             r += RSCPTag.BAT_REQ_SPECIFICATION
             r += RSCPTag.BAT_REQ_INTERNALS
+            r += RSCPTag.BAT_REQ_TOTAL_USE_TIME
+            r += RSCPTag.BAT_REQ_TOTAL_DISCHARGE_TIME
 
             if dcb_indexes:
                 for dcb_index in dcb_indexes:
@@ -197,6 +258,33 @@ class rscp_helper():
             requests.append(r)
 
         return requests
+
+    def getTestData(self):
+        requests = []
+
+        requests.append(RSCPTag.EMS_REQ_AC_REACTIVE_POWER)
+        requests.append(RSCPTag.EMS_REQ_MAX_DC_POWER)
+        requests.append(RSCPTag.EMS_REQ_BAT_CURRENT_IN)
+        requests.append(RSCPTag.EMS_REQ_BAT_CURRENT_OUT)
+        requests.append(RSCPTag.EMS_REQ_EP_RESERVE)
+        requests.append(RSCPTag.EMS_REQ_SEC_LIMITS)
+        requests.append(RSCPTag.EMS_REQ_SEC_DEVICE_STATUS)
+        requests.append(RSCPTag.EMS_REQ_SPECIFICATION_VALUES)
+        requests.append(RSCPTag.EMS_REQ_ENERGY_STORAGE_MODEL)
+        requests.append(RSCPTag.EMS_REQ_PV_ENERGY)
+        requests.append(RSCPTag.EMS_REQ_POWER_PV_AC_OUT)
+        requests.append(RSCPTag.EMS_REQ_REGULATOR_STRATEGY)
+        requests.append(RSCPTag.EMS_REQ_EMERGENCY_POWER_OVERLOAD_STATUS)
+        requests.append(RSCPTag.EMS_REQ_SUPPORTED_REGULATOR_MODES)
+        requests.append(RSCPTag.EMS_REQ_REGULATOR_MODE)
+        requests.append(RSCPTag.EMS_REQ_IDLE_PERIOD_MIN_SOC_UCB)
+        requests.append(RSCPTag.EMS_REQ_IDLE_PERIOD_MAX_SOC_UCB)
+        requests.append(RSCPTag.EMS_REQ_REMOTE_CONTROL_STATUS)
+        requests.append(RSCPTag.EMS_REQ_EP_DELAY)
+        requests.append(RSCPTag.EMS_REQ_GET_PARTIAL_GRID)
+
+        return requests
+
 
     def getEMSData(self):
         requests = []

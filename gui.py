@@ -18,7 +18,7 @@ import wx.grid
 class MainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 1029,867 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 1121,809 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -2736,7 +2736,269 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer1 )
 		self.pEinstellungen.Layout()
 		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
+		self.pWB = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer16 = wx.BoxSizer( wx.VERTICAL )
+
+		cbWallboxChoices = []
+		self.cbWallbox = wx.ComboBox( self.pWB, wx.ID_ANY, u"WB", wx.DefaultPosition, wx.DefaultSize, cbWallboxChoices, 0 )
+		bSizer16.Add( self.cbWallbox, 0, wx.ALL, 5 )
+
+		self.m_staticline151 = wx.StaticLine( self.pWB, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer16.Add( self.m_staticline151, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline17 = wx.StaticLine( self.pWB, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer16.Add( self.m_staticline17, 0, wx.EXPAND |wx.ALL, 5 )
+
+		fgSizer31 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer31.SetFlexibleDirection( wx.BOTH )
+		fgSizer31.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		fgSizer30 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer30.SetFlexibleDirection( wx.BOTH )
+		fgSizer30.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText178 = wx.StaticText( self.pWB, wx.ID_ANY, u"Status", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText178.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText178, 0, wx.ALL, 5 )
+
+		self.txtWBStatus = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBStatus.Enable( False )
+
+		fgSizer30.Add( self.txtWBStatus, 0, wx.ALL, 5 )
+
+		self.m_staticText179 = wx.StaticText( self.pWB, wx.ID_ANY, u"Energie gesamt", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText179.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText179, 0, wx.ALL, 5 )
+
+		self.txtWBEnergyAll = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBEnergyAll.Enable( False )
+
+		fgSizer30.Add( self.txtWBEnergyAll, 0, wx.ALL, 5 )
+
+		self.m_staticText180 = wx.StaticText( self.pWB, wx.ID_ANY, u"Energie Solar", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText180.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText180, 0, wx.ALL, 5 )
+
+		self.txtWBEnergySolar = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBEnergySolar.Enable( False )
+
+		fgSizer30.Add( self.txtWBEnergySolar, 0, wx.ALL, 5 )
+
+		self.m_staticText181 = wx.StaticText( self.pWB, wx.ID_ANY, u"SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText181.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText181, 0, wx.ALL, 5 )
+
+		self.txtWBSOC = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBSOC.Enable( False )
+
+		fgSizer30.Add( self.txtWBSOC, 0, wx.ALL, 5 )
+
+		self.m_staticText182 = wx.StaticText( self.pWB, wx.ID_ANY, u"Errorcode", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText182.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText182, 0, wx.ALL, 5 )
+
+		self.txtWBErrorCode = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBErrorCode.Enable( False )
+
+		fgSizer30.Add( self.txtWBErrorCode, 0, wx.ALL, 5 )
+
+		self.m_staticText183 = wx.StaticText( self.pWB, wx.ID_ANY, u"Gerätename", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText183.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText183, 0, wx.ALL, 5 )
+
+		self.txtWBDeviceName = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBDeviceName.Enable( False )
+
+		fgSizer30.Add( self.txtWBDeviceName, 0, wx.ALL, 5 )
+
+		self.m_staticText184 = wx.StaticText( self.pWB, wx.ID_ANY, u"Modus", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText184.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText184, 0, wx.ALL, 5 )
+
+		fgSizer321 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer321.SetFlexibleDirection( wx.BOTH )
+		fgSizer321.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtWBMode = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 60,-1 ), 0 )
+		self.txtWBMode.Enable( False )
+
+		fgSizer321.Add( self.txtWBMode, 0, wx.ALL, 5 )
+
+		self.bWBStopLoading = wx.Button( self.pWB, wx.ID_ANY, u"Ladevorgang abbrechen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer321.Add( self.bWBStopLoading, 0, wx.ALL, 5 )
+
+
+		fgSizer30.Add( fgSizer321, 1, wx.EXPAND, 5 )
+
+		self.m_staticText1871 = wx.StaticText( self.pWB, wx.ID_ANY, u"Ladeleistung aus PV", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1871.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText1871, 0, wx.ALL, 5 )
+
+		self.txtWBSun = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBSun.Enable( False )
+
+		fgSizer30.Add( self.txtWBSun, 0, wx.ALL, 5 )
+
+		self.m_staticText188 = wx.StaticText( self.pWB, wx.ID_ANY, u"Ladeleistung aus Netz", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText188.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText188, 0, wx.ALL, 5 )
+
+		self.txtWBNet = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBNet.Enable( False )
+
+		fgSizer30.Add( self.txtWBNet, 0, wx.ALL, 5 )
+
+		self.m_staticText189 = wx.StaticText( self.pWB, wx.ID_ANY, u"Ladeleistung Gesamt", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText189.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText189, 0, wx.ALL, 5 )
+
+		self.txtWBLadeleistung = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBLadeleistung.Enable( False )
+
+		fgSizer30.Add( self.txtWBLadeleistung, 0, wx.ALL, 5 )
+
+
+		fgSizer31.Add( fgSizer30, 1, wx.EXPAND, 5 )
+
+		bSizer18 = wx.BoxSizer( wx.VERTICAL )
+
+		self.gWBData = wx.grid.Grid( self.pWB, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+
+		# Grid
+		self.gWBData.CreateGrid( 2, 4 )
+		self.gWBData.EnableEditing( True )
+		self.gWBData.EnableGridLines( True )
+		self.gWBData.EnableDragGridSize( False )
+		self.gWBData.SetMargins( 0, 0 )
+
+		# Columns
+		self.gWBData.EnableDragColMove( False )
+		self.gWBData.EnableDragColSize( True )
+		self.gWBData.SetColLabelSize( 30 )
+		self.gWBData.SetColLabelValue( 0, u"L1" )
+		self.gWBData.SetColLabelValue( 1, u"L2" )
+		self.gWBData.SetColLabelValue( 2, u"L3" )
+		self.gWBData.SetColLabelValue( 3, u"Gesamt" )
+		self.gWBData.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Rows
+		self.gWBData.EnableDragRowSize( True )
+		self.gWBData.SetRowLabelSize( 80 )
+		self.gWBData.SetRowLabelValue( 0, u"Leistung" )
+		self.gWBData.SetRowLabelValue( 1, u"Energie" )
+		self.gWBData.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Label Appearance
+
+		# Cell Defaults
+		self.gWBData.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		bSizer18.Add( self.gWBData, 0, wx.ALL, 5 )
+
+		fgSizer32 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer32.SetFlexibleDirection( wx.BOTH )
+		fgSizer32.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText185 = wx.StaticText( self.pWB, wx.ID_ANY, u"Gerät verbunden", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText185.Wrap( -1 )
+
+		fgSizer32.Add( self.m_staticText185, 0, wx.ALL, 5 )
+
+		self.chWBDeviceConnected = wx.CheckBox( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chWBDeviceConnected.Enable( False )
+
+		fgSizer32.Add( self.chWBDeviceConnected, 0, wx.ALL, 5 )
+
+		self.m_staticText186 = wx.StaticText( self.pWB, wx.ID_ANY, u"Gerät arbeitet", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText186.Wrap( -1 )
+
+		fgSizer32.Add( self.m_staticText186, 0, wx.ALL, 5 )
+
+		self.chWBDeviceWorking = wx.CheckBox( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chWBDeviceWorking.Enable( False )
+
+		fgSizer32.Add( self.chWBDeviceWorking, 0, wx.ALL, 5 )
+
+		self.m_staticText187 = wx.StaticText( self.pWB, wx.ID_ANY, u"Gerät in Service", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText187.Wrap( -1 )
+
+		fgSizer32.Add( self.m_staticText187, 0, wx.ALL, 5 )
+
+		self.chWBDeviceInService = wx.CheckBox( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chWBDeviceInService.Enable( False )
+
+		fgSizer32.Add( self.chWBDeviceInService, 0, wx.ALL, 5 )
+
+
+		bSizer18.Add( fgSizer32, 1, wx.EXPAND, 5 )
+
+
+		fgSizer31.Add( bSizer18, 1, wx.EXPAND, 5 )
+
+
+		bSizer16.Add( fgSizer31, 1, wx.EXPAND, 5 )
+
+		fgSizer28 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer28.SetFlexibleDirection( wx.BOTH )
+		fgSizer28.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText1733 = wx.StaticText( self.pWB, wx.ID_ANY, u"Sonnenmodus", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1733.Wrap( -1 )
+
+		fgSizer28.Add( self.m_staticText1733, 0, wx.ALL, 5 )
+
+		self.chWBSunmode = wx.CheckBox( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer28.Add( self.chWBSunmode, 0, wx.ALL, 5 )
+
+		self.m_staticText174 = wx.StaticText( self.pWB, wx.ID_ANY, u"Ladestrom", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText174.Wrap( -1 )
+
+		fgSizer28.Add( self.m_staticText174, 0, wx.ALL, 5 )
+
+		fgSizer29 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer29.SetFlexibleDirection( wx.BOTH )
+		fgSizer29.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.sWBLadestrom = wx.Slider( self.pWB, wx.ID_ANY, 6, 6, 32, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		fgSizer29.Add( self.sWBLadestrom, 0, wx.ALL, 5 )
+
+		self.stWBLadestrom = wx.StaticText( self.pWB, wx.ID_ANY, u"6A", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.stWBLadestrom.Wrap( -1 )
+
+		fgSizer29.Add( self.stWBLadestrom, 0, wx.ALL, 5 )
+
+
+		fgSizer28.Add( fgSizer29, 1, wx.EXPAND, 5 )
+
+		self.m_staticText176 = wx.StaticText( self.pWB, wx.ID_ANY, u"1ph Laden", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText176.Wrap( -1 )
+
+		fgSizer28.Add( self.m_staticText176, 0, wx.ALL, 5 )
+
+		self.chWB1PH = wx.CheckBox( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer28.Add( self.chWB1PH, 0, wx.ALL, 5 )
+
+		self.bWBSave = wx.Button( self.pWB, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer28.Add( self.bWBSave, 0, wx.ALL, 5 )
+
+
+		bSizer16.Add( fgSizer28, 1, wx.EXPAND, 5 )
+
+
+		self.pWB.SetSizer( bSizer16 )
+		self.pWB.Layout()
+		bSizer16.Fit( self.pWB )
+		self.pMainregister.AddPage( self.pWB, u"WB", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -2775,6 +3037,9 @@ class MainFrame ( wx.Frame ):
 		self.scAutoUpdate.Bind( wx.EVT_SPINCTRL, self.scAutoUpdateOnChange )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
+		self.bWBStopLoading.Bind( wx.EVT_BUTTON, self.bWBStopLoadingClick )
+		self.sWBLadestrom.Bind( wx.EVT_SCROLL, self.sWBLadestromOnScroll )
+		self.bWBSave.Bind( wx.EVT_BUTTON, self.bWBSaveOnClick )
 
 	def __del__( self ):
 		pass
@@ -2842,6 +3107,15 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bSaveRSCPDataOnClick( self, event ):
+		event.Skip()
+
+	def bWBStopLoadingClick( self, event ):
+		event.Skip()
+
+	def sWBLadestromOnScroll( self, event ):
+		event.Skip()
+
+	def bWBSaveOnClick( self, event ):
 		event.Skip()
 
 

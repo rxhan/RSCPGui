@@ -1,3 +1,4 @@
+import binascii
 import copy
 import json
 import traceback
@@ -172,13 +173,22 @@ class RSCPDTO:
         return {self.name:obj}
 
     def __round__(self, n=None):
-        return round(self.data, n)
+        if self.type != RSCPType.Error:
+            return round(self.data, n)
+        else:
+            return 0.0
 
     def __int__(self):
-        return int(self.data)
+        if self.type != RSCPType.Error:
+            return int(self.data)
+        else:
+            return 0
 
     def __float__(self):
-        return float(self.data)
+        if self.type != RSCPType.Error:
+            return float(self.data)
+        else:
+            return 0.0
 
     def __str__(self):
         messages = []
@@ -202,7 +212,11 @@ class RSCPDTO:
             except:
                 traceback.print_exc()
                 pass
-            messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(self.data))
+            if self.type == RSCPType.ByteArray:
+                data = binascii.hexlify(self.data)
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(data))
+            else:
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(self.data))
 
         return "\n".join(messages)
 
