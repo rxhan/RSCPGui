@@ -2740,10 +2740,50 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer30.Add( self.m_staticText184, 0, wx.ALL, 5 )
 
-		self.txtWBMode = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer321 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer321.SetFlexibleDirection( wx.BOTH )
+		fgSizer321.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtWBMode = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 60,-1 ), 0 )
 		self.txtWBMode.Enable( False )
 
-		fgSizer30.Add( self.txtWBMode, 0, wx.ALL, 5 )
+		fgSizer321.Add( self.txtWBMode, 0, wx.ALL, 5 )
+
+		self.bWBStopLoading = wx.Button( self.pWB, wx.ID_ANY, u"Ladevorgang abbrechen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer321.Add( self.bWBStopLoading, 0, wx.ALL, 5 )
+
+
+		fgSizer30.Add( fgSizer321, 1, wx.EXPAND, 5 )
+
+		self.m_staticText1871 = wx.StaticText( self.pWB, wx.ID_ANY, u"Ladeleistung aus PV", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1871.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText1871, 0, wx.ALL, 5 )
+
+		self.txtWBSun = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBSun.Enable( False )
+
+		fgSizer30.Add( self.txtWBSun, 0, wx.ALL, 5 )
+
+		self.m_staticText188 = wx.StaticText( self.pWB, wx.ID_ANY, u"Ladeleistung aus Netz", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText188.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText188, 0, wx.ALL, 5 )
+
+		self.txtWBNet = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBNet.Enable( False )
+
+		fgSizer30.Add( self.txtWBNet, 0, wx.ALL, 5 )
+
+		self.m_staticText189 = wx.StaticText( self.pWB, wx.ID_ANY, u"Ladeleistung Gesamt", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText189.Wrap( -1 )
+
+		fgSizer30.Add( self.m_staticText189, 0, wx.ALL, 5 )
+
+		self.txtWBLadeleistung = wx.TextCtrl( self.pWB, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtWBLadeleistung.Enable( False )
+
+		fgSizer30.Add( self.txtWBLadeleistung, 0, wx.ALL, 5 )
 
 
 		fgSizer31.Add( fgSizer30, 1, wx.EXPAND, 5 )
@@ -2846,7 +2886,7 @@ class MainFrame ( wx.Frame ):
 		fgSizer29.SetFlexibleDirection( wx.BOTH )
 		fgSizer29.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.sWBLadestrom = wx.Slider( self.pWB, wx.ID_ANY, 6, 6, 16, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		self.sWBLadestrom = wx.Slider( self.pWB, wx.ID_ANY, 6, 6, 32, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
 		fgSizer29.Add( self.sWBLadestrom, 0, wx.ALL, 5 )
 
 		self.stWBLadestrom = wx.StaticText( self.pWB, wx.ID_ANY, u"6A", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -2911,6 +2951,7 @@ class MainFrame ( wx.Frame ):
 		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
+		self.bWBStopLoading.Bind( wx.EVT_BUTTON, self.bWBStopLoadingClick )
 		self.sWBLadestrom.Bind( wx.EVT_SCROLL, self.sWBLadestromOnScroll )
 		self.bWBSave.Bind( wx.EVT_BUTTON, self.bWBSaveOnClick )
 
@@ -2971,6 +3012,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bSaveRSCPDataOnClick( self, event ):
+		event.Skip()
+
+	def bWBStopLoadingClick( self, event ):
 		event.Skip()
 
 	def sWBLadestromOnScroll( self, event ):

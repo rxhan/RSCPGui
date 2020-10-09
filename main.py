@@ -65,6 +65,7 @@ class Frame(MainFrame):
     _connectiontype = None
     _websocketaddr = None
     _connected = None
+    debug = False
 
     def __init__(self, parent):
         logger.info('Programm gestartet, init')
@@ -451,14 +452,17 @@ class Frame(MainFrame):
         self.cbWallbox.Clear()
         self._data_wb = []
         logger.debug('Rufe WB-Daten ab')
+        if self.debug:
+            from e3dc._rscp_utils import RSCPUtils
+            import binascii
+            r = RSCPUtils()
         try:
-            #from e3dc._rscp_utils import RSCPUtils
-            #import binascii
-            #r = RSCPUtils()
-            #t = 'e3dc0011fc367f5f0000000090d1290b12001c10840e0e0b000100040e06040000000000221881f3'
-            #bin = binascii.unhexlify(t)
-            #data = r.decode_data(bin)
-            data = self.gui.get_data(self.gui.getWBCount(), True)
+            if self.debug:
+                t = 'e3dc0011ff41805f00000000a833bf1912001c10840e0e0b000100040e06040000000000bac1b748'
+                bin = binascii.unhexlify(t)
+                data = r.decode_data(bin)
+            else:
+                data = self.gui.get_data(self.gui.getWBCount(), True)
             if data.type == RSCPType.Error:
                 raise RSCPCommunicationError()
         except RSCPCommunicationError:
@@ -467,115 +471,244 @@ class Frame(MainFrame):
             return False
 
         for index in data:
-            index = data['WB_INDEX'].data
-            #t = 'e3dc0011fc367f5f0000000080588a0bc0020000840e0eb9020100040e05020000000400800e030100000100800e070400579900000200800e070400b99600000300800e05020003000400800e030100000500800e030100000600800e030100900700800e030100000800800e030100000900800e030100000a00800e05020000000b00800e030100000000860e0e18000100860e010100010200860e010100010300860e010100000c00800e0b08000000c00a001895400d00800e0b080000000000000000000e00800e0b080000000000000000000f00800e030100071100800e030100001200800e0b080090faf7fa4e4777401300800e0b0800b082f2514de04e3f1400800e0b0800b082f2514de04e3f1500800e070400000000001600800e030100002900800e0e18003000800e010100013100800e010100013200800e010100001700800e0301000a1800800e070400000000001900800e070400102700001a00800e05020000001b00800e030100061c00800e030100e71d00800e030100001e00800e030100001f00800e05020000002000800e05020000002100800e05020000002200800e030100002300800e030100002400800e030100432500800e030100142600800e030100002700800e010100012800800e010100014000800e0b080000000000000000004200800e0d0c004561737920436f6e6e6563740010040eff0400070000001110840e0e1a001120040e060400080000001020040e1008004605b996000003001210840e0e1a001120040e060400080000001020040e10080000009e02000000001310840e0e1a001120040e060400080000001020040e10080046055799000000031410840e0e1a001120040e060400080000001020040e1008000301b006000000001b10840e0e1a001120040e060400080000001020040e10080000000600000000001a10840e0e1a001120040e060400080000001020040e100800000000000000000017e6647c'
-            #bin = binascii.unhexlify(t)
-            #d = r.decode_data(bin)
-
-            d = self.gui.get_data(self.gui.getWB(index=index), True)
-            print(d)
+            logger.debug('Rufe Daten für Wallbox #' + str(index.data) + ' ab')
+            if self.debug:
+                t = 'e3dc0011ff41805f00000000d006f01ac0020000840e0eb9020100040e05020000000400800e030100000100800e07040083b600000200800e070400e5b300000300800e05020004000400800e030100000500800e030100000600800e030100900700800e030100000800800e030100000900800e030100000a00800e05020000000b00800e030100000000860e0e18000100860e010100010200860e010100010300860e010100000c00800e0b0800000000a0467095400d00800e0b08000000006055b90f400e00800e0b08000000006055b90f400f00800e030100071100800e030100001200800e0b0800e801068d6e137d401300800e0b0800aa58ab3dcf79fc3f1400800e0b0800aa58ab3dcf79fc3f1500800e070400000000001600800e030100002900800e0e18003000800e010100013100800e010100013200800e010100001700800e0301000a1800800e070400000000001900800e070400102700001a00800e05020000001b00800e030100061c00800e030100e61d00800e030100001e00800e030100001f00800e05020000002000800e05020000002100800e05020000002200800e030100002300800e030100002400800e030100432500800e030100142600800e030100002700800e010100012800800e010100014000800e0b080000000000000000004200800e0d0c004561737920436f6e6e6563740010040eff0400070000001110840e0e1a001120040e060400080000001020040e1008006405e5b3000004001210840e0e1a001120040e060400080000001020040e10080000009e02000000001310840e0e1a001120040e060400080000001020040e100800640583b6000000041410840e0e1a001120040e060400080000001020040e1008000401b006000000001b10840e0e1a001120040e060400080000001020040e10080000000600000000001a10840e0e1a001120040e060400080000001020040e1008000000000000000000020d6f'
+                bin = binascii.unhexlify(t)
+                d = r.decode_data(bin)
+            else:
+                d = self.gui.get_data(self.gui.getWB(index=index.data), True)
 
             self._data_wb.append(d)
-            self.cbWallbox.Append('WB #' + str(index))
-
-    def fill_wb_index(self, index):
-
-        d = self._data_wb[index]
-
-        index = d['WB_INDEX'].data
-
-        self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
-        self.txtWBEnergyAll.SetValue(repr(d['WB_ENERGY_ALL']))
-        self.txtWBEnergySolar.SetValue(repr(d['WB_ENERGY_SOLAR']))
-        self.txtWBSOC.SetValue(repr(d['WB_SOC']))
-        self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
-        self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
-        self.txtWBMode.SetValue(repr(d['WB_MODE']))
-
-        self.gWBData.SetCellValue(0,0,str(round(d['WB_PM_POWER_L1'],3)) + ' W')
-        self.gWBData.SetCellValue(0,1,str(round(d['WB_PM_POWER_L2'],3)) + ' W')
-        self.gWBData.SetCellValue(0,2,str(round(d['WB_PM_POWER_L3'],3)) + ' W')
-        self.gWBData.SetCellValue(0,3,str(round(d['WB_PM_POWER_L1'],3)+round(d['WB_PM_POWER_L2'],3)+round(d['WB_PM_POWER_L3'],3)) + ' W')
-
-        self.gWBData.SetCellValue(1,0,str(round(d['WB_PM_ENERGY_L1'],3)) + ' kWh')
-        self.gWBData.SetCellValue(1,1,str(round(d['WB_PM_ENERGY_L2'],3)) + ' kWh')
-        self.gWBData.SetCellValue(1,2,str(round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
-        self.gWBData.SetCellValue(1,3,str(round(d['WB_PM_ENERGY_L1'],3)+round(d['WB_PM_ENERGY_L2'],3)+round(d['WB_PM_ENERGY_L3'],3)) + ' kWh')
-
-        self.chWBDeviceConnected.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_CONNECTED'].data)
-        self.chWBDeviceInService.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_IN_SERVICE'].data)
-        self.chWBDeviceWorking.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_WORKING'].data)
-
-        alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
-        sb = alg_data[2]
-        self.chWBSunmode.SetValue((sb & 128) == 128)
-
-        if (sb & 64) == 64:
-            logger.debug('WB charging canceld True')
-        else:
-            logger.debug('WB charging canceld False')
-        if (sb & 32) == 32:
-            logger.debug('WB charging active True')
-        else:
-            logger.debug('WB charging active False')
-
-        self.chWB1PH.SetValue(alg_data[1] == 1)
-
-        def get_load(data):
-            return data[1] << 8 | data[0]
-
-        sunload = get_load(d['WB_EXTERN_DATA_SUN']['WB_EXTERN_DATA'].data)
-        logger.debug('WB Sunload %d', sunload)
-        netload = get_load(d['WB_EXTERN_DATA_NET']['WB_EXTERN_DATA'].data)
-        logger.debug('WB Netload %d', netload)
-
-
+            self.cbWallbox.Append('WB #' + str(index.data))
 
         logger.debug('Abruf WB-Daten abgeschlossen')
-        # Bedeutung???
-        #WB_REQ_SET_MODE = 0x0E000030
-        #WB_REQ_SET_EXTERN = 0x0E041010
-        #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
-        #WB_REQ_SET_ENERGY_ALL = 0x0E041016
-        #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
-        #WB_REQ_SET_PARAM_1 = 0x0E041018
-        #WB_REQ_SET_PARAM_2 = 0x0E041019
-        #WB_REQ_SET_PW = 0x0E041020
-        # WB_REQ_SET_DEVICE_NAME
+
+    def set_wb_enabled(self):
+        def set_wb_enableddisabled(value):
+            self.bWBSave.Enable(value)
+            self.chWB1PH.Enable(value)
+            self.chWBSunmode.Enable(value)
+            self.sWBLadestrom.Enable(value)
+            self.bWBStopLoading.Enable(value)
+
+        if len(self._data_wb) > 0:
+            set_wb_enableddisabled(True)
+        else:
+            set_wb_enableddisabled(False)
+
+        if self.txtWBMode.GetValue() == 'LOADING':
+            self.bWBStopLoading.SetLabel('Ladevorgang abbrechen')
+        else:
+            self.bWBStopLoading.SetLabel('Ladevorgang starten')
+
+    def bWBStopLoadingClick( self, event ):
+        index = self.cbWallbox.GetSelection()
+        if len(self._data_wb) > index:
+            res = wx.MessageBox('Soll der Ladevorgang in WB#' + str(index) + ' wirklich abgebrochen werden?', 'Wallbox Ladevorgang abbrechen', wx.YES_NO | wx.ICON_QUESTION)
+            if res == wx.YES:
+                try:
+                    ba = bytearray(6)
+                    ba[4] = 1
+                    req_data = RSCPDTO(tag=RSCPTag.WB_REQ_DATA, rscp_type=RSCPType.Container)
+                    req_data += RSCPDTO(tag=RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data=index)
+                    req_data += RSCPDTO(tag=RSCPTag.WB_REQ_SET_EXTERN, rscp_type=RSCPType.Container, data=
+                    [RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA, rscp_type=RSCPType.ByteArray, data=ba),
+                     RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA_LEN, rscp_type=RSCPType.UChar8, data=6)]
+                                        )
+
+                    print(req_data)
+                    res = self.gui.get_data([req_data], True)
+                    print(res)
+                    wx.MessageBox('Übertragung durchgeführt')
+                except:
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
+        else:
+            wx.MessageBox('Wallbox #' + str(index) + ' existiert nicht, dieser Fehler sollte nicht auftreten!')
+            logger.error('Wallbox #' + str(index) + ' existiert nicht!')
+
+        self.updateData()
+
+    def fill_wb_index(self, index):
+        if len(self._data_wb) > index:
+            logger.debug('Stelle Daten der Wallbox #' + str(index) + ' dar')
+            d = self._data_wb[index]
+
+            index = d['WB_INDEX'].data
+
+            self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
+            self.txtWBEnergyAll.SetValue(repr(d['WB_ENERGY_ALL']) + ' Wh')
+            self.txtWBEnergySolar.SetValue(repr(d['WB_ENERGY_SOLAR']) + ' Wh')
+            self.txtWBSOC.SetValue(repr(d['WB_SOC']))
+            self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
+            self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
+            self.txtWBMode.SetValue(repr(d['WB_MODE']))
+
+            self.gWBData.SetCellValue(0,0,str(round(d['WB_PM_POWER_L1'],3)) + ' W')
+            self.gWBData.SetCellValue(0,1,str(round(d['WB_PM_POWER_L2'],3)) + ' W')
+            self.gWBData.SetCellValue(0,2,str(round(d['WB_PM_POWER_L3'],3)) + ' W')
+            self.gWBData.SetCellValue(0,3,str(round(d['WB_PM_POWER_L1'].data + d['WB_PM_POWER_L2'].data + d['WB_PM_POWER_L3'].data,3)) + ' W')
+
+            self.gWBData.SetCellValue(1,0,str(round(d['WB_PM_ENERGY_L1'],3)) + ' Wh')
+            self.gWBData.SetCellValue(1,1,str(round(d['WB_PM_ENERGY_L2'],3)) + ' Wh')
+            self.gWBData.SetCellValue(1,2,str(round(d['WB_PM_ENERGY_L3'],3)) + ' Wh')
+            self.gWBData.SetCellValue(1,3,str(round(d['WB_PM_ENERGY_L1'].data + d['WB_PM_ENERGY_L2'].data + d['WB_PM_ENERGY_L3'].data,3)) + ' Wh')
+
+            self.chWBDeviceConnected.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_CONNECTED'].data)
+            self.chWBDeviceInService.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_IN_SERVICE'].data)
+            self.chWBDeviceWorking.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_WORKING'].data)
+
+            alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
+            sb = alg_data[2]
+            self.chWBSunmode.SetValue((sb & 128) == 128)
+
+            if (sb & 64) == 64:
+                logger.debug('WB charging canceled True')
+            else:
+                logger.debug('WB charging canceled False')
+            if (sb & 32) == 32:
+                logger.debug('WB charging active True')
+            else:
+                logger.debug('WB charging active False')
+
+            self.chWB1PH.SetValue(alg_data[1] == 1)
+
+            def get_load(data):
+                return data[1] << 8 | data[0]
+
+            sunload = get_load(d['WB_EXTERN_DATA_SUN']['WB_EXTERN_DATA'].data)
+            self.txtWBSun.SetValue(str(sunload) + ' W')
+
+            netload = get_load(d['WB_EXTERN_DATA_NET']['WB_EXTERN_DATA'].data)
+            self.txtWBNet.SetValue(str(netload) + ' W')
+
+            self.txtWBLadeleistung.SetValue(str(sunload+netload) + ' W')
+
+
+            self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
+
+            logger.debug('Darstellung Wallbox abgeschlossen')
+        else:
+            logger.debug('Daten für Wallbox #' + str(index) + ' existieren nicht, Darstellung abgebrochen')
+
+            # Bedeutung???
+            #WB_REQ_SET_MODE = 0x0E000030
+            #WB_REQ_SET_EXTERN = 0x0E041010
+            #WB_REQ_SET_BAT_CAPACITY = 0x0E041015
+            #WB_REQ_SET_ENERGY_ALL = 0x0E041016
+            #WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
+            #WB_REQ_SET_PARAM_1 = 0x0E041018
+            #WB_REQ_SET_PARAM_2 = 0x0E041019
+            #WB_REQ_SET_PW = 0x0E041020
+            # WB_REQ_SET_DEVICE_NAME
 
     def bWBSaveOnClick( self, event ):
-        return False
+        index = self.cbWallbox.GetSelection()
 
-        #index = self.cbWallbox.GetValue()
-        #
-        #data = self._data_wb[index]
-        #
-        #r = []
-        #test = self.chWBSunmode.GetValue()
-        #data = data['WB_EXTERN_DATA_SUN'].data
-        #if test != data['WB_EXTERN_DATA_SUN'].data:
-        #    r.append(RSCPDTO(tag = RSCPTag.EMS_REQ_SET_BATTERY_BEFORE_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
-        #
-        #if len(r) > 0:
-        #    try:
-        #        res = self.gui.get_data(r, True)
-        #        wx.MessageBox('Übertragung abgeschlossen')
-        #    except:
-        #        traceback.print_exc()
-        #        wx.MessageBox('Übertragung fehlgeschlagen')
-        #else:
-        #    res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Wallbox speichern', wx.YES_NO)
-        #    if res == wx.YES:
-        #        test = 1 if self.chEMSBatteryBeforeCarMode.GetValue() == False else 0
-        #        r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_BATTERY_BEFORE_CAR_MODE, rscp_type=RSCPType.UChar8, data=test))
-        #
-        #        try:
-        #            res = self.gui.get_data(r, True)
-        #            wx.MessageBox('Übertragung abgeschlossen')
-        #        except:
-        #            traceback.print_exc()
-        #            wx.MessageBox('Übertragung fehlgeschlagen')
-        #self.updateData()
+        data = self._data_wb[index]
+
+        index = data['WB_INDEX'].data
+
+        r = []
+        test_changed = self.chWBSunmode.GetValue()
+        test_orig = (data['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data[2] & 128) == 128
+        if test_changed != test_orig:
+            ba = bytearray(6)
+            ba[0] = 1 if test_changed else 2
+            req_data  = RSCPDTO(tag = RSCPTag.WB_REQ_DATA, rscp_type = RSCPType.Container)
+            req_data += RSCPDTO(tag = RSCPTag.WB_INDEX, rscp_type = RSCPType.UChar8, data = index)
+            req_data += RSCPDTO(tag = RSCPTag.WB_REQ_SET_EXTERN, rscp_type = RSCPType.Container, data =
+                                [RSCPDTO(tag = RSCPTag.WB_EXTERN_DATA, rscp_type = RSCPType.ByteArray, data = ba),
+                                 RSCPDTO(tag = RSCPTag.WB_EXTERN_DATA_LEN, rscp_type = RSCPType.UChar8, data = 6)]
+                                )
+            r.append(req_data)
+
+        test_changed = self.chWB1PH.GetValue()
+        test_orig = (data['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data[1] == 1)
+        if test_changed != test_orig:
+            ba = bytearray(6)
+            ba[3] = 1 if test_changed else 3
+            req_data  = RSCPDTO(tag = RSCPTag.WB_REQ_DATA, rscp_type = RSCPType.Container)
+            req_data += RSCPDTO(tag = RSCPTag.WB_INDEX, rscp_type = RSCPType.UChar8, data = index)
+            req_data += RSCPDTO(tag = RSCPTag.WB_REQ_SET_EXTERN, rscp_type = RSCPType.Container, data =
+                                [RSCPDTO(tag = RSCPTag.WB_EXTERN_DATA, rscp_type = RSCPType.ByteArray, data = ba),
+                                 RSCPDTO(tag = RSCPTag.WB_EXTERN_DATA_LEN, rscp_type = RSCPType.UChar8, data = 6)]
+                                )
+            r.append(req_data)
+
+        test_changed = self.sWBLadestrom.GetValue()
+        param_1 = bytearray(data['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data)
+        if test_changed != param_1[2]:
+
+            param_1[2] = test_changed
+            req_data  = RSCPDTO(tag = RSCPTag.WB_REQ_DATA, rscp_type = RSCPType.Container)
+            req_data += RSCPDTO(tag = RSCPTag.WB_INDEX, rscp_type = RSCPType.UChar8, data = index)
+            req_data += RSCPDTO(tag = RSCPTag.WB_REQ_SET_PARAM_1, rscp_type = RSCPType.Container, data =
+                                [RSCPDTO(tag = RSCPTag.WB_EXTERN_DATA, rscp_type = RSCPType.ByteArray, data = param_1),
+                                 RSCPDTO(tag = RSCPTag.WB_EXTERN_DATA_LEN, rscp_type = RSCPType.UChar8, data = 6)]
+                                )
+            r.append(req_data)
+
+        for i in r:
+            print(i)
+
+        if len(r) > 0:
+            try:
+                res = self.gui.get_data(r, True)
+                print(res)
+                wx.MessageBox('Übertragung abgeschlossen')
+            except:
+                traceback.print_exc()
+                wx.MessageBox('Übertragung fehlgeschlagen')
+        else:
+            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Wallbox speichern', wx.YES_NO)
+            if res == wx.YES:
+                r = []
+                test_changed = self.chWBSunmode.GetValue()
+                ba = bytearray(6)
+                ba[0] = 1 if test_changed else 2
+                req_data = RSCPDTO(tag=RSCPTag.WB_REQ_DATA, rscp_type=RSCPType.Container)
+                req_data += RSCPDTO(tag=RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data=index)
+                req_data += RSCPDTO(tag=RSCPTag.WB_REQ_SET_EXTERN, rscp_type=RSCPType.Container, data=
+                [RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA, rscp_type=RSCPType.ByteArray, data=ba),
+                 RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA_LEN, rscp_type=RSCPType.UChar8, data=6)]
+                                    )
+                r.append(req_data)
+
+                test_changed = self.chWB1PH.GetValue()
+                ba = bytearray(6)
+                ba[3] = 1 if test_changed else 3
+                req_data = RSCPDTO(tag=RSCPTag.WB_REQ_DATA, rscp_type=RSCPType.Container)
+                req_data += RSCPDTO(tag=RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data=index)
+                req_data += RSCPDTO(tag=RSCPTag.WB_REQ_SET_EXTERN, rscp_type=RSCPType.Container, data=
+                [RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA, rscp_type=RSCPType.ByteArray, data=ba),
+                 RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA_LEN, rscp_type=RSCPType.UChar8, data=6)]
+                                    )
+                r.append(req_data)
+
+                test_changed = self.sWBLadestrom.GetValue()
+                param_1[2] = test_changed
+                req_data = RSCPDTO(tag=RSCPTag.WB_REQ_DATA, rscp_type=RSCPType.Container)
+                req_data += RSCPDTO(tag=RSCPTag.WB_INDEX, rscp_type=RSCPType.UChar8, data=index)
+                req_data += RSCPDTO(tag=RSCPTag.WB_REQ_SET_PARAM_1, rscp_type=RSCPType.Container, data=
+                [RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA, rscp_type=RSCPType.ByteArray, data=param_1),
+                 RSCPDTO(tag=RSCPTag.WB_EXTERN_DATA_LEN, rscp_type=RSCPType.UChar8, data=6)]
+                                    )
+                r.append(req_data)
+
+                for i in r:
+                    print(i)
+
+                try:
+                    res = self.gui.get_data(r, True)
+                    print(res)
+                    wx.MessageBox('Übertragung abgeschlossen')
+                except:
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
+
+        self.updateData()
 
     def fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
@@ -1263,6 +1396,7 @@ class Frame(MainFrame):
     def enableButtons(self):
         logger.debug('Aktiviere Buttons')
         self.enableDisableButtons(True)
+        self.set_wb_enabled()
 
     def enableDisableButtons(self, value= True):
         self.bUpdate.Enable(value)
@@ -1281,6 +1415,7 @@ class Frame(MainFrame):
         self.btnUpdatecheck.Enable(value)
         self.bUpload.Enable(value)
         self.bWBSave.Enable(value)
+        self.bWBStopLoading.Enable(value)
 
     def sWBLadestromOnScroll( self, event ):
         self.stWBLadestrom.SetLabel(str(self.sWBLadestrom.GetValue()) + ' A')
