@@ -1,6 +1,8 @@
 import binascii
 import logging
+import platform
 import socket
+import time
 from typing import Union
 
 from e3dc._rscp_dto import RSCPDTO
@@ -85,6 +87,9 @@ class E3DC:
         logger.debug('Send RAW: ' + str(rawdata))
         encrypted_data = self.encrypt_decrypt.encrypt(prepared_data)
         self.socket.send(encrypted_data)
+        # Fix for MAC-Connectionerrors @eba
+        if platform.system() == 'Darwin':
+            time.sleep(0.05)
         response = self._receive()
         if response.type == RSCPType.Error:
             logger.error("Error type returned")

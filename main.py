@@ -1,8 +1,29 @@
+import logging
+from socket import setdefaulttimeout
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
+
+logger.debug('Programmstart')
+
+
 import configparser
 import datetime
 import hashlib
 import json
-import logging
 import os
 import re
 import threading
@@ -65,6 +86,8 @@ class Frame(MainFrame):
     _connectiontype = None
     _websocketaddr = None
     _connected = None
+    _updateRunning = None
+    _mbsSettings = {}
     debug = False
 
     def __init__(self, parent):
@@ -86,6 +109,8 @@ class Frame(MainFrame):
 
         self.loadConfig()
 
+        setdefaulttimeout(2)
+
         logger.info('Konfigurationsdatei geladen')
 
         self.cbConfigVerbindungsart.SetValue(self._connectiontype)
@@ -102,10 +127,110 @@ class Frame(MainFrame):
         self._wsthread = threading.Thread(target=self.check_e3dcwebgui, args=())
         self._wsthread.start()
 
-        self._updatethread = threading.Thread(target=self.updateData, args=())
-        self._updatethread.start()
+        def preConnect():
+            try:
+                g = self.gui
+            except:
+                pass
+
+        threading.Thread(target=preConnect, args=()).start()
+
+        self._autothread = threading.Thread(target=self.autoUpdate, args=())
+        self._autothread.start()
 
         logger.info('Init abgeschlossen')
+
+    def scAutoUpdateOnChange( self, event ):
+        autoupdate = self.scAutoUpdate.GetValue()
+        if autoupdate > 0 and self._autothread is None:
+            self._autothread = threading.Thread(target=self.autoUpdate, args=())
+            self._autothread.start()
+
+    def autoUpdate(self):
+        while True:
+            autoupdate = self.scAutoUpdate.GetValue()
+            if autoupdate == 0:
+                self._autothread = None
+                return False
+            else:
+                self.pMainChanged()
+                time.sleep(autoupdate)
+
+
+    def pMainChanged( self, event = None):
+        page = self.pMainregister.GetCurrentPage()
+
+        name = page.GetName()
+
+        if name in ('DCDC','INFO','BAT','PVI','EMS','WB','PM') and not self._updateRunning:
+            self._updateRunning = True
+            self.disableButtons()
+            self.gaUpdate.SetValue(0)
+
+            try:
+                logger.debug('Aktualisiere ' + name)
+                if self.gui:
+                    if page == self.pDCDC:
+                        try:
+                            self.fill_dcdc()
+                        except:
+                            logger.exception('Fehler beim Abruf der DCDC-Daten')
+                    elif page == self.pMain:
+                        try:
+                            self.fill_info()
+                        except:
+                            logger.exception('Fehler beim Abruf der INFO-Daten')
+                    elif page == self.pBAT:
+                        try:
+                            selected = self.cbBATIndex.GetSelection()
+                            if selected in [wx.NOT_FOUND, '', None, False]:
+                                selected = 0
+
+                            self.fill_bat()
+
+                            if selected != wx.NOT_FOUND:
+                                if self.cbBATIndex.GetCount() > selected:
+                                    self.cbBATIndex.SetSelection(selected)
+                                    self.fill_bat_index(selected)
+                        except:
+                            logger.exception('Fehler beim Abruf der BAT-Daten')
+                    elif page == self.pPVI:
+                        try:
+                            selected = self.chPVIIndex.GetSelection()
+                            if selected in [wx.NOT_FOUND, '', None, False]:
+                                selected = 0
+
+                            self.fill_pvi()
+
+                            if selected != wx.NOT_FOUND:
+                                if self.chPVIIndex.GetCount() > selected:
+                                    self.chPVIIndex.SetSelection(selected)
+                                    self.fill_pvi_index(selected)
+                        except:
+                            logger.exception('Fehler beim Abruf der PVI-Daten')
+                    elif page == self.pEMS:
+                        try:
+                            self.fill_ems()
+                            self.fill_mbs()
+                        except:
+                            logger.exception('Fehler beim Abruf der EMS-Daten')
+                    elif page == self.pPM:
+                        try:
+                            self.fill_pm()
+                        except:
+                            logger.exception('Fehler beim Abruf der PM-Daten')
+                    elif name == 'WB':
+                        try:
+                            self.fill_wb()
+                        except:
+                            logger.exception('Fehler beim Abruf der WB-Daten')
+                else:
+                    logger.warning('Konfiguration unvollständig, Verbindung nicht möglich')
+            except:
+                logger.exception('Fehler beim Aktualisieren von ' + name)
+            self.gaUpdate.SetValue(100)
+            self.enableButtons()
+            self._updateRunning = False
 
     def loadConfig(self):
         logger.info('Lade Konfigurationsdatei ' + self.ConfigFilename)
@@ -129,6 +254,8 @@ class Frame(MainFrame):
                 self._websocketaddr = config['Login']['websocketaddr']
             if 'connectiontype' in config['Login']:
                 self._connectiontype = config['Login']['connectiontype']
+            if 'autoupdate' in config['Login']:
+                self.scAutoUpdate.SetValue(config['Login']['autoupdate'])
 
         logger.info('Konfigurationsdatei geladen')
                 
@@ -149,7 +276,8 @@ class Frame(MainFrame):
                            'rscppassword':self.txtRSCPPassword.GetValue(),
                            'seriennummer':self.txtConfigSeriennummer.GetValue(),
                            'websocketaddr':self._websocketaddr,
-                           'connectiontype':self._connectiontype}
+                           'connectiontype':self._connectiontype,
+                           'autoupdate':self.scAutoUpdate.GetValue()}
 
         with open(self.ConfigFilename, 'w') as configfile:
             config.write(configfile)
@@ -207,7 +335,7 @@ class Frame(MainFrame):
                 if not seriennummer:
                     ret = self.getSerialnoFromWeb(self._username, self._password)
                     if len(ret) == 1:
-                        seriennummer = 'S10-' + ret[0]['serialno']
+                        seriennummer = self.getSNFromNumbers(ret[0]['serialno'])
 
             if self._username and self._password and self._rscppass and seriennummer and not address and self._websocketaddr:
                 logger.debug('Versuche IP-Adresse zu ermitteln')
@@ -483,6 +611,37 @@ class Frame(MainFrame):
             self.cbWallbox.Append('WB #' + str(index.data))
 
         logger.debug('Abruf WB-Daten abgeschlossen')
+
+    def fill_mbs(self):
+        logger.debug('Rufe Modbus-Daten ab')
+        d = self.gui.get_data(self.gui.getModbus(), True)
+        self._data_mbs = d
+        self.cbMBSProtokoll.Clear()
+
+        self._mbsSettings = {}
+
+        self.chMBSEnabled.SetValue(d['MBS_MODBUS_ENABLED'].data)
+        if d['MBS_MODBUS_CONNECTORS']:
+            for mbs in d['MBS_MODBUS_CONNECTORS']:
+                if mbs.name == 'MBS_MODBUS_CONNECTOR_CONTAINER':
+                    self.txtMBSName.SetValue(mbs['MBS_MODBUS_CONNECTOR_NAME'].data)
+                    self.txtMBSID.SetValue(repr(mbs['MBS_MODBUS_CONNECTOR_ID']))
+
+                    for setup in mbs['MBS_MODBUS_CONNECTOR_SETUP']:
+                        if setup:
+                            if setup['MBS_MODBUS_SETUP_NAME'].data == 'Protocol':
+                                for value in setup['MBS_MODBUS_SETUP_VALUES']:
+                                    self.cbMBSProtokoll.Append(value.data)
+                                self.cbMBSProtokoll.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+                            elif setup['MBS_MODBUS_SETUP_NAME'].data == 'Device':
+                                self.txtMBSDevice.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+                            elif setup['MBS_MODBUS_SETUP_NAME'].data == 'Port':
+                                self.txtMBSPort.SetValue(setup['MBS_MODBUS_SETUP_VALUE'].data)
+
+                            self._mbsSettings[setup['MBS_MODBUS_SETUP_NAME'].data] = setup['MBS_MODBUS_SETUP_VALUE']
+
+
+        logger.debug('Abruf Modbus-Daten abgeschlossen')
 
     def set_wb_enabled(self):
         def set_wb_enableddisabled(value):
@@ -894,57 +1053,58 @@ class Frame(MainFrame):
             indexes = None
 
         self.gPM.DeleteCols(numCols=self.gPM.GetNumberCols())
+        self._data_pm = {}
 
         for index in indexes:
             try:
-                self.gPM.AppendCols(1)
-                self.gPM.SetColLabelValue(index, 'PM #' + str(index))
-
                 d = self.gui.get_data(self.gui.getPMData(pm_index=index), True)
-                self._data_pm.append(d)
 
                 if 'PM_DEVICE_STATE' not in d or d['PM_DEVICE_STATE'].type != RSCPType.Error:
                     index = d['PM_INDEX'].data
-                    self.gPM.SetCellValue(0, index, str(round(d['PM_POWER_L1'], 3)) + ' W')
-                    self.gPM.SetCellValue(1, index, str(round(d['PM_POWER_L2'], 3)) + ' W')
-                    self.gPM.SetCellValue(2, index, str(round(d['PM_POWER_L3'], 3)) + ' W')
-                    self.gPM.SetCellValue(3, index, str(round(d['PM_POWER_L1'].data+d['PM_POWER_L2'].data+d['PM_POWER_L3'].data, 3)) + ' W')
-                    self.gPM.SetCellValue(4, index, str(round(d['PM_VOLTAGE_L1'], 3)) + ' V')
-                    self.gPM.SetCellValue(5, index, str(round(d['PM_VOLTAGE_L2'], 3)) + ' V')
-                    self.gPM.SetCellValue(6, index, str(round(d['PM_VOLTAGE_L3'], 3)) + ' V')
+                    self.gPM.AppendCols(1)
+                    curcol = self.gPM.GetNumberCols() - 1
+                    self.gPM.SetColLabelValue(index, 'PM #' + str(index))
+                    self._data_pm[index] = d
+                    self.gPM.SetCellValue(0, curcol, str(round(d['PM_POWER_L1'], 3)) + ' W')
+                    self.gPM.SetCellValue(1, curcol, str(round(d['PM_POWER_L2'], 3)) + ' W')
+                    self.gPM.SetCellValue(2, curcol, str(round(d['PM_POWER_L3'], 3)) + ' W')
+                    self.gPM.SetCellValue(3, curcol, str(round(d['PM_POWER_L1'].data+d['PM_POWER_L2'].data+d['PM_POWER_L3'].data, 3)) + ' W')
+                    self.gPM.SetCellValue(4, curcol, str(round(d['PM_VOLTAGE_L1'], 3)) + ' V')
+                    self.gPM.SetCellValue(5, curcol, str(round(d['PM_VOLTAGE_L2'], 3)) + ' V')
+                    self.gPM.SetCellValue(6, curcol, str(round(d['PM_VOLTAGE_L3'], 3)) + ' V')
 
                     energy, einheit = get_einheit(d['PM_ENERGY_L1'].data)
-                    self.gPM.SetCellValue(7, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(7, curcol, str(round(energy, 3)) + ' ' + einheit)
                     energy, einheit = get_einheit(d['PM_ENERGY_L2'].data)
-                    self.gPM.SetCellValue(8, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(8, curcol, str(round(energy, 3)) + ' ' + einheit)
                     energy, einheit = get_einheit(d['PM_ENERGY_L3'].data)
-                    self.gPM.SetCellValue(9, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(9, curcol, str(round(energy, 3)) + ' ' + einheit)
                     energy, einheit = get_einheit(d['PM_ENERGY_L1'].data+d['PM_ENERGY_L2'].data+d['PM_ENERGY_L3'].data)
-                    self.gPM.SetCellValue(10, index, str(round(energy, 3)) + ' ' + einheit)
+                    self.gPM.SetCellValue(10, curcol, str(round(energy, 3)) + ' ' + einheit)
 
-                    self.gPM.SetCellValue(11, index, repr(d['PM_FIRMWARE_VERSION']))
-                    self.gPM.SetCellValue(12, index, repr(d['PM_ACTIVE_PHASES']))
-                    self.gPM.SetCellValue(13, index, repr(d['PM_MODE']))
-                    self.gPM.SetCellValue(14, index, repr(d['PM_ERROR_CODE']))
-                    self.gPM.SetCellValue(15, index, repr(d['PM_TYPE']))
-                    self.gPM.SetCellValue(16, index, repr(d['PM_DEVICE_ID']))
-                    self.gPM.SetCellValue(17, index, repr(d['PM_IS_CAN_SILENCE']))
-                    self.gPM.SetCellValue(28, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_CONNECTED']))
-                    self.gPM.SetCellValue(29, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_WORKING']))
-                    self.gPM.SetCellValue(30, index, repr(d['PM_DEVICE_STATE']['PM_DEVICE_IN_SERVICE']))
+                    self.gPM.SetCellValue(11, curcol, repr(d['PM_FIRMWARE_VERSION']))
+                    self.gPM.SetCellValue(12, curcol, repr(d['PM_ACTIVE_PHASES']))
+                    self.gPM.SetCellValue(13, curcol, repr(d['PM_MODE']))
+                    self.gPM.SetCellValue(14, curcol, repr(d['PM_ERROR_CODE']))
+                    self.gPM.SetCellValue(15, curcol, repr(d['PM_TYPE']))
+                    self.gPM.SetCellValue(16, curcol, repr(d['PM_DEVICE_ID']))
+                    self.gPM.SetCellValue(17, curcol, repr(d['PM_IS_CAN_SILENCE']))
+                    self.gPM.SetCellValue(28, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_CONNECTED']))
+                    self.gPM.SetCellValue(29, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_WORKING']))
+                    self.gPM.SetCellValue(30, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_IN_SERVICE']))
 
                     if 'PM_COMM_STATE' in d:
                         d = d['PM_COMM_STATE']
-                        self.gPM.SetCellValue(18, index, repr(d['PM_CS_START_TIME']))
-                        self.gPM.SetCellValue(19, index, repr(d['PM_CS_LAST_TIME']))
-                        self.gPM.SetCellValue(20, index, repr(d['PM_CS_SUCC_FRAMES_ALL']))
-                        self.gPM.SetCellValue(21, index, repr(d['PM_CS_SUCC_FRAMES_100']))
-                        self.gPM.SetCellValue(22, index, repr(d['PM_CS_EXP_FRAMES_ALL']))
-                        self.gPM.SetCellValue(23, index, repr(d['PM_CS_EXP_FRAMES_100']))
-                        self.gPM.SetCellValue(24, index, repr(d['PM_CS_ERR_FRAMES_ALL']))
-                        self.gPM.SetCellValue(25, index, repr(d['PM_CS_ERR_FRAMES_100']))
-                        self.gPM.SetCellValue(26, index, repr(d['PM_CS_UNK_FRAMES']))
-                        self.gPM.SetCellValue(27, index, repr(d['PM_CS_ERR_FRAME']))
+                        self.gPM.SetCellValue(18, curcol, repr(d['PM_CS_START_TIME']))
+                        self.gPM.SetCellValue(19, curcol, repr(d['PM_CS_LAST_TIME']))
+                        self.gPM.SetCellValue(20, curcol, repr(d['PM_CS_SUCC_FRAMES_ALL']))
+                        self.gPM.SetCellValue(21, curcol, repr(d['PM_CS_SUCC_FRAMES_100']))
+                        self.gPM.SetCellValue(22, curcol, repr(d['PM_CS_EXP_FRAMES_ALL']))
+                        self.gPM.SetCellValue(23, curcol, repr(d['PM_CS_EXP_FRAMES_100']))
+                        self.gPM.SetCellValue(24, curcol, repr(d['PM_CS_ERR_FRAMES_ALL']))
+                        self.gPM.SetCellValue(25, curcol, repr(d['PM_CS_ERR_FRAMES_100']))
+                        self.gPM.SetCellValue(26, curcol, repr(d['PM_CS_UNK_FRAMES']))
+                        self.gPM.SetCellValue(27, curcol, repr(d['PM_CS_ERR_FRAME']))
 
                     logger.info('PM #' + str(index) + ' erfolgreich abgerufen')
             except:
@@ -955,6 +1115,7 @@ class Frame(MainFrame):
 
     def fill_dcdc(self):
         logger.debug('Rufe DCDC-Daten ab')
+        self._data_dcdc = []
         for index in [0,1,2,3]:
             try:
                 d = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
@@ -983,18 +1144,19 @@ class Frame(MainFrame):
 
     def fill_pvi(self):
         logger.debug('Rufe PVI-Daten ab')
+        self._data_pvi = {}
         for index in range(0,4):
             try:
                 data = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
-                self._data_pvi.append(data)
-                print(data)
+                self._data_pvi[index] = data
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
                 logger.info('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
 
         self.chPVIIndex.Clear()
 
-        for pvi in self._data_pvi:
+        for k in self._data_pvi:
+            pvi = self._data_pvi[k]
             self.chPVIIndex.Append('PVI #' + str(pvi['PVI_INDEX'].data))
 
         logger.debug('Abruf PVI-Daten abgeschlossen')
@@ -1088,7 +1250,7 @@ class Frame(MainFrame):
 
     def fill_bat(self):
         logger.debug('Rufe BAT-Daten ab')
-
+        self._data_bat = []
         for index in [0,1]:
             try:
                 requests = self.gui.getBatDcbData(bat_index=index)
@@ -1385,8 +1547,8 @@ class Frame(MainFrame):
         self._data_dcdc = []
         self._data_ems = None
         self._data_info = None
-        self._data_pvi = []
-        self._data_pm = []
+        self._data_pvi = {}
+        self._data_pm = {}
         self._data_wb = []
 
     def disableButtons(self):
@@ -1421,95 +1583,135 @@ class Frame(MainFrame):
         self.stWBLadestrom.SetLabel(str(self.sWBLadestrom.GetValue()) + ' A')
 
     def bUpdateClick(self, event = None):
-        self._updatethread = threading.Thread(target=self.updateData, args=())
-        self._updatethread.start()
+        page = self.pMainregister.GetCurrentPage()
+        name = page.GetName()
+        if name == 'CONFIG':
+            self._updatethread = threading.Thread(target=self.updateData, args=())
+            self._updatethread.start()
+        else:
+            self.pMainChanged()
 
     def updateData(self):
-        self.disableButtons()
-        self.gaUpdate.SetValue(0)
-        try:
-            self.gaUpdate.SetValue(5)
-            if self.gui:
-                self.gaUpdate.SetValue(10)
-                logger.info('Aktualisiere Daten')
-                self.clear_values()
+        if not self._updateRunning:
+            self._updateRunning = True
+            self.disableButtons()
+            self.gaUpdate.SetValue(0)
+            try:
+                self.gaUpdate.SetValue(5)
+                if self.gui:
+                    self.gaUpdate.SetValue(10)
+                    logger.info('Aktualisiere Daten')
+                    self.clear_values()
 
+                    try:
+                        self.fill_info()
+                    except:
+                        logger.exception('Fehler beim Abruf der INFO-Daten')
+
+                    self.gaUpdate.SetValue(20)
+                    try:
+                        selected = self.cbBATIndex.GetSelection()
+                        if selected in [wx.NOT_FOUND, '', None, False]:
+                            selected = 0
+
+                        self.fill_bat()
+
+                        if selected != wx.NOT_FOUND:
+                            if self.cbBATIndex.GetCount() > selected:
+                                self.cbBATIndex.SetSelection(selected)
+                                self.fill_bat_index(selected)
+                    except:
+                        logger.exception('Fehler beim Abruf der BAT-Daten')
+
+                    self.gaUpdate.SetValue(35)
+                    try:
+                        self.fill_dcdc()
+                    except:
+                        logger.exception('Fehler beim Abruf der DCDC-Daten')
+
+                    self.gaUpdate.SetValue(45)
+                    try:
+                        selected = self.chPVIIndex.GetSelection()
+                        if selected in [wx.NOT_FOUND, '', None, False]:
+                            selected = 0
+
+                        self.fill_pvi()
+
+                        if selected != wx.NOT_FOUND:
+                            if self.chPVIIndex.GetCount() > selected:
+                                self.chPVIIndex.SetSelection(selected)
+                                self.fill_pvi_index(selected)
+                    except:
+                        logger.exception('Fehler beim Abruf der PVI-Daten')
+
+                    self.gaUpdate.SetValue(55)
+                    try:
+                        self.fill_ems()
+                        self.fill_mbs()
+                    except:
+                        logger.exception('Fehler beim Abruf der EMS-Daten')
+
+                    self.gaUpdate.SetValue(70)
+                    try:
+                        self.fill_pm()
+                    except:
+                        logger.exception('Fehler beim Abruf der PM-Daten')
+
+                    self.gaUpdate.SetValue(85)
+                    try:
+                        selected = self.cbWallbox.GetSelection()
+                        if selected in [wx.NOT_FOUND, '', None, False]:
+                            selected = 0
+
+                        self.fill_wb()
+
+                        if selected != wx.NOT_FOUND:
+                            if self.cbWallbox.GetCount() > selected:
+                                self.cbWallbox.SetSelection(selected)
+                                self.fill_wb_index(selected)
+                    except:
+                        logger.exception('Fehler beim Abruf der WB-Daten')
+
+                    try:
+                        self.fill_mbs()
+                    except:
+                        logger.exception('Fehler beim Abruf der Modbus-Daten')
+
+                    self.gaUpdate.SetValue(90)
+                else:
+                    logger.warning('Konfiguration unvollständig, Verbindung nicht möglich')
+
+            except:
+                logger.exception('Fehler beim Aktualisieren der Daten')
+            self.gaUpdate.SetValue(100)
+            self.enableButtons()
+            self._updateRunning = False
+
+    def bMBSSaveOnClick( self, event ):
+        r = []
+        test = self.chMBSEnabled.GetValue()
+        if test != self._data_mbs['MBS_MODBUS_ENABLED'].data:
+            r.append(RSCPDTO(tag = RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) == 0:
+            res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?', 'Modbus-Einstellungen speichern', wx.YES_NO)
+            if res == wx.YES:
+                test = self.chMBSEnabled.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.MBS_REQ_SET_MODBUS_ENABLED, rscp_type=RSCPType.Bool, data=test))
+
+        if len(r) > 0:
+            res = wx.MessageBox('Eine Änderung der Modbus-Einstellungen unterbricht kurz die Kommunikation, laufende RSCP-Verbindungen werden direkt beendet. Fortfahren?', 'Modbus-Einstellungen speichern', wx.YES_NO | wx.ICON_WARNING)
+            if res == wx.YES:
                 try:
-                    self.fill_info()
+                    res = self.gui.get_data(r, True)
+                    wx.MessageBox('Übertragung abgeschlossen')
                 except:
-                    logger.exception('Fehler beim Abruf der INFO-Daten')
+                    traceback.print_exc()
+                    wx.MessageBox('Übertragung fehlgeschlagen')
 
-                self.gaUpdate.SetValue(20)
-                try:
-                    selected = self.cbBATIndex.GetSelection()
-                    if selected in [wx.NOT_FOUND, '', None, False]:
-                        selected = 0
+                self.updateData()
 
-                    self.fill_bat()
-
-                    if selected != wx.NOT_FOUND:
-                        if self.cbBATIndex.GetCount() > selected:
-                            self.cbBATIndex.SetSelection(selected)
-                            self.fill_bat_index(selected)
-                except:
-                    logger.exception('Fehler beim Abruf der BAT-Daten')
-
-                self.gaUpdate.SetValue(35)
-                try:
-                    self.fill_dcdc()
-                except:
-                    logger.exception('Fehler beim Abruf der DCDC-Daten')
-
-                self.gaUpdate.SetValue(45)
-                try:
-                    selected = self.chPVIIndex.GetSelection()
-                    if selected in [wx.NOT_FOUND, '', None, False]:
-                        selected = 0
-
-                    self.fill_pvi()
-
-                    if selected != wx.NOT_FOUND:
-                        if self.chPVIIndex.GetCount() > selected:
-                            self.chPVIIndex.SetSelection(selected)
-                            self.fill_pvi_index(selected)
-                except:
-                    logger.exception('Fehler beim Abruf der PVI-Daten')
-
-                self.gaUpdate.SetValue(55)
-                try:
-                    self.fill_ems()
-                except:
-                    logger.exception('Fehler beim Abruf der EMS-Daten')
-
-                self.gaUpdate.SetValue(70)
-                try:
-                    self.fill_pm()
-                except:
-                    logger.exception('Fehler beim Abruf der PM-Daten')
-
-                self.gaUpdate.SetValue(85)
-                try:
-                    selected = self.cbWallbox.GetSelection()
-                    if selected in [wx.NOT_FOUND, '', None, False]:
-                        selected = 0
-
-                    self.fill_wb()
-
-                    if selected != wx.NOT_FOUND:
-                        if self.cbWallbox.GetCount() > selected:
-                            self.cbWallbox.SetSelection(selected)
-                            self.fill_wb_index(selected)
-                except:
-                    logger.exception('Fehler beim Abruf der WB-Daten')
-
-                self.gaUpdate.SetValue(90)
-            else:
-                logger.warning('Konfiguration unvollständig, Verbindung nicht möglich')
-
-        except:
-            logger.exception('Fehler beim Aktualisieren der Daten')
-        self.gaUpdate.SetValue(100)
-        self.enableButtons()
+        event.Skip()
 
 
     def bSaveRSCPDataOnClick( self, event ):
@@ -1528,6 +1730,7 @@ class Frame(MainFrame):
                     json.dump(data, file)
 
             except IOError:
+                logger.exception('Daten konnten nicht in Datei gespeichert werden ' + pathname)
                 wx.LogError("Cannot save current data in file '%s'." % pathname)
 
 
@@ -1538,26 +1741,30 @@ class Frame(MainFrame):
                             caption = 'Ausgelesene Daten übermitteln',
                             style=wx.YES_NO)
         if ret == wx.YES:
+            logger.debug('Sende Daten an Server')
             status = 'NO CODE'
             try:
                 data = self.sammle_data()
 
                 r = requests.post(url = self.txtDBServer.GetValue(), json = data)
-                status = r.status_code
                 r.raise_for_status()
                 res = r.json()
                 if 'error' in res:
                     raise Exception('Fehler bei Datenübermittlung' + res['error'])
 
                 if 'success' in res:
+                    logger.debug('Datenübertragung erfolgreich Speicherpfad: ' + res['success'])
                     MessageBox(self, 'Übermittlung Erfolgreich', 'Daten wurden erfolgreich übermittelt!\nSpeicherpfad:\n\n' + res['success'])
 
 
             except:
-                traceback.print_exc()
+                logger.exception('Fehler bei der Datenübertragung an Server ' + self.txtDBServer.GetValue())
                 wx.MessageBox('Es gab einen Fehler bei der Übermittlung. (HTTP-Status: ' + str(r.status_code) + ')')
 
     def sammle_data(self):
+        logger.debug('Sammle Daten')
+        self.updateData()
+
         anonymize = ['DCDC_SERIAL_NUMBER', 'INFO_MAC_ADDRESS', 'BAT_DCB_SERIALNO', 'BAT_DCB_SERIALCODE', 'INFO_SERIAL_NUMBER',
                      'INFO_A35_SERIAL_NUMBER', 'PVI_SERIAL_NUMBER', 'INFO_PRODUCTION_DATE']
         remove = ['INFO_IP_ADDRESS']
@@ -1579,22 +1786,26 @@ class Frame(MainFrame):
             data['INFO_DATA'] = self._data_info.asDict()
 
         if self._data_pvi:
-            data['PVI_DATA'] = []
-            for d in self._data_pvi:
-                data['PVI_DATA'].append(d.asDict())
+            data['PVI_DATA'] = {}
+            for k in self._data_pvi:
+                d = self._data_pvi[k]
+                data['PVI_DATA'][k] = d.asDict()
 
         if self._data_pm:
-            data['PM_DATA'] = []
-            for d in self._data_pm:
-                data['PM_DATA'].append(d.asDict())
+            data['PM_DATA'] = {}
+            for k in self._data_pm:
+                d = self._data_pm[k]
+                data['PM_DATA'][k] = d.asDict()
 
         if self._data_wb:
             data['WB_DATA'] = []
             for d in self._data_wb:
                 data['WB_DATA'].append(d.asDict())
 
+        logger.debug('Anonymisiere Daten')
         data = self.anonymize_data(data, anonymize, remove)
-
+        logger.debug('Daten wurden anonymisiert')
+        logger.debug('Datensammlung beendet')
         return data
 
     def anonymize_data(self, data, anonymize, remove):
@@ -1621,7 +1832,6 @@ class Frame(MainFrame):
             for i in data:
                 nl += [self.anonymize_data(i, anonymize, remove)]
             data = nl
-
         return data
 
 
@@ -1706,13 +1916,13 @@ class Frame(MainFrame):
             if username and password and not serial:
                 ret = self.getSerialnoFromWeb(username, password)
                 if len(ret) == 1:
-                    serial = 'S10-' + ret[0]['serialno']
+                    serial = self.getSNFromNumbers(ret[0]['serialno'])
                     self.txtConfigSeriennummer.SetValue(serial)
                     wx.MessageBox('Seriennummer konnte ermittelt werden (WEB): ' + serial, 'Ermittlung Seriennummer')
                 elif len(ret) > 1:
                     sns = '\n'
                     for sn in ret:
-                        sns += '\nS10-' + sn['serialno']
+                        sns += '\n' + self.getSNFromNumbers(sn['serialno'])
                     wx.MessageBox('Es wurde mehr als eine Seriennummer ermittelt (WEB):' + sns, 'Ermittlung Seriennummer')
                     serial = len(ret)
 
@@ -1721,6 +1931,12 @@ class Frame(MainFrame):
                               'Ermittlung Seriennummer', wx.ICON_ERROR)
 
         event.Skip()
+
+    def getSNFromNumbers(self, sn):
+        if sn[0:2] == '70':
+            return 'P10-' + sn
+        else:
+            return 'S10-' + sn
 
     def bConfigGetIPAddressOnClick( self, event ):
         try:
@@ -1778,19 +1994,25 @@ class Frame(MainFrame):
                 self._connected = None
                 logger.exception('check_e3dcwebgui')
 
-            time.sleep(1)
+            time.sleep(2)
 
     def cbBATIndexOnCombobox( self, event ):
-        selected = self.cbBATIndex.GetSelection()
-        if selected != wx.NOT_FOUND:
-            self.fill_bat_index(selected)
+        if not self._updateRunning:
+            self._updateRunning = True
+            selected = self.cbBATIndex.GetSelection()
+            if selected != wx.NOT_FOUND:
+                self.fill_bat_index(selected)
+            self._updateRunning = False
 
         event.Skip()
 
     def chPVIIndexOnCombobox( self, event ):
-        selected = self.chPVIIndex.GetSelection()
-        if selected != wx.NOT_FOUND:
-            self.fill_pvi_index(selected)
+        if not self._updateRunning:
+            self._updateRunning = True
+            selected = self.chPVIIndex.GetSelection()
+            if selected != wx.NOT_FOUND:
+                self.fill_pvi_index(selected)
+            self._updateRunning = False
 
         event.Skip()
 
@@ -1854,9 +2076,13 @@ class Frame(MainFrame):
                 self.updateData()
 
 
+logger.debug('Module geladen, initialisiere App')
 app = wx.App()
+logger.debug('App initialisiert, lade Fenster')
 g = Frame(None)
+logger.debug('Fenster geladen, zeichne Fenster')
 g.Show()
+logger.debug('Fenster gezeichnet, warte auf Events')
 app.MainLoop()
 
 logger.debug('Programm beendet')
