@@ -18,7 +18,7 @@ import wx.grid
 class MainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 1121,809 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 1029,867 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -236,7 +236,7 @@ class MainFrame ( wx.Frame ):
 		self.pMain.SetSizer( fgSizer21 )
 		self.pMain.Layout()
 		fgSizer21.Fit( self.pMain )
-		self.pMainregister.AddPage( self.pMain, u"INFO", False )
+		self.pMainregister.AddPage( self.pMain, u"Allgemein", False )
 		self.pEMS = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"EMS" )
 		bSizer12 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1414,7 +1414,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel8.SetSizer( bSizer7 )
 		self.m_panel8.Layout()
 		bSizer7.Fit( self.m_panel8 )
-		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", False )
+		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", True )
 		self.m_panel9 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		fgSizer12 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer12.SetFlexibleDirection( wx.BOTH )
@@ -1682,7 +1682,7 @@ class MainFrame ( wx.Frame ):
 		self.pEMS.SetSizer( bSizer12 )
 		self.pEMS.Layout()
 		bSizer12.Fit( self.pEMS )
-		self.pMainregister.AddPage( self.pEMS, u"EMS", False )
+		self.pMainregister.AddPage( self.pEMS, u"E3DC", False )
 		self.pDCDC = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"DCDC" )
 		bSizer41 = wx.BoxSizer( wx.VERTICAL )
 
@@ -1731,7 +1731,7 @@ class MainFrame ( wx.Frame ):
 		self.pDCDC.SetSizer( bSizer41 )
 		self.pDCDC.Layout()
 		bSizer41.Fit( self.pDCDC )
-		self.pMainregister.AddPage( self.pDCDC, u"DCDC", False )
+		self.pMainregister.AddPage( self.pDCDC, u"DCDC-Wandler", False )
 		self.pBAT = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"BAT" )
 		bSizer42 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2119,7 +2119,7 @@ class MainFrame ( wx.Frame ):
 		self.pBAT.SetSizer( bSizer42 )
 		self.pBAT.Layout()
 		bSizer42.Fit( self.pBAT )
-		self.pMainregister.AddPage( self.pBAT, u"BAT", False )
+		self.pMainregister.AddPage( self.pBAT, u"Batterien", False )
 		self.pPVI = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"PVI" )
 		bSizer51 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2513,7 +2513,7 @@ class MainFrame ( wx.Frame ):
 		self.pPVI.SetSizer( bSizer51 )
 		self.pPVI.Layout()
 		bSizer51.Fit( self.pPVI )
-		self.pMainregister.AddPage( self.pPVI, u"PVI", False )
+		self.pMainregister.AddPage( self.pPVI, u"Wechselrichter", False )
 		self.pPM = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"PM" )
 		bSizer17 = wx.BoxSizer( wx.VERTICAL )
 
@@ -2579,165 +2579,8 @@ class MainFrame ( wx.Frame ):
 		self.pPM.SetSizer( bSizer17 )
 		self.pPM.Layout()
 		bSizer17.Fit( self.pPM )
-		self.pMainregister.AddPage( self.pPM, u"PM", False )
-		self.pEinstellungen = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"CONFIG" )
-		fgSizer1 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer1.SetFlexibleDirection( wx.BOTH )
-		fgSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.m_staticText5 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Web-Benutzername", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText5.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText5, 0, wx.ALL, 5 )
-
-		self.txtUsername = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
-		self.txtUsername.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
-
-		fgSizer1.Add( self.txtUsername, 0, wx.ALL, 5 )
-
-		self.m_staticText6 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Web-Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText6.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText6, 0, wx.ALL, 5 )
-
-		self.txtPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
-		self.txtPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
-
-		fgSizer1.Add( self.txtPassword, 0, wx.ALL, 5 )
-
-		self.m_staticText8 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"RSCP-Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText8.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText8, 0, wx.ALL, 5 )
-
-		fgSizer22 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer22.SetFlexibleDirection( wx.BOTH )
-		fgSizer22.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.txtRSCPPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
-		self.txtRSCPPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
-
-		fgSizer22.Add( self.txtRSCPPassword, 0, wx.ALL, 5 )
-
-		self.bConfigSetRSCPPassword = wx.Button( self.pEinstellungen, wx.ID_ANY, u"setzen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer22.Add( self.bConfigSetRSCPPassword, 0, wx.ALL, 5 )
-
-
-		fgSizer1.Add( fgSizer22, 1, wx.EXPAND, 5 )
-
-		self.m_staticText171 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Verbindungsart", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText171.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText171, 0, wx.ALL, 5 )
-
-		fgSizer271 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer271.SetFlexibleDirection( wx.BOTH )
-		fgSizer271.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		cbConfigVerbindungsartChoices = [ u"auto", u"direkt", u"web" ]
-		self.cbConfigVerbindungsart = wx.ComboBox( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, cbConfigVerbindungsartChoices, 0 )
-		fgSizer271.Add( self.cbConfigVerbindungsart, 0, wx.ALL, 5 )
-
-		self.bTest = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Verbindungstest", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer271.Add( self.bTest, 0, wx.ALL, 5 )
-
-
-		fgSizer1.Add( fgSizer271, 1, wx.EXPAND, 5 )
-
-		self.m_staticText7 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"IP-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText7.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText7, 0, wx.ALL, 5 )
-
-		fgSizer211 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer211.SetFlexibleDirection( wx.BOTH )
-		fgSizer211.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.txtIP = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer211.Add( self.txtIP, 0, wx.ALL, 5 )
-
-		self.bConfigGetIPAddress = wx.Button( self.pEinstellungen, wx.ID_ANY, u"ermitteln", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer211.Add( self.bConfigGetIPAddress, 0, wx.ALL, 5 )
-
-
-		fgSizer1.Add( fgSizer211, 1, wx.EXPAND, 5 )
-
-		self.m_staticText169 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Seriennummer", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText169.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText169, 0, wx.ALL, 5 )
-
-		fgSizer20 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer20.SetFlexibleDirection( wx.BOTH )
-		fgSizer20.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		self.txtConfigSeriennummer = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer20.Add( self.txtConfigSeriennummer, 0, wx.ALL, 5 )
-
-		self.bConfigGetSerialNo = wx.Button( self.pEinstellungen, wx.ID_ANY, u"ermitteln", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer20.Add( self.bConfigGetSerialNo, 0, wx.ALL, 5 )
-
-
-		fgSizer1.Add( fgSizer20, 1, wx.EXPAND, 5 )
-
-		self.m_staticText1732 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"aktive Verbindung", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText1732.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText1732, 0, wx.ALL, 5 )
-
-		self.txtConfigAktiveVerbindung = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.txtConfigAktiveVerbindung.Enable( False )
-
-		fgSizer1.Add( self.txtConfigAktiveVerbindung, 0, wx.ALL, 5 )
-
-		self.m_staticText1733 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Autoupdate (s)", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText1733.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText1733, 0, wx.ALL, 5 )
-
-		self.scAutoUpdate = wx.SpinCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 60,-1 ), wx.SP_ARROW_KEYS, 0, 3600, 0 )
-		fgSizer1.Add( self.scAutoUpdate, 0, wx.ALL, 5 )
-
-		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Einstellungen speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.bSave, 0, wx.ALL, 5 )
-
-
-		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
-
-
-		fgSizer1.Add( ( 0, 50), 1, wx.EXPAND, 5 )
-
-
-		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
-
-		self.m_staticline2 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		fgSizer1.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
-
-		self.m_staticline3 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		fgSizer1.Add( self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5 )
-
-		self.m_staticText86 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Upload-URL", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText86.Wrap( -1 )
-
-		fgSizer1.Add( self.m_staticText86, 0, wx.ALL, 5 )
-
-		self.txtDBServer = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, u"https://pv.pincrushers.de/rscpgui", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.txtDBServer.SetMinSize( wx.Size( 250,-1 ) )
-
-		fgSizer1.Add( self.txtDBServer, 0, wx.ALL, 5 )
-
-		self.bUpload = wx.Button( self.pEinstellungen, wx.ID_ANY, u"in Datenbank hochladen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.bUpload, 0, wx.ALL, 5 )
-
-		self.bSaveRSCPData = wx.Button( self.pEinstellungen, wx.ID_ANY, u"zu übermittelnde Daten ansehen / lokal speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.bSaveRSCPData, 0, wx.ALL, 5 )
-
-
-		self.pEinstellungen.SetSizer( fgSizer1 )
-		self.pEinstellungen.Layout()
-		fgSizer1.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
-		self.pWB = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		self.pMainregister.AddPage( self.pPM, u"Leistungsmesser", False )
+		self.pWB = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"WB" )
 		bSizer16 = wx.BoxSizer( wx.VERTICAL )
 
 		cbWallboxChoices = []
@@ -2998,7 +2841,164 @@ class MainFrame ( wx.Frame ):
 		self.pWB.SetSizer( bSizer16 )
 		self.pWB.Layout()
 		bSizer16.Fit( self.pWB )
-		self.pMainregister.AddPage( self.pWB, u"WB", True )
+		self.pMainregister.AddPage( self.pWB, u"Wallbox", False )
+		self.pEinstellungen = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"CONFIG" )
+		fgSizer1 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer1.SetFlexibleDirection( wx.BOTH )
+		fgSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText5 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Web-Benutzername", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText5.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText5, 0, wx.ALL, 5 )
+
+		self.txtUsername = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		self.txtUsername.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
+
+		fgSizer1.Add( self.txtUsername, 0, wx.ALL, 5 )
+
+		self.m_staticText6 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Web-Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText6.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText6, 0, wx.ALL, 5 )
+
+		self.txtPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
+		self.txtPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_INFOBK ) )
+
+		fgSizer1.Add( self.txtPassword, 0, wx.ALL, 5 )
+
+		self.m_staticText8 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"RSCP-Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText8.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText8, 0, wx.ALL, 5 )
+
+		fgSizer22 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer22.SetFlexibleDirection( wx.BOTH )
+		fgSizer22.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtRSCPPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), wx.TE_PASSWORD )
+		self.txtRSCPPassword.SetBackgroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
+
+		fgSizer22.Add( self.txtRSCPPassword, 0, wx.ALL, 5 )
+
+		self.bConfigSetRSCPPassword = wx.Button( self.pEinstellungen, wx.ID_ANY, u"setzen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer22.Add( self.bConfigSetRSCPPassword, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer22, 1, wx.EXPAND, 5 )
+
+		self.m_staticText171 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Verbindungsart", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText171.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText171, 0, wx.ALL, 5 )
+
+		fgSizer271 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer271.SetFlexibleDirection( wx.BOTH )
+		fgSizer271.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		cbConfigVerbindungsartChoices = [ u"auto", u"direkt", u"web" ]
+		self.cbConfigVerbindungsart = wx.ComboBox( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, cbConfigVerbindungsartChoices, 0 )
+		fgSizer271.Add( self.cbConfigVerbindungsart, 0, wx.ALL, 5 )
+
+		self.bTest = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Verbindungstest", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer271.Add( self.bTest, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer271, 1, wx.EXPAND, 5 )
+
+		self.m_staticText7 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"IP-Adresse", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText7.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText7, 0, wx.ALL, 5 )
+
+		fgSizer211 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer211.SetFlexibleDirection( wx.BOTH )
+		fgSizer211.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtIP = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer211.Add( self.txtIP, 0, wx.ALL, 5 )
+
+		self.bConfigGetIPAddress = wx.Button( self.pEinstellungen, wx.ID_ANY, u"ermitteln", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer211.Add( self.bConfigGetIPAddress, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer211, 1, wx.EXPAND, 5 )
+
+		self.m_staticText169 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Seriennummer", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText169.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText169, 0, wx.ALL, 5 )
+
+		fgSizer20 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer20.SetFlexibleDirection( wx.BOTH )
+		fgSizer20.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.txtConfigSeriennummer = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer20.Add( self.txtConfigSeriennummer, 0, wx.ALL, 5 )
+
+		self.bConfigGetSerialNo = wx.Button( self.pEinstellungen, wx.ID_ANY, u"ermitteln", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer20.Add( self.bConfigGetSerialNo, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( fgSizer20, 1, wx.EXPAND, 5 )
+
+		self.m_staticText1732 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"aktive Verbindung", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1732.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText1732, 0, wx.ALL, 5 )
+
+		self.txtConfigAktiveVerbindung = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtConfigAktiveVerbindung.Enable( False )
+
+		fgSizer1.Add( self.txtConfigAktiveVerbindung, 0, wx.ALL, 5 )
+
+		self.m_staticText1733 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Autoupdate (s)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText1733.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText1733, 0, wx.ALL, 5 )
+
+		self.scAutoUpdate = wx.SpinCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 60,-1 ), wx.SP_ARROW_KEYS, 0, 3600, 0 )
+		fgSizer1.Add( self.scAutoUpdate, 0, wx.ALL, 5 )
+
+		self.bSave = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Einstellungen speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer1.Add( self.bSave, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+
+		fgSizer1.Add( ( 0, 50), 1, wx.EXPAND, 5 )
+
+
+		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticline2 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer1.Add( self.m_staticline2, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline3 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer1.Add( self.m_staticline3, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticText86 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Upload-URL", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText86.Wrap( -1 )
+
+		fgSizer1.Add( self.m_staticText86, 0, wx.ALL, 5 )
+
+		self.txtDBServer = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, u"https://pv.pincrushers.de/rscpgui", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtDBServer.SetMinSize( wx.Size( 250,-1 ) )
+
+		fgSizer1.Add( self.txtDBServer, 0, wx.ALL, 5 )
+
+		self.bUpload = wx.Button( self.pEinstellungen, wx.ID_ANY, u"in Datenbank hochladen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer1.Add( self.bUpload, 0, wx.ALL, 5 )
+
+		self.bSaveRSCPData = wx.Button( self.pEinstellungen, wx.ID_ANY, u"zu übermittelnde Daten ansehen / lokal speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer1.Add( self.bSaveRSCPData, 0, wx.ALL, 5 )
+
+
+		self.pEinstellungen.SetSizer( fgSizer1 )
+		self.pEinstellungen.Layout()
+		fgSizer1.Fit( self.pEinstellungen )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -3031,15 +3031,15 @@ class MainFrame ( wx.Frame ):
 		self.bMBSSave.Bind( wx.EVT_BUTTON, self.bMBSSaveOnClick )
 		self.cbBATIndex.Bind( wx.EVT_COMBOBOX, self.cbBATIndexOnCombobox )
 		self.chPVIIndex.Bind( wx.EVT_COMBOBOX, self.chPVIIndexOnCombobox )
+		self.bWBStopLoading.Bind( wx.EVT_BUTTON, self.bWBStopLoadingClick )
+		self.sWBLadestrom.Bind( wx.EVT_SCROLL, self.sWBLadestromOnScroll )
+		self.bWBSave.Bind( wx.EVT_BUTTON, self.bWBSaveOnClick )
 		self.bConfigSetRSCPPassword.Bind( wx.EVT_BUTTON, self.bConfigSetRSCPPasswordOnClick )
 		self.bConfigGetIPAddress.Bind( wx.EVT_BUTTON, self.bConfigGetIPAddressOnClick )
 		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
 		self.scAutoUpdate.Bind( wx.EVT_SPINCTRL, self.scAutoUpdateOnChange )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
-		self.bWBStopLoading.Bind( wx.EVT_BUTTON, self.bWBStopLoadingClick )
-		self.sWBLadestrom.Bind( wx.EVT_SCROLL, self.sWBLadestromOnScroll )
-		self.bWBSave.Bind( wx.EVT_BUTTON, self.bWBSaveOnClick )
 
 	def __del__( self ):
 		pass
@@ -3091,6 +3091,15 @@ class MainFrame ( wx.Frame ):
 	def chPVIIndexOnCombobox( self, event ):
 		event.Skip()
 
+	def bWBStopLoadingClick( self, event ):
+		event.Skip()
+
+	def sWBLadestromOnScroll( self, event ):
+		event.Skip()
+
+	def bWBSaveOnClick( self, event ):
+		event.Skip()
+
 	def bConfigSetRSCPPasswordOnClick( self, event ):
 		event.Skip()
 
@@ -3107,15 +3116,6 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bSaveRSCPDataOnClick( self, event ):
-		event.Skip()
-
-	def bWBStopLoadingClick( self, event ):
-		event.Skip()
-
-	def sWBLadestromOnScroll( self, event ):
-		event.Skip()
-
-	def bWBSaveOnClick( self, event ):
 		event.Skip()
 
 

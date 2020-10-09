@@ -203,9 +203,18 @@ class Frame(MainFrame):
                             self.fill_pm()
                         except:
                             logger.exception('Fehler beim Abruf der PM-Daten')
-                    elif name == 'WB':
+                    elif page == self.pWB:
                         try:
+                            selected = self.cbWallbox.GetSelection()
+                            if selected in [wx.NOT_FOUND, '', None, False]:
+                                selected = 0
+
                             self.fill_wb()
+
+                            if selected != wx.NOT_FOUND:
+                                if self.cbWallbox.GetCount() > selected:
+                                    self.cbWallbox.SetSelection(selected)
+                                    self.fill_wb_index(selected)
                         except:
                             logger.exception('Fehler beim Abruf der WB-Daten')
                 else:
@@ -558,7 +567,7 @@ class Frame(MainFrame):
                 except:
                     traceback.print_exc()
                     wx.MessageBox('Übertragung fehlgeschlagen')
-        self.updateData()
+        self.pMainChanged()
 
     def fill_wb(self):
         self.cbWallbox.Clear()
@@ -671,7 +680,7 @@ class Frame(MainFrame):
             wx.MessageBox('Wallbox #' + str(index) + ' existiert nicht, dieser Fehler sollte nicht auftreten!')
             logger.error('Wallbox #' + str(index) + ' existiert nicht!')
 
-        self.updateData()
+        self.pMainChanged()
 
     def fill_wb_index(self, index):
         if len(self._data_wb) > index:
@@ -851,7 +860,7 @@ class Frame(MainFrame):
                     traceback.print_exc()
                     wx.MessageBox('Übertragung fehlgeschlagen')
 
-        self.updateData()
+        self.pMainChanged()
 
     def fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
@@ -1693,7 +1702,7 @@ class Frame(MainFrame):
                     traceback.print_exc()
                     wx.MessageBox('Übertragung fehlgeschlagen')
 
-                self.updateData()
+                self.pMainChanged()
 
         event.Skip()
 
@@ -2057,7 +2066,7 @@ class Frame(MainFrame):
                     traceback.print_exc()
                     wx.MessageBox('Übertragung fehlgeschlagen')
 
-                self.updateData()
+                self.pMainChanged()
 
 
 logger.debug('Module geladen, initialisiere App')
