@@ -1,12 +1,25 @@
 import logging
-from socket import setdefaulttimeout
+import argparse
+
+parser = argparse.ArgumentParser(description='Ruft Daten von E3DC-Systemen mittels RSCP ab')
+parser.add_argument('-e', '--export', const=True, default=False, nargs='?',
+                    help='Exportstart mit Programmstart')
+parser.add_argument('--hide', const=True, default=False, nargs='?',
+                    help='Programm verstecken')
+parser.add_argument("-v", "--verbose", const=True, default=False, nargs='?', help='Erhöhen des Loglevels')
+
+args = parser.parse_args()
+if args.verbose:
+    loglevel = logging.DEBUG
+else:
+    loglevel = logging.ERROR
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(loglevel)
 
 # create console handler and set level to debug
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(loglevel)
 
 # create formatter
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -20,6 +33,9 @@ logger.addHandler(ch)
 logger.debug('Programmstart')
 
 
+from socket import setdefaulttimeout
+import csv
+from export import E3DCExport
 import configparser
 import datetime
 import hashlib
@@ -29,6 +45,8 @@ import re
 import threading
 import time
 import traceback
+import random
+import base64
 
 import pytz as pytz
 import requests
@@ -41,7 +59,9 @@ from e3dc.rscp_helper import rscp_helper
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
 from e3dcwebgui import E3DCWebGui
+
 from gui import MainFrame
+import paho.mqtt.client as paho
 
 try:
     import thread
@@ -61,7 +81,6 @@ class MessageBox(wx.Dialog):
         self.ShowModal()
         self.Destroy()
 
-
 class Frame(MainFrame):
     _serverApp = None
     _extsrcavailable = 0
@@ -73,10 +92,16 @@ class Frame(MainFrame):
     _updateRunning = None
     _mbsSettings = {}
     debug = False
+    _e3dcexportFrame = None
+    _e3dcExportPaths = []
+    _AutoExportStarted = False
+    _args = None
 
-    def __init__(self, parent):
+    def __init__(self, parent, args):
         logger.info('Programm gestartet, init')
+        self._args = args
         self.clear_values()
+
         MainFrame.__init__(self, parent)
 
         logger.info('Oberfläche geladen')
@@ -114,6 +139,9 @@ class Frame(MainFrame):
         def preConnect():
             try:
                 g = self.gui
+                if self._args.export:
+                    logger.debug('Export bei Programmstart aktiviert')
+                    self.bUploadStartOnClick(None)
             except:
                 pass
 
@@ -139,6 +167,192 @@ class Frame(MainFrame):
             else:
                 self.pMainChanged()
                 time.sleep(autoupdate)
+
+    def bUploadStartOnClick( self, event ):
+        if not self._AutoExportStarted:
+            self._AutoExportStarted = True
+            self.bUploadStart.SetLabel('Beenden!')
+
+            self._autoexportthread = threading.Thread(target=self.StartAutoExport, args=())
+            self._autoexportthread.start()
+        else:
+            self._AutoExportStarted = False
+
+    def StartAutoExport(self):
+        def mqtt_connect(broker,port):
+            logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
+            mqttclient = paho.Client("RSCPGui")
+            mqttclient.connect(broker, port)
+            return mqttclient
+
+        try:
+            logger.debug('Starte automatischen Export')
+            if len(self._e3dcExportPaths) > 0:
+                logger.debug('Es sind ' + str(len(self._e3dcExportPaths)) + ' Datenfelder zum Export vorgesehen')
+            else:
+                logger.debug('Es wurden keine Exporfelder definiert!')
+
+            csvwriter = None
+            csvfile = None
+
+            csvactive = self.chUploadCSV.GetValue()
+            csvfilename = self.fpUploadCSV.GetPath()
+
+            jsonactive = self.chUploadJSON.GetValue()
+            jsonfilename = self.fpUploadJSON.GetPath()
+
+            mqttactive = self.chUploadMQTT.GetValue()
+            mqttbroker = self.txtUploadMQTTBroker.GetValue()
+            mqttport = int(self.txtUploadMQTTPort.GetValue())
+            mqttqos = self.scUploadMQTTQos.GetValue()
+            mqttretain = self.chUploadMQTTRetain.GetValue()
+            mqttclient = mqtt_connect(mqttbroker, mqttport) if mqttactive else None
+
+            httpactive = self.chUploadHTTP.GetValue()
+            httpurl = self.txtUploadHTTPURL.GetValue()
+
+            intervall = self.scUploadIntervall.GetValue()
+
+
+            if csvactive:
+                csvfile = open(csvfilename, 'a', newline='')
+                fields = self._e3dcExportPaths.copy()
+                fields.insert(0,'datetime')
+                fields.insert(0,'ts')
+                csvwriter = csv.DictWriter(csvfile, fieldnames = fields)
+                csvwriter.writeheader()
+
+            while self._AutoExportStarted:
+                laststart = time.time()
+                logger.debug('Exportiere Daten (autoexport)')
+                try:
+                    values = self.getUploadDataFromPath()
+                    values['ts'] = time.time()
+                    values['datetime'] = datetime.datetime.now().isoformat()
+                    if csvactive:
+                        try:
+                            logger.debug('Exportiere in CSV-Datei ' + csvfilename)
+                            csvwriter.writerow(values)
+                            csvfile.flush()
+                        except:
+                            logger.exception('Fehler beim Export in CSV-Datei')
+
+                    if jsonactive:
+                        try:
+                            logger.debug('Exportiere in JSON-Datei ' + jsonfilename)
+                            with open(jsonfilename, 'w') as jsonfile:
+                                json.dump(values, jsonfile)
+                        except:
+                            logger.exception('Fehler beim Export in JSON-Datei')
+
+                    if mqttactive:
+                        try:
+                            logger.debug('Exportiere nach MQTT')
+                            for key in values.keys():
+                                if key not in ('ts', 'datetime'):
+                                    topic = '/' + key
+                                    res,mid = mqttclient.publish(topic, values[key], mqttqos, mqttretain)
+                                    if res != 0:
+                                        mqttclient.disconnect()
+                                        logger.error('Fehler bei Export an MQTT bei Topic ' + topic + ' Errorcode: ' + str(res))
+                                        mqttclient = mqtt_connect(mqttbroker, mqttport)
+                        except:
+                            logger.exception('Fehler beim Export nach MQTT')
+
+                    if httpactive:
+                        try:
+                            logger.debug('Exportiere an Http-Url ' + httpurl)
+                            r = requests.post(httpurl, json=values)
+                            r.raise_for_status()
+                            logger.debug('Export an URL Erfolgreich ' + str(r.status_code))
+                            logger.debug('Response: ' + r.text)
+                        except:
+                            logger.exception('Fehler beim Export in Http')
+
+
+                except:
+                    logger.exception('Fehler beim Abruf der Exportdaten')
+
+                diff = time.time() - laststart
+                if diff < intervall:
+                    wait = intervall - diff
+                    logger.debug('Warte ' + str(wait) + 's')
+                    time.sleep(wait)
+
+            if csvactive:
+                csvfile.close()
+
+
+        except:
+            logger.exception('Fehler beim automatischen Export')
+
+        self._AutoExportStarted = False
+        self.bUploadStart.SetLabel('Starten!')
+
+    def getUploadDataFromPath(self):
+        def getDataFromPath(teile, data):
+            if data is not None:
+                if isinstance(data, dict):
+                    if teile[0] in data.keys():
+                        if len(teile) == 1:
+                            return data[teile[0]]
+                        else:
+                            return getDataFromPath(teile[1:], data[teile[0]])
+                elif isinstance(data, list):
+                    if data[int(teile[0])] is not None:
+                        if len(teile) == 1:
+                            return data[int(teile[0])]
+                        else:
+                            return getDataFromPath(teile[1:], data[int(teile[0])])
+                else:
+                    logger.warning('Element not Found ' + '/'.join(teile))
+
+        ems_data = None
+        bat_data = None
+
+        values = {}
+
+        for path in self._e3dcExportPaths:
+            logger.debug('Ermittle Pfad aus ' + path)
+            teile = path.split('/')
+            if teile[0] == 'E3DC':
+                if teile[1] == 'EMS_DATA':
+                    try:
+                        if not ems_data:
+                            ems_data = self.gui.get_data(self.gui.getEMSData(), True).asDict()
+
+                        values[path] = getDataFromPath(teile[2:], ems_data)
+                    except:
+                        logger.exception('Fehler beim Abruf von INFO')
+                elif teile[1] == 'BAT_DATA':
+                    try:
+                        if not bat_data:
+                            bat_data = self.gui.get_data(self.gui.getBatDcbData(bat_index=int(teile[2])), True).asDict()
+                        values[path] = getDataFromPath(teile[3:], bat_data)
+                    except:
+                        logger.exception('Fehler beim Abruf von INFO')
+            else:
+                logger.debug('Pfadangabe falsch: ' + path)
+
+        return values
+
+
+
+    def bUploadSetDataOnClick( self, event ):
+        self._e3dcexportFrame = E3DCExport(self, paths = self._e3dcExportPaths)
+        self._e3dcexportFrame.Bind(wx.EVT_CLOSE, self.ExportFrameOnClose)
+        self._e3dcexportFrame.Show()
+
+    def ExportFrameOnClose(self, event ):
+        logger.debug('Exportfenster wurde geschlossen')
+        self._e3dcExportPaths = self._e3dcexportFrame.getExportPaths()
+
+        self.stUploadCount.SetLabel('Es wurden ' + str(len(self._e3dcExportPaths)) + ' Datenfelder angewählt')
+
+        for path in self._e3dcExportPaths:
+            logger.debug('Pfad: ' + path + ' angewählt und gespeichert')
+
+        event.Skip()
 
 
     def pMainChanged( self, event = None):
@@ -225,6 +439,19 @@ class Frame(MainFrame):
             self.enableButtons()
             self._updateRunning = False
 
+    def tinycode(self, key, text, reverse=False):
+        "(de)crypt stuff"
+        rand = random.Random(key).randrange
+
+        if reverse:
+            text = base64.b64decode(text.encode('utf-8')).decode('utf-8', 'ignore')
+        text = ''.join([chr(ord(elem) ^ rand(256)) for elem in text])
+
+        if not reverse:
+            text = base64.b64encode(text.encode('utf-8')).decode('utf-8', 'ignore')
+
+        return text
+
     def loadConfig(self):
         logger.info('Lade Konfigurationsdatei ' + self.ConfigFilename)
 
@@ -236,11 +463,19 @@ class Frame(MainFrame):
             if 'username' in config['Login']:
                 self.txtUsername.SetValue(config['Login']['username'])
             if 'password' in config['Login']:
-                self.txtPassword.SetValue(config['Login']['password'])
+                if config['Login']['password'][0] == '@':
+                    pwd = self.tinycode('rscpgui', config['Login']['password'][1:], True)
+                else:
+                    pwd = config['Login']['password']
+                self.txtPassword.SetValue(pwd)
             if 'address' in config['Login']:
                 self.txtIP.SetValue(config['Login']['address'])
             if 'rscppassword' in config['Login']:
-                self.txtRSCPPassword.SetValue(config['Login']['rscppassword'])
+                if config['Login']['rscppassword'][0] == '@':
+                    pwd = self.tinycode('rscpgui_rscppass', config['Login']['rscppassword'][1:], True)
+                else:
+                    pwd = config['Login']['rscppassword']
+                self.txtRSCPPassword.SetValue(pwd)
             if 'seriennummer' in config['Login']:
                 self.txtConfigSeriennummer.SetValue(config['Login']['seriennummer'])
             if 'websocketaddr' in config['Login']:
@@ -249,6 +484,49 @@ class Frame(MainFrame):
                 self._connectiontype = config['Login']['connectiontype']
             if 'autoupdate' in config['Login']:
                 self.scAutoUpdate.SetValue(config['Login']['autoupdate'])
+
+        self.stUploadCount.SetLabel('Keine Datenfelder angewählt')
+
+        if 'Export' in config:
+            if 'csv' in config['Export']:
+                self.chUploadCSV.SetValue(True if config['Export']['csv'].lower() in ('true','1','ja') else False)
+            if 'csvfile' in config['Export']:
+                self.fpUploadCSV.SetPath(config['Export']['csvfile'])
+            if 'json' in config['Export']:
+                self.chUploadJSON.SetValue(True if config['Export']['json'].lower() in ('true','1','ja') else False)
+            if 'jsonfile' in config['Export']:
+                self.fpUploadJSON.SetPath(config['Export']['jsonfile'])
+            if 'mqtt' in config['Export']:
+                self.chUploadMQTT.SetValue(True if config['Export']['mqtt'].lower() in ('true','1','ja') else False)
+            if 'mqttbroker' in config['Export']:
+                self.txtUploadMQTTBroker.SetValue(config['Export']['mqttbroker'])
+            else:
+                self.txtUploadMQTTBroker.SetValue('localhost')
+
+            if 'mqttport' in config['Export']:
+                self.txtUploadMQTTPort.SetValue(config['Export']['mqttport'])
+            else:
+                self.txtUploadMQTTPort.SetValue('1883')
+
+            if 'mqttqos' in config['Export']:
+                self.scUploadMQTTQos.SetValue(int(config['Export']['mqttqos']))
+            else:
+                self.scUploadMQTTQos.SetValue(0)
+
+            if 'mqttretain' in config['Export']:
+                self.chUploadMQTTRetain.SetValue(True if config['Export']['mqttretain'].lower() in ('true','1','ja') else False)
+
+            if 'http' in config['Export']:
+                self.chUploadHTTP.SetValue(True if config['Export']['http'].lower() in ('true','1','ja') else False)
+            if 'httpurl' in config['Export']:
+                self.txtUploadHTTPURL.SetValue(config['Export']['httpurl'])
+            if 'intervall' in config['Export']:
+                self.scUploadIntervall.SetValue(int(config['Export']['intervall']))
+            if 'paths' in config['Export']:
+                self._e3dcExportPaths = config['Export']['paths'].split(',')
+                self.stUploadCount.SetLabel('Es wurden ' + str(len(self._e3dcExportPaths)) + ' Datenfelder angewählt')
+
+
 
         logger.info('Konfigurationsdatei geladen')
                 
@@ -264,13 +542,27 @@ class Frame(MainFrame):
         config = configparser.ConfigParser()
         config.read(self.ConfigFilename)
         config['Login'] = {'username':self.txtUsername.GetValue(),
-                           'password':self.txtPassword.GetValue(),
+                           'password':'@' + self.tinycode('rscpgui', self.txtPassword.GetValue()),
                            'address':self.txtIP.GetValue(),
-                           'rscppassword':self.txtRSCPPassword.GetValue(),
+                           'rscppassword':'@' + self.tinycode('rscpgui_rscppass', self.txtRSCPPassword.GetValue()),
                            'seriennummer':self.txtConfigSeriennummer.GetValue(),
                            'websocketaddr':self._websocketaddr,
                            'connectiontype':self._connectiontype,
                            'autoupdate':self.scAutoUpdate.GetValue()}
+
+        config['Export'] = {'csv':self.chUploadCSV.GetValue(),
+                            'csvfile':self.fpUploadCSV.GetPath(),
+                            'json':self.chUploadJSON.GetValue(),
+                            'jsonfile':self.fpUploadJSON.GetPath(),
+                            'mqtt':self.chUploadMQTT.GetValue(),
+                            'mqttbroker':self.txtUploadMQTTBroker.GetValue(),
+                            'mqttport':self.txtUploadMQTTPort.GetValue(),
+                            'mqttqos':self.scUploadMQTTQos.GetValue(),
+                            'mqttretain':self.chUploadMQTTRetain.GetValue(),
+                            'http':self.chUploadHTTP.GetValue(),
+                            'httpurl':self.txtUploadHTTPURL.GetValue(),
+                            'intervall':self.scUploadIntervall.GetValue(),
+                            'paths':','.join(self._e3dcExportPaths)}
 
         with open(self.ConfigFilename, 'w') as configfile:
             config.write(configfile)
@@ -357,6 +649,12 @@ class Frame(MainFrame):
                     if not seriennummer:
                         seriennummer = repr(result['INFO_SERIAL_NUMBER'])
                     logger.info('Verwende Direkte Verbindung / Verbindung mit System ' + repr(result['INFO_SERIAL_NUMBER']) + ' / ' + repr(result['INFO_IP_ADDRESS']))
+                except ConnectionResetError as e:
+                    logger.warning("Direkte Verbindung fehlgeschlagen (Socket) error({0}): {1}".format(e.errno, e.strerror))
+                    testgui = None
+                except RSCPCommunicationError as e:
+                    logger.warning("Direkte Verbindung fehlgeschlagen (RSCP)")
+                    testgui = None
                 except:
                     logger.exception('Fehler beim Aufbau der direkten Verbindung')
                     testgui = None
@@ -414,7 +712,7 @@ class Frame(MainFrame):
         return self._gui
 
     def fill_info(self):
-        logger.debug('Rufe PVI-Daten ab')
+        logger.debug('Rufe INFO-Daten ab')
         d = self.gui.get_data(self.gui.getInfo() + self.gui.getUpdateStatus(), True)
         self._data_info = d
 
@@ -585,7 +883,7 @@ class Frame(MainFrame):
             else:
                 data = self.gui.get_data(self.gui.getWBCount(), True)
             if data.type == RSCPType.Error:
-                raise RSCPCommunicationError()
+                raise RSCPCommunicationError('Error bei WB-Abruf', logger)
         except RSCPCommunicationError:
             logger.debug('Keine Wallbox vorhanden')
             self.cbWallbox.Append('keine Wallbox vorhanden')
@@ -1144,7 +1442,7 @@ class Frame(MainFrame):
                 self._data_pvi[index] = data
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
-                logger.info('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
+                logger.exception('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
 
         self.chPVIIndex.Clear()
 
@@ -1571,6 +1869,8 @@ class Frame(MainFrame):
         self.bUpload.Enable(value)
         self.bWBSave.Enable(value)
         self.bWBStopLoading.Enable(value)
+        self.bUploadStart.Enable(value)
+        self.bUploadSetData.Enable(value)
 
     def sWBLadestromOnScroll( self, event ):
         self.stWBLadestrom.SetLabel(str(self.sWBLadestrom.GetValue()) + ' A')
@@ -1754,7 +2054,7 @@ class Frame(MainFrame):
                 logger.exception('Fehler bei der Datenübertragung an Server ' + self.txtDBServer.GetValue())
                 wx.MessageBox('Es gab einen Fehler bei der Übermittlung. (HTTP-Status: ' + str(r.status_code) + ')')
 
-    def sammle_data(self):
+    def sammle_data(self, anon = True):
         logger.debug('Sammle Daten')
         self.updateData()
 
@@ -1794,10 +2094,10 @@ class Frame(MainFrame):
             data['WB_DATA'] = []
             for d in self._data_wb:
                 data['WB_DATA'].append(d.asDict())
-
-        logger.debug('Anonymisiere Daten')
-        data = self.anonymize_data(data, anonymize, remove)
-        logger.debug('Daten wurden anonymisiert')
+        if anon:
+            logger.debug('Anonymisiere Daten')
+            data = self.anonymize_data(data, anonymize, remove)
+            logger.debug('Daten wurden anonymisiert')
         logger.debug('Datensammlung beendet')
         return data
 
@@ -2072,10 +2372,12 @@ class Frame(MainFrame):
 logger.debug('Module geladen, initialisiere App')
 app = wx.App()
 logger.debug('App initialisiert, lade Fenster')
-g = Frame(None)
-logger.debug('Fenster geladen, zeichne Fenster')
-g.Show()
-logger.debug('Fenster gezeichnet, warte auf Events')
+g = Frame(None, args)
+logger.debug('Fenster geladen')
+if not args.hide:
+    logger.debug('zeichne Fenster')
+    g.Show()
+    logger.debug('Fenster gezeichnet, warte auf Events')
 app.MainLoop()
 
 logger.debug('Programm beendet')

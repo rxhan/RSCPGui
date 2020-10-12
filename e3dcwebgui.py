@@ -1,6 +1,23 @@
-import binascii
-import hashlib
 import logging
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
+
+import hashlib
+
 import math
 import struct
 import threading
@@ -22,21 +39,6 @@ from e3dc._rscp_dto import RSCPDTO
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
 
 class E3DCWebGui(rscp_helper):
     timeout = 5

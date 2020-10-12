@@ -90,6 +90,8 @@ class E3DC:
         # Fix for MAC-Connectionerrors @eba
         if platform.system() == 'Darwin':
             time.sleep(0.05)
+        else:
+            time.sleep(0.01)
         response = self._receive()
         if response.type == RSCPType.Error:
             logger.error("Error type returned")

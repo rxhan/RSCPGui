@@ -151,26 +151,62 @@ class RSCPDTO:
     def get_data(self):
         return self._data
 
+    def countItems(self, name):
+        i = 0
+        if isinstance(self.data, list):
+            for e in self.data:
+                if isinstance(e, RSCPDTO):
+                    if e.name == name:
+                        i += 1
+
+        return i
+
+    def getItemsByName(self, name):
+        if isinstance(self.data, list):
+            ret = []
+            for e in self.data:
+                if isinstance(e, RSCPDTO):
+                    if e.name == name:
+                        ret.append(e)
+
+            return ret
+        elif isinstance(self.data, RSCPDTO):
+            if self.data.name == name:
+                return [self.data]
+        return None
+
+
     def asDict(self, translate = False):
         if self.type == RSCPType.Container:
             obj = {}
             dat: RSCPDTO
             for dat in self.data:
                 if isinstance(dat, RSCPDTO):
-                    d: dict = dat.asDict()
-                    if isinstance(obj, list):
-                        obj = obj + [d]
-                    elif len([k for k in d.keys() if k in obj.keys()]) > 0:
-                        obj = [obj, d]
+                    name = dat.name
+                    cnt = self.countItems(name)
+                    if cnt > 1:
+                        if name not in obj:
+                            obj[name] = []
+                        tmp = dat.asDict(translate)
+                        obj[name].append(tmp[name])
                     else:
-                        obj = {**obj, **d}
+                        d: dict = dat.asDict(translate)
+                        if isinstance(obj, list):
+                            obj = obj + [d]
+                        elif len([k for k in d.keys() if k in obj.keys()]) > 0:
+                            obj = [obj, d]
+                        else:
+                            obj = {**obj, **d}
         else:
             if not translate:
                 obj = self.data
             else:
                 obj = repr(self)
 
-        return {self.name:obj}
+        if self.tag == RSCPTag.LIST_TYPE:
+            return obj
+        else:
+            return {self.name:obj}
 
     def __round__(self, n=None):
         if self.type != RSCPType.Error:

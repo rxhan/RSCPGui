@@ -2843,9 +2843,27 @@ class MainFrame ( wx.Frame ):
 		bSizer16.Fit( self.pWB )
 		self.pMainregister.AddPage( self.pWB, u"Wallbox", False )
 		self.pEinstellungen = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL, u"CONFIG" )
+		fgSizer37 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer37.SetFlexibleDirection( wx.BOTH )
+		fgSizer37.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
 		fgSizer1 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer1.SetFlexibleDirection( wx.BOTH )
 		fgSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.Basiseinstellungen = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.Basiseinstellungen.Wrap( -1 )
+
+		fgSizer1.Add( self.Basiseinstellungen, 0, wx.ALL, 5 )
+
+
+		fgSizer1.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticline20 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer1.Add( self.m_staticline20, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline21 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer1.Add( self.m_staticline21, 0, wx.EXPAND |wx.ALL, 5 )
 
 		self.m_staticText5 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Web-Benutzername", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText5.Wrap( -1 )
@@ -2952,10 +2970,10 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( self.txtConfigAktiveVerbindung, 0, wx.ALL, 5 )
 
-		self.m_staticText1733 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Autoupdate (s)", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText1733.Wrap( -1 )
+		self.m_staticText17331 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Autoupdate (s)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText17331.Wrap( -1 )
 
-		fgSizer1.Add( self.m_staticText1733, 0, wx.ALL, 5 )
+		fgSizer1.Add( self.m_staticText17331, 0, wx.ALL, 5 )
 
 		self.scAutoUpdate = wx.SpinCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 60,-1 ), wx.SP_ARROW_KEYS, 0, 3600, 0 )
 		fgSizer1.Add( self.scAutoUpdate, 0, wx.ALL, 5 )
@@ -2995,9 +3013,107 @@ class MainFrame ( wx.Frame ):
 		fgSizer1.Add( self.bSaveRSCPData, 0, wx.ALL, 5 )
 
 
-		self.pEinstellungen.SetSizer( fgSizer1 )
+		fgSizer37.Add( fgSizer1, 1, wx.EXPAND, 5 )
+
+		fgSizer40 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer40.SetFlexibleDirection( wx.BOTH )
+		fgSizer40.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText202 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Exporteinstellungen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText202.Wrap( -1 )
+
+		fgSizer40.Add( self.m_staticText202, 0, wx.ALL, 5 )
+
+
+		fgSizer40.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticline171 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer40.Add( self.m_staticline171, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline19 = wx.StaticLine( self.pEinstellungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer40.Add( self.m_staticline19, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.chUploadCSV = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"in CSV exportieren", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer40.Add( self.chUploadCSV, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.fpUploadCSV = wx.FilePickerCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, u"Datei auswählen", u"*.csv", wx.DefaultPosition, wx.DefaultSize, wx.FLP_SAVE|wx.FLP_USE_TEXTCTRL )
+		fgSizer40.Add( self.fpUploadCSV, 0, wx.ALL, 5 )
+
+		self.chUploadJSON = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"in JSON Datei exportieren", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer40.Add( self.chUploadJSON, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.fpUploadJSON = wx.FilePickerCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, u"JSON-File auswählen", u"*.json", wx.DefaultPosition, wx.DefaultSize, wx.FLP_SAVE|wx.FLP_USE_TEXTCTRL )
+		fgSizer40.Add( self.fpUploadJSON, 0, wx.ALL, 5 )
+
+		self.chUploadMQTT = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"MQTT", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer40.Add( self.chUploadMQTT, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		fgSizer42 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer42.SetFlexibleDirection( wx.BOTH )
+		fgSizer42.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText208 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Broker", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText208.Wrap( -1 )
+
+		fgSizer42.Add( self.m_staticText208, 0, wx.ALL, 5 )
+
+		self.txtUploadMQTTBroker = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer42.Add( self.txtUploadMQTTBroker, 0, wx.ALL, 5 )
+
+		self.m_staticText209 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Port", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText209.Wrap( -1 )
+
+		fgSizer42.Add( self.m_staticText209, 0, wx.ALL, 5 )
+
+		self.txtUploadMQTTPort = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer42.Add( self.txtUploadMQTTPort, 0, wx.ALL, 5 )
+
+		self.m_staticText210 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"QOS", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText210.Wrap( -1 )
+
+		fgSizer42.Add( self.m_staticText210, 0, wx.ALL, 5 )
+
+		self.scUploadMQTTQos = wx.SpinCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), wx.SP_ARROW_KEYS, 0, 10, 0 )
+		fgSizer42.Add( self.scUploadMQTTQos, 0, wx.ALL, 5 )
+
+		self.chUploadMQTTRetain = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"Retain-Flag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer42.Add( self.chUploadMQTTRetain, 0, wx.ALL, 5 )
+
+
+		fgSizer40.Add( fgSizer42, 1, wx.EXPAND, 5 )
+
+		self.chUploadHTTP = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"an URL senden (POST)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer40.Add( self.chUploadHTTP, 0, wx.ALL, 5 )
+
+		self.txtUploadHTTPURL = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, u"https://pv.pincrushers.de/rscpgui", wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		fgSizer40.Add( self.txtUploadHTTPURL, 0, wx.ALL, 5 )
+
+		self.m_staticText206 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Intervall (s)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText206.Wrap( -1 )
+
+		fgSizer40.Add( self.m_staticText206, 0, wx.ALL, 5 )
+
+		self.scUploadIntervall = wx.SpinCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 60,-1 ), wx.SP_ARROW_KEYS, 1, 3600, 30 )
+		fgSizer40.Add( self.scUploadIntervall, 0, wx.ALL, 5 )
+
+		self.bUploadSetData = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Daten auswählen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer40.Add( self.bUploadSetData, 0, wx.ALL, 5 )
+
+		self.stUploadCount = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"keine Felder angewählt", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.stUploadCount.Wrap( -1 )
+
+		fgSizer40.Add( self.stUploadCount, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		self.bUploadStart = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Starten!", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer40.Add( self.bUploadStart, 0, wx.ALL, 5 )
+
+
+		fgSizer37.Add( fgSizer40, 1, wx.EXPAND, 5 )
+
+
+		self.pEinstellungen.SetSizer( fgSizer37 )
 		self.pEinstellungen.Layout()
-		fgSizer1.Fit( self.pEinstellungen )
+		fgSizer37.Fit( self.pEinstellungen )
 		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
@@ -3040,6 +3156,8 @@ class MainFrame ( wx.Frame ):
 		self.scAutoUpdate.Bind( wx.EVT_SPINCTRL, self.scAutoUpdateOnChange )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
+		self.bUploadSetData.Bind( wx.EVT_BUTTON, self.bUploadSetDataOnClick )
+		self.bUploadStart.Bind( wx.EVT_BUTTON, self.bUploadStartOnClick )
 
 	def __del__( self ):
 		pass
@@ -3116,6 +3234,33 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bSaveRSCPDataOnClick( self, event ):
+		event.Skip()
+
+	def bUploadSetDataOnClick( self, event ):
+		event.Skip()
+
+	def bUploadStartOnClick( self, event ):
+		event.Skip()
+
+
+###########################################################################
+## Class ExportFrame
+###########################################################################
+
+class ExportFrame ( wx.Frame ):
+
+	def __init__( self, parent ):
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 522,609 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+
+	def __del__( self ):
+		pass
+
+
+	# Virtual event handlers, overide them in your derived class
+	def tcUploadOnSelChanged( self, event ):
+		event.Skip()
+
+	def bSaveOnClick( self, event ):
 		event.Skip()
 
 
