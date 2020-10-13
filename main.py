@@ -57,7 +57,7 @@ from e3dc._rscp_dto import RSCPDTO
 from e3dc._rscp_exceptions import RSCPCommunicationError
 from e3dc.rscp_helper import rscp_helper
 from e3dc.rscp_tag import RSCPTag
-from e3dc.rscp_type import RSCPType
+from e3dc.rscp_type import RSCPType, WB_TYPE, WB_MODE
 from e3dcwebgui import E3DCWebGui
 
 from gui import MainFrame
@@ -987,13 +987,14 @@ class Frame(MainFrame):
 
             index = d['WB_INDEX'].data
 
+            wallbox_type = WB_TYPE.E3DC if d['WB_DEVICE_NAME'].data != 'Easy Connect' else WB_TYPE.EASYCONNECT
+
             self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
             self.txtWBEnergyAll.SetValue(repr(d['WB_ENERGY_ALL']) + ' Wh')
             self.txtWBEnergySolar.SetValue(repr(d['WB_ENERGY_SOLAR']) + ' Wh')
             self.txtWBSOC.SetValue(repr(d['WB_SOC']))
             self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
             self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
-            self.txtWBMode.SetValue(repr(d['WB_MODE']))
 
             self.gWBData.SetCellValue(0,0,str(round(d['WB_PM_POWER_L1'],3)) + ' W')
             self.gWBData.SetCellValue(0,1,str(round(d['WB_PM_POWER_L2'],3)) + ' W')
@@ -1010,19 +1011,22 @@ class Frame(MainFrame):
             self.chWBDeviceWorking.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_WORKING'].data)
 
             alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
-            sb = alg_data[2]
-            self.chWBSunmode.SetValue((sb & 128) == 128)
-
-            if (sb & 64) == 64:
-                logger.debug('WB charging canceled True')
+            if wallbox_type == WB_TYPE.E3DC:
+                self.chWBSunmode.SetValue(alg_data[1] == 0)
+                self.chWB1PH.SetValue(alg_data[4] < 3)
             else:
-                logger.debug('WB charging canceled False')
-            if (sb & 32) == 32:
-                logger.debug('WB charging active True')
-            else:
-                logger.debug('WB charging active False')
+                sb = alg_data[2]
+                self.chWBSunmode.SetValue((sb & 128) == 128)
 
-            self.chWB1PH.SetValue(alg_data[1] == 1)
+                if (sb & 64) == 64:
+                    logger.debug('WB charging canceled True')
+                else:
+                    logger.debug('WB charging canceled False')
+                if (sb & 32) == 32:
+                    logger.debug('WB charging active True')
+                else:
+                    logger.debug('WB charging active False')
+                self.chWB1PH.SetValue(alg_data[1] == 1)
 
             def get_load(data):
                 return data[1] << 8 | data[0]
@@ -1033,8 +1037,16 @@ class Frame(MainFrame):
             netload = get_load(d['WB_EXTERN_DATA_NET']['WB_EXTERN_DATA'].data)
             self.txtWBNet.SetValue(str(netload) + ' W')
 
-            self.txtWBLadeleistung.SetValue(str(sunload+netload) + ' W')
+            wbload = sunload+netload
+            self.txtWBLadeleistung.SetValue(str(wbload) + ' W')
 
+            if wallbox_type == WB_TYPE.E3DC:
+                if wbload > 0:
+                    self.txtWBMode.SetValue(WB_MODE.LOADING.name)
+                else:
+                    self.txtWBMode.SetValue(WB_MODE.NOT_LOADING.name)
+            else:
+                self.txtWBMode.SetValue(repr(d['WB_MODE']))
 
             self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
 
