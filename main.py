@@ -1011,22 +1011,26 @@ class Frame(MainFrame):
             self.chWBDeviceWorking.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_WORKING'].data)
 
             alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
+            sb = alg_data[2]
             if wallbox_type == WB_TYPE.E3DC:
-                self.chWBSunmode.SetValue(alg_data[1] == 0)
                 self.chWB1PH.SetValue(alg_data[4] < 3)
+                self.sWBLadestrom.SetValue(alg_data[4])
             else:
-                sb = alg_data[2]
-                self.chWBSunmode.SetValue((sb & 128) == 128)
-
-                if (sb & 64) == 64:
-                    logger.debug('WB charging canceled True')
-                else:
-                    logger.debug('WB charging canceled False')
-                if (sb & 32) == 32:
-                    logger.debug('WB charging active True')
-                else:
-                    logger.debug('WB charging active False')
                 self.chWB1PH.SetValue(alg_data[1] == 1)
+                self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
+
+
+            if (sb & 64) == 64:
+                logger.debug('WB charging canceled True')
+            else:
+                logger.debug('WB charging canceled False')
+            if (sb & 32) == 32:
+                logger.debug('WB charging active True')
+            else:
+                logger.debug('WB charging active False')
+
+            self.chWBSunmode.SetValue((sb & 128) == 128)
+
 
             def get_load(data):
                 return data[1] << 8 | data[0]
@@ -1047,8 +1051,6 @@ class Frame(MainFrame):
                     self.txtWBMode.SetValue(WB_MODE.NOT_LOADING.name)
             else:
                 self.txtWBMode.SetValue(repr(d['WB_MODE']))
-
-            self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
 
             logger.debug('Darstellung Wallbox abgeschlossen')
         else:
