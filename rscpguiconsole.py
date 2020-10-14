@@ -58,6 +58,7 @@ class RSCPGuiConsole(RSCPGuiMain):
             try:
                 self.check_e3dcwebgui()
             except:
+                logger.debug('Beende Programm')
                 self._AutoExportStarted = False
         else:
             logger.debug('Nichts zu tun, versuche -h')
