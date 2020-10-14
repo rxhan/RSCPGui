@@ -1,5 +1,6 @@
 import logging
 import argparse
+import os
 
 parser = argparse.ArgumentParser(description='Ruft Daten von E3DC-Systemen mittels RSCP ab')
 parser.add_argument('-e', '--export', const=True, default=False, nargs='?',
@@ -61,6 +62,5 @@ else:
     logger.debug('Module geladen, initialisiere Console')
     g = RSCPGuiConsole(args)
     g.MainLoop()
-
 
 logger.debug('Programm beendet')

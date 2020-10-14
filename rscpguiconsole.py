@@ -55,7 +55,10 @@ class RSCPGuiConsole(RSCPGuiMain):
             self.StartExport()
 
             # Loop forever
-            self.check_e3dcwebgui()
+            try:
+                self.check_e3dcwebgui()
+            except:
+                self._AutoExportStarted = False
         else:
             logger.debug('Nichts zu tun, versuche -h')
 
