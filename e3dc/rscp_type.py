@@ -106,6 +106,10 @@ class WB_MODE(Enum):
     LOADING = 144
     NOT_LOADING = 128
 
+class WB_TYPE(Enum):
+    E3DC = 1
+    EASYCONNECT = 2
+
 class RSCP_USER_LEVEL(Enum):
     NO_AUTH = 0
     USER = 10
