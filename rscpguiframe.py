@@ -134,6 +134,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
     def bUploadStartOnClick(self, event):
         if not self._AutoExportStarted:
+            self.refreshConfig()
             RSCPGuiMain.StartExport(self)
             self.bUploadStart.SetLabel('Beenden!')
         else:
@@ -425,8 +426,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             index = d['WB_INDEX'].data
 
             self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
-            self.txtWBEnergyAll.SetValue(repr(d['WB_ENERGY_ALL']) + ' Wh')
-            self.txtWBEnergySolar.SetValue(repr(d['WB_ENERGY_SOLAR']) + ' Wh')
+            energy, einheit = self.get_einheit(d['WB_ENERGY_ALL'].data)
+            self.txtWBEnergyAll.SetValue(str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_ENERGY_SOLAR'].data)
+            self.txtWBEnergySolar.SetValue(str(round(energy,3)) + ' ' + einheit)
             self.txtWBSOC.SetValue(repr(d['WB_SOC']))
             self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
             self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
@@ -438,11 +441,14 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.gWBData.SetCellValue(0, 3, str(
                 round(d['WB_PM_POWER_L1'].data + d['WB_PM_POWER_L2'].data + d['WB_PM_POWER_L3'].data, 3)) + ' W')
 
-            self.gWBData.SetCellValue(1, 0, str(round(d['WB_PM_ENERGY_L1'], 3)) + ' Wh')
-            self.gWBData.SetCellValue(1, 1, str(round(d['WB_PM_ENERGY_L2'], 3)) + ' Wh')
-            self.gWBData.SetCellValue(1, 2, str(round(d['WB_PM_ENERGY_L3'], 3)) + ' Wh')
-            self.gWBData.SetCellValue(1, 3, str(
-                round(d['WB_PM_ENERGY_L1'].data + d['WB_PM_ENERGY_L2'].data + d['WB_PM_ENERGY_L3'].data, 3)) + ' Wh')
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data)
+            self.gWBData.SetCellValue(1, 0, str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data)
+            self.gWBData.SetCellValue(1, 1, str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L2'].data)
+            self.gWBData.SetCellValue(1, 2, str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data + d['WB_PM_ENERGY_L2'].data + d['WB_PM_ENERGY_L3'].data)
+            self.gWBData.SetCellValue(1, 3, str(round(energy,3)) + ' ' + einheit)
 
             self.chWBDeviceConnected.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_CONNECTED'].data)
             self.chWBDeviceInService.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_IN_SERVICE'].data)
@@ -475,6 +481,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtWBLadeleistung.SetValue(str(sunload + netload) + ' W')
 
             self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
+            self.sWBLadestromOnScroll(None)
 
             logger.debug('Darstellung Wallbox abgeschlossen')
         else:
@@ -1114,15 +1121,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         logger.debug('BAT-Datenfelder füllen abgeschlossen')
 
     def fill_pm(self):
-        def get_einheit(value):
-            if abs(value) > 10000:
-                if abs(value) > 10000000:
-                    return value / 1000000, 'MWh'
-                else:
-                    return value / 1000, 'kWh'
-            else:
-                return value, 'Wh'
-
         self.gPM.DeleteCols(numCols=self.gPM.GetNumberCols())
 
         RSCPGuiMain.fill_pm(self)
@@ -1141,13 +1139,13 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.gPM.SetCellValue(5, curcol, str(round(d['PM_VOLTAGE_L2'], 3)) + ' V')
             self.gPM.SetCellValue(6, curcol, str(round(d['PM_VOLTAGE_L3'], 3)) + ' V')
 
-            energy, einheit = get_einheit(d['PM_ENERGY_L1'].data)
+            energy, einheit = self.get_einheit(d['PM_ENERGY_L1'].data)
             self.gPM.SetCellValue(7, curcol, str(round(energy, 3)) + ' ' + einheit)
-            energy, einheit = get_einheit(d['PM_ENERGY_L2'].data)
+            energy, einheit = self.get_einheit(d['PM_ENERGY_L2'].data)
             self.gPM.SetCellValue(8, curcol, str(round(energy, 3)) + ' ' + einheit)
-            energy, einheit = get_einheit(d['PM_ENERGY_L3'].data)
+            energy, einheit = self.get_einheit(d['PM_ENERGY_L3'].data)
             self.gPM.SetCellValue(9, curcol, str(round(energy, 3)) + ' ' + einheit)
-            energy, einheit = get_einheit(d['PM_ENERGY_L1'].data + d['PM_ENERGY_L2'].data + d['PM_ENERGY_L3'].data)
+            energy, einheit = self.get_einheit(d['PM_ENERGY_L1'].data + d['PM_ENERGY_L2'].data + d['PM_ENERGY_L3'].data)
             self.gPM.SetCellValue(10, curcol, str(round(energy, 3)) + ' ' + einheit)
 
             self.gPM.SetCellValue(11, curcol, repr(d['PM_FIRMWARE_VERSION']))
@@ -1176,6 +1174,15 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         self.gPM.AutoSize()
 
+    def get_einheit(self, value):
+        if abs(value) > 10000:
+            if abs(value) > 10000000:
+                return value / 1000000, 'MWh'
+            else:
+                return value / 1000, 'kWh'
+        else:
+            return value, 'Wh'
+
     def fill_wb(self):
         selected = self.cbWallbox.GetSelection()
         if selected in [wx.NOT_FOUND, '', None, False]:
@@ -1185,14 +1192,17 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         RSCPGuiMain.fill_wb(self)
 
-        for wb in self._data_wb:
-            index = wb['WB_INDEX'].data
-            self.cbWallbox.Append('WB #' + str(index))
+        if len(self._data_wb) == 0:
+            self.cbWallbox.Append('keine Wallbox vorhanden')
+        else:
+            for wb in self._data_wb:
+                index = wb['WB_INDEX'].data
+                self.cbWallbox.Append('WB #' + str(index))
 
-        if selected != wx.NOT_FOUND:
-            if self.cbWallbox.GetCount() > selected:
-                self.cbWallbox.SetSelection(selected)
-                self.fill_wb_index(selected)
+            if selected != wx.NOT_FOUND:
+                if self.cbWallbox.GetCount() > selected:
+                    self.cbWallbox.SetSelection(selected)
+                    self.fill_wb_index(selected)
 
     def bSaveClick(self, event):
         self.saveConfig()
@@ -1714,12 +1724,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
                 self.pMainChanged()
 
-    def saveConfig(self):
-        logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
-
-        config = configparser.ConfigParser()
-        config.read(self.ConfigFilename)
-        config['Login'] = {'username': self.txtUsername.GetValue(),
+    def refreshConfig(self):
+        self.config['Login'] = {'username': self.txtUsername.GetValue(),
                            'password': '@' + self.tinycode('rscpgui', self.txtPassword.GetValue()),
                            'address': self.txtIP.GetValue(),
                            'rscppassword': '@' + self.tinycode('rscpgui_rscppass', self.txtRSCPPassword.GetValue()),
@@ -1728,7 +1734,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                            'connectiontype': self.cfgLoginconnectiontype,
                            'autoupdate': self.scAutoUpdate.GetValue()}
 
-        config['Export'] = {'csv': self.chUploadCSV.GetValue(),
+        self.config['Export'] = {'csv': self.chUploadCSV.GetValue(),
                             'csvfile': self.fpUploadCSV.GetPath(),
                             'json': self.chUploadJSON.GetValue(),
                             'jsonfile': self.fpUploadJSON.GetPath(),
@@ -1742,8 +1748,13 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'intervall': self.scUploadIntervall.GetValue(),
                             'paths': ','.join(self.cfgExportpaths)}
 
+    def saveConfig(self):
+        logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
+
+        self.refreshConfig()
+
         with open(self.ConfigFilename, 'w') as configfile:
-            config.write(configfile)
+            self.config.write(configfile)
 
         logger.info('Konfigurationsdatei gespeichert')
 

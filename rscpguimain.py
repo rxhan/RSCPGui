@@ -117,6 +117,8 @@ class RSCPGuiMain():
             kat = None
 
         if name and kat:
+            if isinstance(value, list):
+                value = ','.join(value)
             self._config[kat][name] = value
         else:
             super(RSCPGuiMain, self).__setattr__(key, value)
@@ -626,6 +628,11 @@ class RSCPGuiMain():
 
         ems_data = None
         bat_data = None
+        info_data = None
+        dcdc_data = None
+        pm_data = None
+        pvi_data = None
+        wb_data = None
 
         values = {}
 
@@ -636,68 +643,124 @@ class RSCPGuiMain():
                 if teile[1] == 'EMS_DATA':
                     try:
                         if not ems_data:
-                            ems_data = self.gui.get_data(self.gui.getEMSData(), True).asDict()
+                            ems_data = self._fill_ems().asDict()
 
                         values[path] = getDataFromPath(teile[2:], ems_data)
                     except:
-                        logger.exception('Fehler beim Abruf von INFO')
+                        logger.exception('Fehler beim Abruf von EMS')
                 elif teile[1] == 'BAT_DATA':
                     try:
                         if not bat_data:
                             bat_data = self.gui.get_data(self.gui.getBatDcbData(bat_index=int(teile[2])), True).asDict()
                         values[path] = getDataFromPath(teile[3:], bat_data)
                     except:
+                        logger.exception('Fehler beim Abruf von BAT')
+                elif teile[1] == 'INFO_DATA':
+                    try:
+                        if not info_data:
+                            info_data = self._fill_info().asDict()
+                        values[path] = getDataFromPath(teile[2:], info_data)
+                    except:
                         logger.exception('Fehler beim Abruf von INFO')
+                elif teile[1] == 'DCDC_DATA':
+                    try:
+                        if not dcdc_data:
+                            dcdc_data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=int(teile[2])), True).asDict()
+                        values[path] = getDataFromPath(teile[3:], dcdc_data)
+                    except:
+                        logger.exception('Fehler beim Abruf von DCDC')
+                elif teile[1] == 'PM_DATA':
+                    try:
+                        if not pm_data:
+                            pm_data = self.gui.get_data(self.gui.getPMData(pm_index=int(teile[2])), True).asDict()
+                        values[path] = getDataFromPath(teile[3:], pm_data)
+                    except:
+                        logger.exception('Fehler beim Abruf von PM')
+                elif teile[1] == 'PVI_DATA':
+                    try:
+                        if not pvi_data:
+                            pvi_data = self.gui.get_data(self.gui.getPVIData(pvi_index=int(teile[2])), True).asDict()
+                        values[path] = getDataFromPath(teile[3:], pvi_data)
+                    except:
+                        logger.exception('Fehler beim Abruf von PVI')
+                elif teile[1] == 'WB_DATA':
+                    try:
+                        if not wb_data:
+                            wb_data = self.gui.get_data(self.gui.getWB(index=int(teile[2])), True).asDict()
+                        values[path] = getDataFromPath(teile[3:], wb_data)
+                    except:
+                        logger.exception('Fehler beim Abruf von WB')
             else:
                 logger.debug('Pfadangabe falsch: ' + path)
 
         return values
 
-    def fill_info(self):
+    def _fill_info(self):
         logger.debug('Rufe INFO-Daten ab')
-        self._data_info = self.gui.get_data(self.gui.getInfo() + self.gui.getUpdateStatus(), True)
+        data = self.gui.get_data(self.gui.getInfo() + self.gui.getUpdateStatus(), True)
         logger.debug('Abruf INFO-Daten abgeschlossen')
+        return data
 
-    def fill_ems(self):
+    def fill_info(self):
+        self._data_info = self._fill_info()
+
+    def _fill_ems(self):
         logger.debug('Rufe EMS-Daten ab')
         self._extsrcavailable = 0
-        self._data_ems = self.gui.get_data(self.gui.getEMSData(), True)
+        data = self.gui.get_data(self.gui.getEMSData(), True)
         logger.debug('Abruf EMS-Daten abgeschlossen')
+        return data
+
+    def fill_ems(self):
+        self._data_ems = self._fill_ems()
+
+    def _fill_mbs(self):
+        logger.debug('Rufe Modbus-Daten ab')
+        data = self.gui.get_data(self.gui.getModbus(), True)
+        logger.debug('Abruf Modbus-Daten abgeschlossen')
+        return data
 
     def fill_mbs(self):
-        logger.debug('Rufe Modbus-Daten ab')
-        self._data_mbs = self.gui.get_data(self.gui.getModbus(), True)
-        logger.debug('Abruf Modbus-Daten abgeschlossen')
+        self._data_mbs = self._fill_mbs()
 
-    def fill_dcdc(self):
+    def _fill_dcdc(self):
         logger.debug('Rufe DCDC-Daten ab')
-        self._data_dcdc = []
+        data = []
         for index in [0, 1, 2, 3]:
             try:
                 d = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
                 index = int(d['DCDC_INDEX'])
-                self._data_dcdc.append(d)
+                data.append(d)
 
                 logger.info('DCDC #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
                 logger.info('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
 
-    def fill_pvi(self):
+        return data
+
+    def fill_dcdc(self):
+        self._data_dcdc = self._fill_dcdc()
+
+    def _fill_pvi(self):
         logger.debug('Rufe PVI-Daten ab')
-        self._data_pvi = {}
+        data = {}
         for index in range(0,4):
             try:
-                data = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
-                self._data_pvi[index] = data
+                data[index] = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
                 logger.exception('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
 
         logger.debug('Abruf PVI-Daten abgeschlossen')
 
-    def fill_pm(self):
+        return data
+
+    def fill_pvi(self):
+        self._data_pvi = self._fill_pvi()
+
+    def _fill_pm(self):
         logger.debug('Rufe PM-Daten ab')
-        self._data_pm = {}
+        data = {}
 
         if self._extsrcavailable >= 0:
             indexes = range(0,8)
@@ -710,30 +773,40 @@ class RSCPGuiMain():
 
                 if 'PM_DEVICE_STATE' not in d or d['PM_DEVICE_STATE'].type != RSCPType.Error:
                     index = d['PM_INDEX'].data
-                    self._data_pm[index] = d
+                    data[index] = d
                     logger.info('PM #' + str(index) + ' erfolgreich abgerufen')
             except:
                 logger.exception('PM #' + str(index) + ' konnte nicht abgerufen werden.')
 
         logger.debug('Abruf PM-Daten abgeschlossen')
 
-    def fill_bat(self):
+        return data
+
+    def fill_pm(self):
+        self._data_pm = self._fill_pm()
+
+    def _fill_bat(self):
         logger.debug('Rufe BAT-Daten ab')
-        self._data_bat = []
+        data = []
         for index in [0,1]:
             try:
                 requests = self.gui.getBatDcbData(bat_index=index)
                 if len(requests) > 0:
                     f = self.gui.get_data(requests, True)
-                    self._data_bat.append(f)
+                    data.append(f)
                     logger.info('Erfolgreich BAT #' + str(index) + ' abgerufen')
             except:
                 logger.exception('Fehler beim Abruf von BAT #' + str(index))
 
         logger.debug('BAT-Daten abgerufen')
 
-    def fill_wb(self):
-        self._data_wb = []
+        return data
+
+    def fill_bat(self):
+        self._data_bat = self._fill_bat()
+
+    def _fill_wb(self):
+        ddata = []
         logger.debug('Rufe WB-Daten ab')
         if self.debug:
             from e3dc._rscp_utils import RSCPUtils
@@ -750,8 +823,7 @@ class RSCPGuiMain():
                 raise RSCPCommunicationError('Error bei WB-Abruf', logger)
         except RSCPCommunicationError:
             logger.debug('Keine Wallbox vorhanden')
-            self.cbWallbox.Append('keine Wallbox vorhanden')
-            return False
+            return ddata
 
         for index in data:
             logger.debug('Rufe Daten für Wallbox #' + str(index.data) + ' ab')
@@ -762,6 +834,11 @@ class RSCPGuiMain():
             else:
                 d = self.gui.get_data(self.gui.getWB(index=index.data), True)
 
-            self._data_wb.append(d)
+            ddata.append(d)
 
         logger.debug('Abruf WB-Daten abgeschlossen')
+
+        return ddata
+
+    def fill_wb(self):
+        self._data_wb = self._fill_wb()

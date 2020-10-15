@@ -1,6 +1,6 @@
 import logging
 import argparse
-import os
+import sys
 
 parser = argparse.ArgumentParser(description='Ruft Daten von E3DC-Systemen mittels RSCP ab')
 parser.add_argument('-e', '--export', const=True, default=False, nargs='?',
@@ -40,8 +40,6 @@ except:
     logger.warning('wxPython steht nicht zur Verfügung, Programm beschränkt sich auf die Console')
 
 logger.debug('Lade Module')
-
-import sys
 
 if 'wx' in sys.modules.keys() and not args.console:
     from rscpguiframe import RSCPGuiFrame
