@@ -1,20 +1,6 @@
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
 
 logger.debug('Programmstart')
 
@@ -45,7 +31,7 @@ except:
 
 from e3dc._rscp_dto import RSCPDTO
 from e3dc.rscp_tag import RSCPTag
-from e3dc.rscp_type import RSCPType
+from e3dc.rscp_type import RSCPType, WB_TYPE
 from e3dcwebgui import E3DCWebGui
 from rscpguimain import RSCPGuiMain
 
@@ -417,86 +403,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             logger.error('Wallbox #' + str(index) + ' existiert nicht!')
 
         self.pMainChanged()
-
-    def fill_wb_index(self, index):
-        if len(self._data_wb) > index:
-            logger.debug('Stelle Daten der Wallbox #' + str(index) + ' dar')
-            d = self._data_wb[index]
-
-            index = d['WB_INDEX'].data
-
-            self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
-            energy, einheit = self.get_einheit(d['WB_ENERGY_ALL'].data)
-            self.txtWBEnergyAll.SetValue(str(round(energy,3)) + ' ' + einheit)
-            energy, einheit = self.get_einheit(d['WB_ENERGY_SOLAR'].data)
-            self.txtWBEnergySolar.SetValue(str(round(energy,3)) + ' ' + einheit)
-            self.txtWBSOC.SetValue(repr(d['WB_SOC']))
-            self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
-            self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
-            self.txtWBMode.SetValue(repr(d['WB_MODE']))
-
-            self.gWBData.SetCellValue(0, 0, str(round(d['WB_PM_POWER_L1'], 3)) + ' W')
-            self.gWBData.SetCellValue(0, 1, str(round(d['WB_PM_POWER_L2'], 3)) + ' W')
-            self.gWBData.SetCellValue(0, 2, str(round(d['WB_PM_POWER_L3'], 3)) + ' W')
-            self.gWBData.SetCellValue(0, 3, str(
-                round(d['WB_PM_POWER_L1'].data + d['WB_PM_POWER_L2'].data + d['WB_PM_POWER_L3'].data, 3)) + ' W')
-
-            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data)
-            self.gWBData.SetCellValue(1, 0, str(round(energy,3)) + ' ' + einheit)
-            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data)
-            self.gWBData.SetCellValue(1, 1, str(round(energy,3)) + ' ' + einheit)
-            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L2'].data)
-            self.gWBData.SetCellValue(1, 2, str(round(energy,3)) + ' ' + einheit)
-            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data + d['WB_PM_ENERGY_L2'].data + d['WB_PM_ENERGY_L3'].data)
-            self.gWBData.SetCellValue(1, 3, str(round(energy,3)) + ' ' + einheit)
-
-            self.chWBDeviceConnected.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_CONNECTED'].data)
-            self.chWBDeviceInService.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_IN_SERVICE'].data)
-            self.chWBDeviceWorking.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_WORKING'].data)
-
-            alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
-            sb = alg_data[2]
-            self.chWBSunmode.SetValue((sb & 128) == 128)
-
-            if (sb & 64) == 64:
-                logger.debug('WB charging canceled True')
-            else:
-                logger.debug('WB charging canceled False')
-            if (sb & 32) == 32:
-                logger.debug('WB charging active True')
-            else:
-                logger.debug('WB charging active False')
-
-            self.chWB1PH.SetValue(alg_data[1] == 1)
-
-            def get_load(data):
-                return data[1] << 8 | data[0]
-
-            sunload = get_load(d['WB_EXTERN_DATA_SUN']['WB_EXTERN_DATA'].data)
-            self.txtWBSun.SetValue(str(sunload) + ' W')
-
-            netload = get_load(d['WB_EXTERN_DATA_NET']['WB_EXTERN_DATA'].data)
-            self.txtWBNet.SetValue(str(netload) + ' W')
-
-            self.txtWBLadeleistung.SetValue(str(sunload + netload) + ' W')
-
-            self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
-            self.sWBLadestromOnScroll(None)
-
-            logger.debug('Darstellung Wallbox abgeschlossen')
-        else:
-            logger.debug('Daten für Wallbox #' + str(index) + ' existieren nicht, Darstellung abgebrochen')
-
-            # Bedeutung???
-            # WB_REQ_SET_MODE = 0x0E000030
-            # WB_REQ_SET_EXTERN = 0x0E041010
-            # WB_REQ_SET_BAT_CAPACITY = 0x0E041015
-            # WB_REQ_SET_ENERGY_ALL = 0x0E041016
-            # WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
-            # WB_REQ_SET_PARAM_1 = 0x0E041018
-            # WB_REQ_SET_PARAM_2 = 0x0E041019
-            # WB_REQ_SET_PW = 0x0E041020
-            # WB_REQ_SET_DEVICE_NAME
 
     def bWBSaveOnClick(self, event):
         index = self.cbWallbox.GetSelection()
@@ -1204,6 +1110,94 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                     self.cbWallbox.SetSelection(selected)
                     self.fill_wb_index(selected)
 
+    def fill_wb_index(self, index):
+        if len(self._data_wb) > index:
+            logger.debug('Stelle Daten der Wallbox #' + str(index) + ' dar')
+            d = self._data_wb[index]
+
+            index = d['WB_INDEX'].data
+            wallbox_type = WB_TYPE.E3DC if d['WB_DEVICE_NAME'].data != 'Easy Connect' else WB_TYPE.EASYCONNECT
+
+            self.txtWBStatus.SetValue(repr(d['WB_STATUS']))
+            energy, einheit = self.get_einheit(d['WB_ENERGY_ALL'].data)
+            self.txtWBEnergyAll.SetValue(str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_ENERGY_SOLAR'].data)
+            self.txtWBEnergySolar.SetValue(str(round(energy,3)) + ' ' + einheit)
+            self.txtWBSOC.SetValue(repr(d['WB_SOC']))
+            self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
+            self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
+            self.txtWBMode.SetValue(repr(d['WB_MODE']))
+
+            self.gWBData.SetCellValue(0, 0, str(round(d['WB_PM_POWER_L1'], 3)) + ' W')
+            self.gWBData.SetCellValue(0, 1, str(round(d['WB_PM_POWER_L2'], 3)) + ' W')
+            self.gWBData.SetCellValue(0, 2, str(round(d['WB_PM_POWER_L3'], 3)) + ' W')
+            self.gWBData.SetCellValue(0, 3, str(
+                round(d['WB_PM_POWER_L1'].data + d['WB_PM_POWER_L2'].data + d['WB_PM_POWER_L3'].data, 3)) + ' W')
+
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data)
+            self.gWBData.SetCellValue(1, 0, str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data)
+            self.gWBData.SetCellValue(1, 1, str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L2'].data)
+            self.gWBData.SetCellValue(1, 2, str(round(energy,3)) + ' ' + einheit)
+            energy, einheit = self.get_einheit(d['WB_PM_ENERGY_L1'].data + d['WB_PM_ENERGY_L2'].data + d['WB_PM_ENERGY_L3'].data)
+            self.gWBData.SetCellValue(1, 3, str(round(energy,3)) + ' ' + einheit)
+
+            self.chWBDeviceConnected.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_CONNECTED'].data)
+            self.chWBDeviceInService.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_IN_SERVICE'].data)
+            self.chWBDeviceWorking.SetValue(d['WB_DEVICE_STATE']['WB_DEVICE_WORKING'].data)
+
+            alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
+            sb = alg_data[2]
+            if wallbox_type == WB_TYPE.E3DC:
+                self.chWB1PH.SetValue(alg_data[4] < 3)
+                self.sWBLadestrom.SetValue(alg_data[4])
+            else:
+                self.chWB1PH.SetValue(alg_data[1] == 1)
+                self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
+
+
+            if (sb & 64) == 64:
+                logger.debug('WB charging canceled True')
+            else:
+                logger.debug('WB charging canceled False')
+            if (sb & 32) == 32:
+                logger.debug('WB charging active True')
+            else:
+                logger.debug('WB charging active False')
+
+            self.chWBSunmode.SetValue((sb & 128) == 128)
+
+
+            def get_load(data):
+                return data[1] << 8 | data[0]
+
+            sunload = get_load(d['WB_EXTERN_DATA_SUN']['WB_EXTERN_DATA'].data)
+            self.txtWBSun.SetValue(str(sunload) + ' W')
+
+            netload = get_load(d['WB_EXTERN_DATA_NET']['WB_EXTERN_DATA'].data)
+            self.txtWBNet.SetValue(str(netload) + ' W')
+
+            self.txtWBLadeleistung.SetValue(str(sunload + netload) + ' W')
+
+            self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
+            self.sWBLadestromOnScroll(None)
+
+            logger.debug('Darstellung Wallbox abgeschlossen')
+        else:
+            logger.debug('Daten für Wallbox #' + str(index) + ' existieren nicht, Darstellung abgebrochen')
+
+            # Bedeutung???
+            # WB_REQ_SET_MODE = 0x0E000030
+            # WB_REQ_SET_EXTERN = 0x0E041010
+            # WB_REQ_SET_BAT_CAPACITY = 0x0E041015
+            # WB_REQ_SET_ENERGY_ALL = 0x0E041016
+            # WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
+            # WB_REQ_SET_PARAM_1 = 0x0E041018
+            # WB_REQ_SET_PARAM_2 = 0x0E041019
+            # WB_REQ_SET_PW = 0x0E041020
+            # WB_REQ_SET_DEVICE_NAME
+
     def bSaveClick(self, event):
         self.saveConfig()
 
@@ -1506,6 +1500,12 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         event.Skip()
 
     def sendToServer(self, event):
+        try:
+            self.sendToPortalMin()
+        except:
+            logger.exception('Fehler beim Senden an Server')
+
+
         ret = wx.MessageBox(
             'Achtung, es werden alle angezeigten Daten an externe Stelle übermittelt.\nSeriennummern werden in anonymisierter Form übermittelt.\nZugangsdaten werden nicht übermittelt.\nDie Datenübertragung erfolgt verschlüsselt.\nWirklich fortfahren?',
             caption='Ausgelesene Daten übermitteln',

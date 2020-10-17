@@ -13,7 +13,6 @@ from e3dc.rscp_type import RSCPType
 
 logger = logging.getLogger(__name__)
 
-
 class RSCPUtils:
     _FRAME_HEADER_FORMAT = "<HHQIH"
     _FRAME_CRC_FORMAT = "I"

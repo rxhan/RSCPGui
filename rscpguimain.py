@@ -1,20 +1,6 @@
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
 
 from socket import setdefaulttimeout
 import csv
@@ -842,3 +828,58 @@ class RSCPGuiMain():
 
     def fill_wb(self):
         self._data_wb = self._fill_wb()
+
+    def sendToPortalMin(self):
+        data = {}
+        if not self._data_info:
+            self._data_info = self._fill_info()
+            if not self._data_info:
+                raise Exception('Abruf nicht möglich')
+        if not self._data_bat:
+            self._data_bat = self._fill_bat()
+            if not self._data_bat:
+                raise Exception('Abruf nicht möglich')
+
+        sn = self._data_info['INFO_SERIAL_NUMBER'].data
+        mac = self._data_info['INFO_MAC_ADDRESS'].data
+        snmac = sn+mac
+        system = hashlib.md5(snmac.encode()).hexdigest()
+        proddate = self._data_info['INFO_PRODUCTION_DATE'].data
+        if len(proddate) == 16:
+            proddate = proddate[3:10]
+        data['productiondate'] = proddate
+        data['release'] = self._data_info['INFO_SW_RELEASE'].data
+        data['model'] = sn[0:6]
+
+        data['bat'] = []
+
+        for bat in self._data_bat:
+            databat = {}
+            #databat['index'] = bat['BAT_INDEX'].data
+            databat['capacity'] = bat['BAT_SPECIFICATION']['BAT_SPECIFIED_CAPACITY'].data
+            databat['dcb'] = []
+
+            for dcb in bat['BAT_DCB_INFO']:
+                datadcb = {}
+                #datadcb['index'] = dcb['BAT_DCB_INDEX'].data
+                datadcb['cyclecount'] = dcb['BAT_DCB_CYCLE_COUNT'].data
+                datadcb['soh'] = dcb['BAT_DCB_SOH'].data
+                datadcb['maxchargevoltage'] = dcb['BAT_DCB_MAX_CHARGE_VOLTAGE'].data
+                datadcb['endofdischarge'] = dcb['BAT_DCB_END_OF_DISCHARGE'].data
+                #sndcbsn = sn + dcb['BAT_DCB_SERIALCODE'].data
+                #datadcb['serial'] = hashlib.md5(sndcbsn.encode()).hexdigest()
+
+                databat['dcb'].append(datadcb)
+
+            data['bat'].append(databat)
+        print(system)
+        print(data)
+
+        r = requests.put('https://pv.pincrushers.de/rscpgui/' + system, json = data)
+        print(r.text)
+        response = r.json()
+        print(response)
+        r.raise_for_status()
+
+
+

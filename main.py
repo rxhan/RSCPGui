@@ -16,22 +16,25 @@ if args.verbose:
 else:
     loglevel = logging.ERROR
 
+loggernames = [__name__, 'rscpguiframe','rscpguimain','rscpguiconsole','export','e3dcwebgui','e3dc']
+for name in loggernames:
+    l = logging.getLogger(name)
+    l.setLevel(loglevel)
+
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(loglevel)
+
+    # create formatter
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+    # add formatter to ch
+    ch.setFormatter(formatter)
+
+    # add ch to logger
+    l.addHandler(ch)
+
 logger = logging.getLogger(__name__)
-logger.setLevel(loglevel)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(loglevel)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
-
 logger.debug('Programmstart')
 
 try:
