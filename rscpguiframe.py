@@ -1805,14 +1805,20 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.fpUploadJSON.SetPath(self.cfgExportcsvpath)
         if self.cfgExportmqtt is not None:
             self.chUploadMQTT.SetValue(self.cfgExportmqtt)
-        self.txtUploadMQTTBroker.SetValue(self.cfgExportmqttbroker)
-        self.txtUploadMQTTPort.SetValue(str(self.cfgExportmqttport))
-        self.scUploadMQTTQos.SetValue(self.cfgExportmqttpos)
-        self.chUploadMQTTRetain.SetValue(self.cfgExportmqttretain)
+        if self.cfgExportmqttbroker is not None:
+            self.txtUploadMQTTBroker.SetValue(self.cfgExportmqttbroker)
+        if self.cfgExportmqttport is not None:
+            self.txtUploadMQTTPort.SetValue(str(self.cfgExportmqttport))
+        if self.cfgExportmqttpos is not None:
+            self.scUploadMQTTQos.SetValue(self.cfgExportmqttpos)
+        if self.cfgExportmqttretain is not None:
+            self.chUploadMQTTRetain.SetValue(self.cfgExportmqttretain)
         if self.cfgExporthttp is not None:
             self.chUploadHTTP.SetValue(self.cfgExporthttp)
-        self.txtUploadHTTPURL.SetValue(self.cfgExporthttpurl)
-        self.scUploadIntervall.SetValue(self.cfgExportintervall)
+        if self.cfgExporthttpurl is not None:
+            self.txtUploadHTTPURL.SetValue(self.cfgExporthttpurl)
+        if self.cfgExportintervall is not None:
+            self.scUploadIntervall.SetValue(self.cfgExportintervall)
 
         if self.cfgExportpaths is not None and len(self.cfgExportpaths) > 0:
             self.stUploadCount.SetLabel('Es wurden ' + str(len(self.cfgExportpaths)) + ' Datenfelder angewählt')
