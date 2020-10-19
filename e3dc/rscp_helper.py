@@ -169,7 +169,7 @@ class rscp_helper():
                 logger.debug('Bat #' + str(bat_index) + ' scheint aktiv zu sein, rufe weitere Daten ab')
                 requests += self.getBatData(bat_index=bat_index, dcb_indexes=range(0, data['BAT_DCB_COUNT'].data))
             except:
-                logger.info('Bat #' + str(bat_index) + ' steht nicht zur Verfügung')
+                logger.debug('Bat #' + str(bat_index) + ' steht nicht zur Verfügung')
 
 
         return requests

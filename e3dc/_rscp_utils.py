@@ -85,7 +85,7 @@ class RSCPUtils:
                                                                                                  self._FRAME_HEADER_FORMAT)])
 
         if ctrl & 0x10:
-            logger.info("CRC is enabled")
+            logger.debug("CRC is enabled")
             total_length = struct.calcsize(self._FRAME_HEADER_FORMAT) + length + struct.calcsize(self._FRAME_CRC_FORMAT)
             data, crc = struct.unpack("<" + str(length) + "s" + self._FRAME_CRC_FORMAT,
                                       frame_data[struct.calcsize(self._FRAME_HEADER_FORMAT):total_length])
@@ -95,7 +95,7 @@ class RSCPUtils:
                 struct.unpack("<" + str(length) + "s",
                               frame_data[struct.calcsize(self._FRAME_HEADER_FORMAT):total_length])[
                     0]
-            logger.info("CRC is disabled")
+            logger.debug("CRC is disabled")
 
         self._check_crc_validity(crc, frame_data)
         timestamp = seconds + float(nanoseconds) / 1000

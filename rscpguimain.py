@@ -46,7 +46,7 @@ class RSCPGuiMain():
     _try_connect = False
 
     def __init__(self, args):
-        logger.debug('Main initialisiert')
+        logger.info('Main initialisiert')
         self._args = args
         self.clear_values()
         self.ConfigFilename = 'rscpe3dc.conf.ini'
@@ -185,7 +185,7 @@ class RSCPGuiMain():
             return testgui.get_data(requests, True)
 
         if self.cfgLoginusername and self.cfgLoginpassword and self.cfgLoginconnectiontype == 'auto':
-            logger.debug("Ermittle beste Verbindungsart (Verbindungsart auto)")
+            logger.info("Ermittle beste Verbindungsart (Verbindungsart auto)")
             seriennummer = self.cfgLoginseriennummer
             address = self.cfgLoginaddress
             testgui = None
@@ -220,7 +220,7 @@ class RSCPGuiMain():
                     logger.exception('Bei der Ermittlung der IP-Adresse ist ein Fehler aufgetreten')
 
             if self.cfgLoginusername and self.cfgLoginpassword and address and self.cfgLoginrscppassword:
-                logger.debug('Teste direkte Verbindungsart')
+                logger.info('Teste direkte Verbindungsart')
 
                 if not isinstance(testgui, E3DCGui):
                     testgui = E3DCGui(self.cfgLoginusername, self.cfgLoginpassword, address, self.cfgLoginrscppassword)
@@ -247,7 +247,7 @@ class RSCPGuiMain():
                     logger.info('Verwende Web Verbindung')
                     testgui = testgui_web
                 else:
-                    logger.debug('Teste Web Verbindungsart')
+                    logger.info('Teste Web Verbindungsart')
                     testgui = E3DCWebGui(self.cfgLoginusername, self.cfgLoginpassword, seriennummer)
                     try:
                         result = test_connection(testgui)
@@ -412,7 +412,7 @@ class RSCPGuiMain():
 
 
     def sammle_data(self, anon = True):
-        logger.debug('Sammle Daten')
+        logger.info('Sammle Daten')
         self.updateData()
 
         anonymize = ['DCDC_SERIAL_NUMBER', 'INFO_MAC_ADDRESS', 'BAT_DCB_SERIALNO', 'BAT_DCB_SERIALCODE', 'INFO_SERIAL_NUMBER',
@@ -452,10 +452,10 @@ class RSCPGuiMain():
             for d in self._data_wb:
                 data['WB_DATA'].append(d.asDict())
         if anon:
-            logger.debug('Anonymisiere Daten')
+            logger.info('Anonymisiere Daten')
             data = self.anonymize_data(data, anonymize, remove)
-            logger.debug('Daten wurden anonymisiert')
-        logger.debug('Datensammlung beendet')
+            logger.info('Daten wurden anonymisiert')
+        logger.info('Datensammlung beendet')
         return data
 
     def anonymize_data(self, data, anonymize, remove):
@@ -492,7 +492,7 @@ class RSCPGuiMain():
             return mqttclient
 
         try:
-            logger.debug('Starte automatischen Export')
+            logger.info('Starte automatischen Export')
             if len(self.cfgExportpaths) > 0:
                 logger.debug('Es sind ' + str(len(self.cfgExportpaths)) + ' Datenfelder zum Export vorgesehen')
             else:
@@ -537,7 +537,7 @@ class RSCPGuiMain():
                     values['datetime'] = datetime.datetime.now().isoformat()
                     if csvactive:
                         try:
-                            logger.debug('Exportiere in CSV-Datei ' + csvfilename)
+                            logger.info('Exportiere in CSV-Datei ' + csvfilename)
                             csvwriter.writerow(values)
                             csvfile.flush()
                         except:
@@ -545,7 +545,7 @@ class RSCPGuiMain():
 
                     if jsonactive:
                         try:
-                            logger.debug('Exportiere in JSON-Datei ' + jsonfilename)
+                            logger.info('Exportiere in JSON-Datei ' + jsonfilename)
                             with open(jsonfilename, 'w') as jsonfile:
                                 json.dump(values, jsonfile)
                         except:
@@ -553,7 +553,7 @@ class RSCPGuiMain():
 
                     if mqttactive:
                         try:
-                            logger.debug('Exportiere nach MQTT')
+                            logger.info('Exportiere nach MQTT')
                             for key in values.keys():
                                 if key not in ('ts', 'datetime'):
                                     topic = '/' + key
@@ -567,7 +567,7 @@ class RSCPGuiMain():
 
                     if httpactive:
                         try:
-                            logger.debug('Exportiere an Http-Url ' + httpurl)
+                            logger.info('Exportiere an Http-Url ' + httpurl)
                             r = requests.post(httpurl, json=values)
                             r.raise_for_status()
                             logger.debug('Export an URL Erfolgreich ' + str(r.status_code))
@@ -720,7 +720,7 @@ class RSCPGuiMain():
 
                 logger.info('DCDC #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
-                logger.info('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
+                logger.debug('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
 
         return data
 
@@ -735,7 +735,7 @@ class RSCPGuiMain():
                 data[index] = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
             except:
-                logger.exception('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
+                logger.debug('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
 
         logger.debug('Abruf PVI-Daten abgeschlossen')
 
@@ -782,7 +782,7 @@ class RSCPGuiMain():
                     data.append(f)
                     logger.info('Erfolgreich BAT #' + str(index) + ' abgerufen')
             except:
-                logger.exception('Fehler beim Abruf von BAT #' + str(index))
+                logger.debug('Fehler beim Abruf von BAT #' + str(index))
 
         logger.debug('BAT-Daten abgerufen')
 
@@ -794,31 +794,17 @@ class RSCPGuiMain():
     def _fill_wb(self):
         ddata = []
         logger.debug('Rufe WB-Daten ab')
-        if self.debug:
-            from e3dc._rscp_utils import RSCPUtils
-            import binascii
-            r = RSCPUtils()
         try:
-            if self.debug:
-                t = 'e3dc0011ff41805f00000000a833bf1912001c10840e0e0b000100040e06040000000000bac1b748'
-                bin = binascii.unhexlify(t)
-                data = r.decode_data(bin)
-            else:
-                data = self.gui.get_data(self.gui.getWBCount(), True)
+            data = self.gui.get_data(self.gui.getWBCount(), True)
             if data.type == RSCPType.Error:
                 raise RSCPCommunicationError('Error bei WB-Abruf', logger)
         except RSCPCommunicationError:
-            logger.debug('Keine Wallbox vorhanden')
+            logger.info('Keine Wallbox vorhanden')
             return ddata
 
         for index in data:
             logger.debug('Rufe Daten für Wallbox #' + str(index.data) + ' ab')
-            if self.debug:
-                t = 'e3dc0011ff41805f00000000d006f01ac0020000840e0eb9020100040e05020000000400800e030100000100800e07040083b600000200800e070400e5b300000300800e05020004000400800e030100000500800e030100000600800e030100900700800e030100000800800e030100000900800e030100000a00800e05020000000b00800e030100000000860e0e18000100860e010100010200860e010100010300860e010100000c00800e0b0800000000a0467095400d00800e0b08000000006055b90f400e00800e0b08000000006055b90f400f00800e030100071100800e030100001200800e0b0800e801068d6e137d401300800e0b0800aa58ab3dcf79fc3f1400800e0b0800aa58ab3dcf79fc3f1500800e070400000000001600800e030100002900800e0e18003000800e010100013100800e010100013200800e010100001700800e0301000a1800800e070400000000001900800e070400102700001a00800e05020000001b00800e030100061c00800e030100e61d00800e030100001e00800e030100001f00800e05020000002000800e05020000002100800e05020000002200800e030100002300800e030100002400800e030100432500800e030100142600800e030100002700800e010100012800800e010100014000800e0b080000000000000000004200800e0d0c004561737920436f6e6e6563740010040eff0400070000001110840e0e1a001120040e060400080000001020040e1008006405e5b3000004001210840e0e1a001120040e060400080000001020040e10080000009e02000000001310840e0e1a001120040e060400080000001020040e100800640583b6000000041410840e0e1a001120040e060400080000001020040e1008000401b006000000001b10840e0e1a001120040e060400080000001020040e10080000000600000000001a10840e0e1a001120040e060400080000001020040e1008000000000000000000020d6f'
-                bin = binascii.unhexlify(t)
-                d = r.decode_data(bin)
-            else:
-                d = self.gui.get_data(self.gui.getWB(index=index.data), True)
+            d = self.gui.get_data(self.gui.getWB(index=index.data), True)
 
             ddata.append(d)
 
