@@ -752,7 +752,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.gDCDC.SetCellValue(9, index, str(repr(d['DCDC_BOARD_VERSION'])))
             self.gDCDC.SetCellValue(10, index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_STATE_AS_STRING']))
             self.gDCDC.SetCellValue(11, index, repr(d['DCDC_STATUS_AS_STRING']['DCDC_SUBSTATE_AS_STRING']))
-        self.gDCDC.AutoSizeColumns()
+        self.gDCDC.AutoSize()
         logger.debug('Abruf DCDC-Daten abgeschlossen')
 
     def fill_pvi(self):
@@ -901,6 +901,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtBatStatusCode.SetValue(repr(f['BAT_INFO']['BAT_STATUS_CODE']))
         self.txtErrorCode.SetValue(repr(f['BAT_INFO']['BAT_ERROR_CODE']))
         self.txtDcbCount.SetValue(repr(f['BAT_DCB_COUNT']))
+        logger.debug('Es müssen ' + str(dcbcount) + ' DCB-Spalten gefüllt werden')
         self.gDCB.AppendCols(dcbcount)
         for i in range(0, dcbcount):
             self.gDCB.SetColLabelValue(i, 'DCB #' + str(i))
@@ -936,12 +937,15 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtBatTrainingMode.SetValue(s)
         self.txtBatDeviceName.SetValue(repr(f['BAT_DEVICE_NAME']))
 
+        logger.debug('BAT Datenfelder gefüllt')
+
         def set_voltages(d):
             if d.type == RSCPType.Error:
                 logger.warning('BAT_DCB_ALL_CELL_VOLTAGES konnte nicht abgerufen werden')
             else:
                 index = int(d['BAT_DCB_INDEX'])
                 if index < dcbcount:
+                    logger.debug('Fülle Spannungen für DCB #' + str(index))
                     if index == 0 and not self.gDCB_row_voltages:
                         rows = self.gDCB.GetNumberRows()
                         if rows < self.gDCB_last_row + len(d['BAT_DATA']):
@@ -954,6 +958,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                         self.gDCB.SetRowLabelValue(self.gDCB_row_voltages + i, u"Spannung #" + str(i))
                         self.gDCB.SetCellValue(self.gDCB_row_voltages + i, index, str(round(volt, 4)) + ' V')
                         i += 1
+                    logger.debug('Spannungen für DCB #' + str(index) + ' gefüllt')
 
         def set_temperatures(d):
             if d.type == RSCPType.Error:
@@ -961,6 +966,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             else:
                 index = int(d['BAT_DCB_INDEX'])
                 if index < dcbcount:
+                    logger.debug('Fülle Temperaturen für DCB #' + str(index))
                     if index == 0 and not self.gDCB_row_temp:
                         rows = self.gDCB.GetNumberRows()
                         if rows < self.gDCB_last_row + len(d['BAT_DATA']):
@@ -974,12 +980,15 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                         self.gDCB.SetCellValue(self.gDCB_row_temp + i, index, str(round(temp, 4)) + ' °C')
                         i += 1
 
+                    logger.debug('Temperaturen für DCB #' + str(index) + ' gefüllt')
+
         def set_info(d):
             if d.type == RSCPType.Error:
                 logger.warning('BAT_DCB_INFO konnte nicht abgerufen werden')
             else:
                 index = int(d['BAT_DCB_INDEX'])
                 if index < dcbcount:
+                    logger.debug('Fülle weitere Infos für DCB #' + str(index))
                     dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP']) / 1000)
                     self.gDCB.SetCellValue(0, index, str(dd))
                     self.gDCB.SetCellValue(1, index, repr(d['BAT_DCB_MAX_CHARGE_VOLTAGE']) + ' V')
@@ -1010,6 +1019,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                     self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_SERIALCODE']))
                     self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_SENSOR']))
                     self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_STATUS']))
+                    logger.debug('Weitere Infos für DCB #' + str(index) + ' gefüllt')
 
         if dcbcount > 1:
             for d in f['BAT_DCB_ALL_CELL_TEMPERATURES']:
@@ -1023,19 +1033,25 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             set_voltages(f['BAT_DCB_ALL_CELL_VOLTAGES'])
             set_info(f['BAT_DCB_INFO'])
 
-        self.gDCB.AutoSizeColumns()
+        self.gDCB.AutoSize()
         logger.debug('BAT-Datenfelder füllen abgeschlossen')
 
     def fill_pm(self):
-        self.gPM.DeleteCols(numCols=self.gPM.GetNumberCols())
-
         RSCPGuiMain.fill_pm(self)
 
+        if self.gPM.GetNumberCols() > len(self._data_pm):
+            logger.debug('Lösche alle Spalten in gPM')
+            self.gPM.DeleteCols(numCols=self.gPM.GetNumberCols())
+
+        while self.gPM.GetNumberCols() < len(self._data_pm.keys()):
+            logger.debug('Füge eine Spalte in gPM hinzu')
+            self.gPM.AppendCols(1)
+
+        curcol = 0
         for index in self._data_pm.keys():
             d = self._data_pm[index]
-            self.gPM.AppendCols(1)
-            curcol = self.gPM.GetNumberCols() - 1
-            self.gPM.SetColLabelValue(index, 'PM #' + str(index))
+
+            self.gPM.SetColLabelValue(curcol, 'PM #' + str(index))
             self.gPM.SetCellValue(0, curcol, str(round(d['PM_POWER_L1'], 3)) + ' W')
             self.gPM.SetCellValue(1, curcol, str(round(d['PM_POWER_L2'], 3)) + ' W')
             self.gPM.SetCellValue(2, curcol, str(round(d['PM_POWER_L3'], 3)) + ' W')
@@ -1077,6 +1093,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 self.gPM.SetCellValue(25, curcol, repr(d['PM_CS_ERR_FRAMES_100']))
                 self.gPM.SetCellValue(26, curcol, repr(d['PM_CS_UNK_FRAMES']))
                 self.gPM.SetCellValue(27, curcol, repr(d['PM_CS_ERR_FRAME']))
+            curcol+=1
 
         self.gPM.AutoSize()
 
@@ -1358,6 +1375,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.bWBStopLoading.Enable(value)
         self.bUploadStart.Enable(value)
         self.bUploadSetData.Enable(value)
+        self.cbBATIndex.Enable(value)
+        self.cbWallbox.Enable(value)
+        self.chPVIIndex.Enable(value)
+
 
     def sWBLadestromOnScroll(self, event):
         self.stWBLadestrom.SetLabel(str(self.sWBLadestrom.GetValue()) + ' A')
