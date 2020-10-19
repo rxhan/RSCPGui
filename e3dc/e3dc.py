@@ -13,20 +13,6 @@ from e3dc.rscp_type import RSCPType
 from e3dc._rscp_utils import RSCPUtils
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
 
 class E3DC:
     PORT = 5033
@@ -57,7 +43,7 @@ class E3DC:
                 dto_list.append(RSCPDTO(payload_element))
             else:
                 dto_list.append(payload_element)
-        logger.info("Sending " + str(len(dto_list)) + " requests to " + str(self.ip))
+        logger.debug("Sending " + str(len(dto_list)) + " requests to " + str(self.ip))
         responses: [RSCPDTO] = []
         dto: RSCPDTO
         for dto in dto_list:
@@ -94,7 +80,7 @@ class E3DC:
             time.sleep(0.01)
         response = self._receive()
         if response.type == RSCPType.Error:
-            logger.error("Error type returned")
+            logger.debug("Error type returned")
             raise (RSCPCommunicationError(None, logger))
         if not keep_connection_alive:
             self._disconnect()
@@ -119,7 +105,7 @@ class E3DC:
         self.socket = None
 
     def _receive(self) -> RSCPDTO:
-        logger.info("Waiting for response from " + str(self.ip))
+        logger.debug("Waiting for response from " + str(self.ip))
         data = self.socket.recv(self.BUFFER_SIZE)
         if len(data) == 0:
             self.socket.close()

@@ -9,20 +9,6 @@ from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
 
 class rscp_helper():
     def __init__(self, username, password, host, rscp_pass):
@@ -183,7 +169,7 @@ class rscp_helper():
                 logger.debug('Bat #' + str(bat_index) + ' scheint aktiv zu sein, rufe weitere Daten ab')
                 requests += self.getBatData(bat_index=bat_index, dcb_indexes=range(0, data['BAT_DCB_COUNT'].data))
             except:
-                logger.info('Bat #' + str(bat_index) + ' steht nicht zur Verfügung')
+                logger.debug('Bat #' + str(bat_index) + ' steht nicht zur Verfügung')
 
 
         return requests

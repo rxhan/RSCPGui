@@ -1,22 +1,6 @@
 import logging
-import threading
-import time
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-
-# create console handler and set level to debug
-ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
-
-# create formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
-# add formatter to ch
-ch.setFormatter(formatter)
-
-# add ch to logger
-logger.addHandler(ch)
 
 logger.debug('Programmstart')
 
@@ -38,10 +22,10 @@ class CustomTreeCtrl(CT.CustomTreeCtrl):
         dat = self.GetItemData(item)
         if dat is not None and not isinstance(dat, list) and not isinstance(dat, dict):
             font = self.GetItemFont(item)
-            if checked:
+            if checked and not self.IsItemChecked(item):
                 self.SetItemFont(item, font.Bold())
                 self._checked_items.append(item)
-            else:
+            elif not checked and self.IsItemChecked(item):
                 font.SetWeight(wx.FONTWEIGHT_NORMAL)
                 self.SetItemFont(item, font)
                 self._checked_items.remove(item)
@@ -147,8 +131,6 @@ class E3DCExport(ExportFrame):
 
         logger.debug('Checked Items: ' + str(len(self.tcUpload.GetCheckedItems())))
 
-
-
     def loadData(self):
         data = self._parent.sammle_data(anon = False)
 
@@ -178,8 +160,8 @@ class E3DCExport(ExportFrame):
                     for name in data.keys():
                         loadInCtrl(data[name], new, name = str(name))
 
-            reduziert = {'EMS_DATA': data['EMS_DATA'], 'BAT_DATA': data['BAT_DATA']}
-            loadInCtrl(reduziert)
+            #reduziert = {'EMS_DATA': data['EMS_DATA'], 'BAT_DATA': data['BAT_DATA']}
+            loadInCtrl(data)
             logger.debug('Datenbaum erfolgreich geladen')
 
             self.tcUpload.ExpandAll()

@@ -26,4 +26,4 @@ class RSCPCommunicationError(Exception):
     def __init__(self, message, logger: Logger):
         if message is None:
             message = self.__class__.__name__
-        logger.exception(message)
+        logger.debug(message)
