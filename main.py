@@ -5,11 +5,12 @@ import sys
 parser = argparse.ArgumentParser(description='Ruft Daten von E3DC-Systemen mittels RSCP ab')
 parser.add_argument('-e', '--export', const=True, default=False, nargs='?',
                     help='Exportstart mit Programmstart')
-parser.add_argument('--hide', const=True, default=False, nargs='?',
+parser.add_argument('-i', '--hide', action='store_true',
                     help='Programm verstecken')
 parser.add_argument("-c", "--console", const=True, default=False, nargs='?', help='Verwendung als Konsolenprogramm, sonst mit Oberfläche')
 parser.add_argument("-f", "--logfile", const='rscpgui.log', default=None, nargs='?', help='Ausgabe in eine Logdatei (Default bei Oberfläche)')
-parser.add_argument("-v", "--verbose", const='INFO', choices=logging._nameToLevel.keys(), default='ERROR', nargs='?', help='Erhöhen des Loglevels')
+parser.add_argument("-v", "--verbose", const='INFO', choices=logging._nameToLevel.keys(), default='ERROR', nargs='?', help='Anpassen des Loglevels')
+parser.add_argument("-l", "--logconsole", action='store_true', help='Logausgabe auch auf der Console (nur sinnvoll ohne -c)')
 
 args = parser.parse_args()
 loglevel = args.verbose
@@ -40,7 +41,12 @@ if not args.console and not args.logfile:
 else:
     logfile = args.logfile
 
-setLoglevel(args.verbose, logfile, args.console)
+if args.console or args.logconsole:
+    console = True
+else:
+    console = False
+
+setLoglevel(args.verbose, logfile, console)
 
 logger = logging.getLogger(__name__)
 logger.debug('Programmstart')
