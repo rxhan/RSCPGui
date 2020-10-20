@@ -139,20 +139,21 @@ class RSCPGuiMain():
                     if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain'):
                         return True if self._config[kat][name].lower() in ('true', '1', 'ja') else False
                     elif name in ('mqttport', 'mqttqos', 'intervall'):
-                        return int(self._config[kat][name])
+                        if self._config[kat][name] != '':
+                            return int(self._config[kat][name])
                     elif name == 'paths':
                         return self._config[kat][name].split(',')
                     elif name == 'mqttpassword' and self._config[kat][name][0] == '@':
                         return self.tinycode('rscpgui_mqttpass', self._config[kat][name][1:], True)
                     else:
                         return self._config[kat][name]
-                else:
-                    if name == 'mqttbroker':
-                        return 'localhost'
-                    elif name == 'mqttport':
-                        return 1883
-                    elif name == 'mqttpos':
-                        return 0
+
+                if name == 'mqttbroker':
+                    return 'localhost'
+                elif name == 'mqttport':
+                    return 1883
+                elif name == 'mqttpos':
+                    return 0
 
         return None
 
