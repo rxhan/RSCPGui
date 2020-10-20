@@ -27,4 +27,6 @@ Dies kann aber auch vom Programm gesetzt werden.
 
 # Windows-Binary
 
-Aktuelle stehen in den Releasen bereit
+Aktuelle stehen in den Releasen bereit:
+
+https://github.com/rxhan/RSCPGui/releases
