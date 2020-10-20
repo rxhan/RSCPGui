@@ -44,7 +44,7 @@ class E3DCExport(ExportFrame):
             self._paths = paths
 
         self._parent = parent
-        ExportFrame.__init__(self, parent)
+        wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 522,609 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
         self.SetSizeHints(wx.DefaultSize, wx.DefaultSize)
 

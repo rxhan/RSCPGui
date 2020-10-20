@@ -201,14 +201,19 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         name = page.GetName()
 
-        if name in ('DCDC', 'INFO', 'BAT', 'PVI', 'EMS', 'WB', 'PM') and not self._updateRunning:
+        if not self._updateRunning:
             self._updateRunning = True
             self.disableButtons()
             self.gaUpdate.SetValue(0)
 
             try:
                 logger.debug('Aktualisiere ' + name)
-                if self.gui:
+                if page == self.pPortal:
+                    try:
+                        self.fill_portal()
+                    except:
+                        logger.exception('Fehler beim Darstellen der Portal-Daten')
+                elif self.gui:
                     if page == self.pDCDC:
                         try:
                             self.fill_dcdc()
@@ -1601,6 +1606,93 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self._gui.e3dc.ws.close()
 
         event.Skip()
+
+    def bPortalUploadOnClick(self, event):
+        response = self.sendToPortalMin()
+        if response:
+            print(response)
+            self.fill_portal()
+            if response['msg'] == 'success':
+                link = 'https://pv.pincrushers.de/rscpgui/' + response['filename']
+                logger.info('Daten abgelegt unter: ' + link)
+
+                wx.MessageBox('Daten an Server übermittelt. Datenlink: ' + link)
+            else:
+                wx.MessageBox('Daten konnte nicht übermittelt werden, Response: ' + response['hint'])
+        else:
+            wx.MessageBox('Daten konnten nicht übermittelt werden')
+
+    def fill_portal(self):
+        logger.debug('Rufe Geräteliste aus Portal ab')
+
+        self.gPortalList.ClearGrid()
+        self.gPortalList.DeleteRows(numRows = self.gPortalList.GetNumberRows())
+        self.gPortalList.DeleteCols(numCols = self.gPortalList.GetNumberCols())
+        self.gPortalList.AppendCols(9)
+        self.gPortalList.SetColLabelValue(0, 'Modell')
+        self.gPortalList.SetColLabelValue(1, 'Produktionsdatum')
+        self.gPortalList.SetColLabelValue(2, 'Softwarerelease')
+        self.gPortalList.SetColLabelValue(3, 'Anzahl Zyklen')
+        self.gPortalList.SetColLabelValue(4, 'Kapazität')
+        self.gPortalList.SetColLabelValue(5, 'SOH')
+        self.gPortalList.SetColLabelValue(6, 'Batteriemodule')
+        self.gPortalList.SetColLabelValue(7, 'Batterietyp(en)')
+        self.gPortalList.SetColLabelValue(8, 'Letztes Update')
+
+        try:
+            r = requests.get('https://pv.pincrushers.de/rscpgui/list.json')
+
+            logger.debug('Geräteliste abgerufen, Response: ' + r.text)
+
+            response = r.json()
+
+            r.raise_for_status()
+
+            r.close()
+
+            for device in response.keys():
+                curdata = response[device]
+                self.gPortalList.AppendRows(1)
+
+                currow = self.gPortalList.GetNumberRows() - 1
+                self.gPortalList.SetRowLabelValue(currow, device)
+                self.gPortalList.SetCellValue(currow, 0, curdata['model'])
+                self.gPortalList.SetCellValue(currow, 1, curdata['productiondate'])
+                self.gPortalList.SetCellValue(currow, 2, curdata['release'])
+
+                capacity = 0
+                cyclecount = 0
+                soh = 0
+                dcbcount = 0
+                types = []
+                for bat in curdata['bat']:
+                    capacity += bat['capacity']
+                    for dcb in bat['dcb']:
+                        cyclecount+=dcb['cyclecount']
+                        soh+=dcb['soh']
+                        dcbcount += 1
+                        type = dcb['manufacture'] + ' ' + dcb['type']
+                        if type not in types:
+                            types.append(type)
+
+                soh = round(soh / dcbcount,1)
+                cyclecount = int(round(cyclecount / dcbcount,0))
+                self.gPortalList.SetCellValue(currow, 3, str(cyclecount))
+                self.gPortalList.SetCellValue(currow, 4, str(capacity) + ' Wh')
+                self.gPortalList.SetCellValue(currow, 5, str(soh) + '%')
+                self.gPortalList.SetCellValue(currow, 6, str(dcbcount))
+                self.gPortalList.SetCellValue(currow, 7, ','.join(types))
+                self.gPortalList.SetCellValue(currow, 8, str(datetime.datetime.fromtimestamp(curdata['time'])))
+
+                #print(device, response[device])
+
+            self.gPortalList.AutoSize()
+
+            logger.debug('Abruf der Geräteliste aus Portal erfolgreich')
+        except:
+            logger.exception('Fehler beim Abruf der Geräteliste aus Portal')
+
+
 
     def bConfigGetSerialNoOnClick(self, event):
         username = self.txtUsername.GetValue()

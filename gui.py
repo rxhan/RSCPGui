@@ -3136,6 +3136,43 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.Layout()
 		fgSizer37.Fit( self.pEinstellungen )
 		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
+		self.pPortal = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer20 = wx.BoxSizer( wx.VERTICAL )
+
+		self.bPortalUpload = wx.Button( self.pPortal, wx.ID_ANY, u"Eigene Daten hochladen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer20.Add( self.bPortalUpload, 0, wx.ALL, 5 )
+
+		self.gPortalList = wx.grid.Grid( self.pPortal, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+
+		# Grid
+		self.gPortalList.CreateGrid( 5, 5 )
+		self.gPortalList.EnableEditing( True )
+		self.gPortalList.EnableGridLines( True )
+		self.gPortalList.EnableDragGridSize( False )
+		self.gPortalList.SetMargins( 0, 0 )
+
+		# Columns
+		self.gPortalList.EnableDragColMove( False )
+		self.gPortalList.EnableDragColSize( True )
+		self.gPortalList.SetColLabelSize( 30 )
+		self.gPortalList.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Rows
+		self.gPortalList.EnableDragRowSize( True )
+		self.gPortalList.SetRowLabelSize( 80 )
+		self.gPortalList.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Label Appearance
+
+		# Cell Defaults
+		self.gPortalList.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		bSizer20.Add( self.gPortalList, 0, wx.ALL, 5 )
+
+
+		self.pPortal.SetSizer( bSizer20 )
+		self.pPortal.Layout()
+		bSizer20.Fit( self.pPortal )
+		self.pMainregister.AddPage( self.pPortal, u"Portal", False )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 
@@ -3179,6 +3216,7 @@ class MainFrame ( wx.Frame ):
 		self.bUploadSetData.Bind( wx.EVT_BUTTON, self.bUploadSetDataOnClick )
 		self.bUploadStart.Bind( wx.EVT_BUTTON, self.bUploadStartOnClick )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
+		self.bPortalUpload.Bind( wx.EVT_BUTTON, self.bPortalUploadOnClick )
 
 	def __del__( self ):
 		pass
@@ -3263,6 +3301,9 @@ class MainFrame ( wx.Frame ):
 	def sendToServer( self, event ):
 		event.Skip()
 
+	def bPortalUploadOnClick( self, event ):
+		event.Skip()
+
 
 ###########################################################################
 ## Class ExportFrame
@@ -3272,6 +3313,77 @@ class ExportFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
 		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 522,609 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
+
+		bSizer181 = wx.BoxSizer( wx.VERTICAL )
+
+		self.tcUpload = wx.TreeCtrl( self, wx.ID_ANY, wx.DefaultPosition, wx.Size( 500,400 ), wx.TR_DEFAULT_STYLE )
+		bSizer181.Add( self.tcUpload, 0, wx.ALL, 5 )
+
+		fgSizer35 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer35.SetFlexibleDirection( wx.BOTH )
+		fgSizer35.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		bSizer19 = wx.BoxSizer( wx.VERTICAL )
+
+
+		fgSizer35.Add( bSizer19, 1, wx.EXPAND, 5 )
+
+		fgSizer36 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer36.SetFlexibleDirection( wx.BOTH )
+		fgSizer36.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText197 = wx.StaticText( self, wx.ID_ANY, u"Data", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText197.Wrap( -1 )
+
+		fgSizer36.Add( self.m_staticText197, 0, wx.ALL, 5 )
+
+		self.txtUploadData = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+		fgSizer36.Add( self.txtUploadData, 0, wx.ALL, 5 )
+
+		self.m_staticText198 = wx.StaticText( self, wx.ID_ANY, u"Name", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText198.Wrap( -1 )
+
+		fgSizer36.Add( self.m_staticText198, 0, wx.ALL, 5 )
+
+		self.txtUploadName = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+		fgSizer36.Add( self.txtUploadName, 0, wx.ALL, 5 )
+
+		self.m_staticText199 = wx.StaticText( self, wx.ID_ANY, u"Pfad", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText199.Wrap( -1 )
+
+		fgSizer36.Add( self.m_staticText199, 0, wx.ALL, 5 )
+
+		self.txtUploadPath = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+		fgSizer36.Add( self.txtUploadPath, 0, wx.ALL, 5 )
+
+		self.m_staticText200 = wx.StaticText( self, wx.ID_ANY, u"Bezeichner", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText200.Wrap( -1 )
+
+		fgSizer36.Add( self.m_staticText200, 0, wx.ALL, 5 )
+
+		self.txtUploadCustom = wx.TextCtrl( self, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 300,-1 ), 0 )
+		fgSizer36.Add( self.txtUploadCustom, 0, wx.ALL, 5 )
+
+
+		fgSizer35.Add( fgSizer36, 1, wx.EXPAND, 5 )
+
+
+		bSizer181.Add( fgSizer35, 1, wx.EXPAND, 5 )
+
+		self.bSave = wx.Button( self, wx.ID_ANY, u"speichern", wx.DefaultPosition, wx.DefaultSize, 0, wx.DefaultValidator, u"UPLOAD" )
+		bSizer181.Add( self.bSave, 0, wx.ALL, 5 )
+
+
+		self.SetSizer( bSizer181 )
+		self.Layout()
+
+		self.Centre( wx.BOTH )
+
+		# Connect Events
+		self.tcUpload.Bind( wx.EVT_TREE_SEL_CHANGED, self.tcUploadOnSelChanged )
+		self.bSave.Bind( wx.EVT_BUTTON, self.bSaveOnClick )
 
 	def __del__( self ):
 		pass
