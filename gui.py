@@ -2859,7 +2859,7 @@ class MainFrame ( wx.Frame ):
 		fgSizer1.SetFlexibleDirection( wx.BOTH )
 		fgSizer1.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		self.Basiseinstellungen = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.Basiseinstellungen = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Basiseinstellungen", wx.DefaultPosition, wx.DefaultSize, wx.ST_ELLIPSIZE_MIDDLE )
 		self.Basiseinstellungen.Wrap( -1 )
 
 		fgSizer1.Add( self.Basiseinstellungen, 0, wx.ALL, 5 )
@@ -3014,12 +3014,6 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer1.Add( self.txtDBServer, 0, wx.ALL, 5 )
 
-		self.bUpload = wx.Button( self.pEinstellungen, wx.ID_ANY, u"in Datenbank hochladen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.bUpload, 0, wx.ALL, 5 )
-
-		self.bSaveRSCPData = wx.Button( self.pEinstellungen, wx.ID_ANY, u"zu übermittelnde Daten ansehen / lokal speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer1.Add( self.bSaveRSCPData, 0, wx.ALL, 5 )
-
 
 		fgSizer37.Add( fgSizer1, 1, wx.EXPAND, 5 )
 
@@ -3128,11 +3122,14 @@ class MainFrame ( wx.Frame ):
 
 		fgSizer40.Add( self.stUploadCount, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
 
-		self.bUploadStart = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Starten!", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.bUploadStart = wx.Button( self.pEinstellungen, wx.ID_ANY, u"Export starten", wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer40.Add( self.bUploadStart, 0, wx.ALL, 5 )
 
 
 		fgSizer37.Add( fgSizer40, 1, wx.EXPAND, 5 )
+
+		self.bUpload = wx.Button( self.pEinstellungen, wx.ID_ANY, u"anonymisierte Debugdaten an Entwickler senden", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer37.Add( self.bUpload, 0, wx.ALL, 5 )
 
 
 		self.pEinstellungen.SetSizer( fgSizer37 )
@@ -3178,10 +3175,10 @@ class MainFrame ( wx.Frame ):
 		self.bConfigGetIPAddress.Bind( wx.EVT_BUTTON, self.bConfigGetIPAddressOnClick )
 		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
 		self.scAutoUpdate.Bind( wx.EVT_SPINCTRL, self.scAutoUpdateOnChange )
-		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
-		self.bSaveRSCPData.Bind( wx.EVT_BUTTON, self.bSaveRSCPDataOnClick )
+		self.chUploadMQTT.Bind( wx.EVT_CHECKBOX, self.chUploadMQTTOnCheck )
 		self.bUploadSetData.Bind( wx.EVT_BUTTON, self.bUploadSetDataOnClick )
 		self.bUploadStart.Bind( wx.EVT_BUTTON, self.bUploadStartOnClick )
+		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 
 	def __del__( self ):
 		pass
@@ -3254,16 +3251,16 @@ class MainFrame ( wx.Frame ):
 	def scAutoUpdateOnChange( self, event ):
 		event.Skip()
 
-	def sendToServer( self, event ):
-		event.Skip()
-
-	def bSaveRSCPDataOnClick( self, event ):
+	def chUploadMQTTOnCheck( self, event ):
 		event.Skip()
 
 	def bUploadSetDataOnClick( self, event ):
 		event.Skip()
 
 	def bUploadStartOnClick( self, event ):
+		event.Skip()
+
+	def sendToServer( self, event ):
 		event.Skip()
 
 

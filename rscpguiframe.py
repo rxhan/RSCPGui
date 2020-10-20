@@ -98,13 +98,57 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         if 'paho' not in sys.modules.keys():
             logger.debug('Deaktiviere MQTT-Felder, da MQTT nicht zur Verfügung steht (paho nicht installiert)')
-            self.scUploadMQTTQos.Enable(False)
-            self.chUploadMQTT.Enable(False)
-            self.chUploadMQTTRetain.Enable(False)
-            self.txtUploadMQTTBroker.Enable(False)
-            self.txtUploadMQTTPort.Enable(False)
+            self.enabledisableMQTT(False)
+
+        self.chUploadMQTTOnCheck(None)
 
         logger.info('Init abgeschlossen')
+
+    def enabledisableMQTT(self, value):
+        self.scUploadMQTTQos.Enable(value)
+        self.chUploadMQTT.Enable(value)
+        self.chUploadMQTTRetain.Enable(value)
+        self.txtUploadMQTTBroker.Enable(value)
+        self.txtUploadMQTTPort.Enable(value)
+        self.txtUploadMQTTUsername.Enable(value)
+        self.txtUploadMQTTPassword.Enable(value)
+
+    def hideMQTT(self, value = True):
+        if value:
+            self.scUploadMQTTQos.Hide()
+            #self.chUploadMQTT.Hide()
+            self.chUploadMQTTRetain.Hide()
+            self.txtUploadMQTTBroker.Hide()
+            self.txtUploadMQTTPort.Hide()
+            self.txtUploadMQTTUsername.Hide()
+            self.txtUploadMQTTPassword.Hide()
+            self.m_staticText208.Hide()
+            self.m_staticText209.Hide()
+            self.m_staticText2091.Hide()
+            self.m_staticText2101.Hide()
+            self.m_staticText210.Hide()
+        else:
+            self.scUploadMQTTQos.Show()
+            #self.chUploadMQTT.Show()
+            self.chUploadMQTTRetain.Show()
+            self.txtUploadMQTTBroker.Show()
+            self.txtUploadMQTTPort.Show()
+            self.txtUploadMQTTUsername.Show()
+            self.txtUploadMQTTPassword.Show()
+            self.m_staticText208.Show()
+            self.m_staticText209.Show()
+            self.m_staticText2091.Show()
+            self.m_staticText2101.Show()
+            self.m_staticText210.Show()
+
+    def chUploadMQTTOnCheck(self, event):
+        if self.chUploadMQTT.GetValue():
+            self.hideMQTT(False)
+        else:
+            self.hideMQTT(True)
+
+        parent = self.chUploadMQTT.Parent
+        parent.GetSizer().Layout()
 
     def scAutoUpdateOnChange(self, event):
         autoupdate = self.scAutoUpdate.GetValue()
@@ -1372,7 +1416,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.bConfigSetRSCPPassword.Enable(value)
         self.bEMSUploadChanges.Enable(value)
         self.bINFOSave.Enable(value)
-        self.bSaveRSCPData.Enable(value)
         self.bSYSApplicationRestart.Enable(value)
         self.bSYSReboot.Enable(value)
         self.btnUpdatecheck.Enable(value)
@@ -1527,12 +1570,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         event.Skip()
 
     def sendToServer(self, event):
-        try:
-            self.sendToPortalMin()
-        except:
-            logger.exception('Fehler beim Senden an Server')
-
-
         ret = wx.MessageBox(
             'Achtung, es werden alle angezeigten Daten an externe Stelle übermittelt.\nSeriennummern werden in anonymisierter Form übermittelt.\nZugangsdaten werden nicht übermittelt.\nDie Datenübertragung erfolgt verschlüsselt.\nWirklich fortfahren?',
             caption='Ausgelesene Daten übermitteln',
