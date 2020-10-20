@@ -27,6 +27,4 @@ Dies kann aber auch vom Programm gesetzt werden.
 
 # Windows-Binary
 
-Kann hier heruntergeladen werden:
-
-https://pv.pincrushers.de/rscpgui
+Aktuelle stehen in den Releasen bereit
