@@ -142,6 +142,8 @@ class RSCPGuiMain():
                         return int(self._config[kat][name])
                     elif name == 'paths':
                         return self._config[kat][name].split(',')
+                    elif name == 'mqttpassword' and self._config[kat][name][0] == '@':
+                        return self.tinycode('rscpgui_mqttpass', self._config[kat][name][1:], True)
                     else:
                         return self._config[kat][name]
                 else:
@@ -485,9 +487,11 @@ class RSCPGuiMain():
         return data
 
     def StartAutoExport(self):
-        def mqtt_connect(broker,port):
+        def mqtt_connect(broker,port,username=None,password=None):
             logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
             mqttclient = paho.Client("RSCPGui")
+            if username and password:
+                mqttclient.username_pw_set(username, password)
             mqttclient.connect(broker, port)
             return mqttclient
 
@@ -512,7 +516,9 @@ class RSCPGuiMain():
             mqttport = self.cfgExportmqttport
             mqttqos = self.cfgExportmqttqos
             mqttretain = self.cfgExportmqttretain
-            mqttclient = mqtt_connect(mqttbroker, mqttport) if mqttactive else None
+            mqttusername = self.cfgExportmqttusername
+            mqttpassword = self.cfgExportmqttpassword
+            mqttclient = mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword) if mqttactive else None
 
             httpactive = self.cfgExporthttp
             httpurl = self.cfgExporthttpurl
@@ -816,56 +822,68 @@ class RSCPGuiMain():
         self._data_wb = self._fill_wb()
 
     def sendToPortalMin(self):
-        data = {}
-        if not self._data_info:
-            self._data_info = self._fill_info()
+        logger.info('Sende Daten an Portal')
+        try:
+            data = {}
             if not self._data_info:
-                raise Exception('Abruf nicht möglich')
-        if not self._data_bat:
-            self._data_bat = self._fill_bat()
+                self._data_info = self._fill_info()
+                if not self._data_info:
+                    raise Exception('Abruf nicht möglich')
             if not self._data_bat:
-                raise Exception('Abruf nicht möglich')
+                self._data_bat = self._fill_bat()
+                if not self._data_bat:
+                    raise Exception('Abruf nicht möglich')
 
-        sn = self._data_info['INFO_SERIAL_NUMBER'].data
-        mac = self._data_info['INFO_MAC_ADDRESS'].data
-        snmac = sn+mac
-        system = hashlib.md5(snmac.encode()).hexdigest()
-        proddate = self._data_info['INFO_PRODUCTION_DATE'].data
-        if len(proddate) == 16:
-            proddate = proddate[3:10]
-        data['productiondate'] = proddate
-        data['release'] = self._data_info['INFO_SW_RELEASE'].data
-        data['model'] = sn[0:6]
+            sn = self._data_info['INFO_SERIAL_NUMBER'].data
+            mac = self._data_info['INFO_MAC_ADDRESS'].data
+            snmac = sn+mac
+            system = hashlib.md5(snmac.encode()).hexdigest()
+            proddate = self._data_info['INFO_PRODUCTION_DATE'].data
+            if len(proddate) == 16:
+                proddate = proddate[3:10]
+            data['productiondate'] = proddate
+            data['release'] = self._data_info['INFO_SW_RELEASE'].data
+            data['model'] = sn[0:6]
 
-        data['bat'] = []
+            data['bat'] = []
 
-        for bat in self._data_bat:
-            databat = {}
-            #databat['index'] = bat['BAT_INDEX'].data
-            databat['capacity'] = bat['BAT_SPECIFICATION']['BAT_SPECIFIED_CAPACITY'].data
-            databat['dcb'] = []
+            for bat in self._data_bat:
+                databat = {}
+                #databat['index'] = bat['BAT_INDEX'].data
+                databat['capacity'] = bat['BAT_SPECIFICATION']['BAT_SPECIFIED_CAPACITY'].data
+                databat['dcb'] = []
 
-            for dcb in bat['BAT_DCB_INFO']:
-                datadcb = {}
-                #datadcb['index'] = dcb['BAT_DCB_INDEX'].data
-                datadcb['cyclecount'] = dcb['BAT_DCB_CYCLE_COUNT'].data
-                datadcb['soh'] = dcb['BAT_DCB_SOH'].data
-                datadcb['maxchargevoltage'] = dcb['BAT_DCB_MAX_CHARGE_VOLTAGE'].data
-                datadcb['endofdischarge'] = dcb['BAT_DCB_END_OF_DISCHARGE'].data
-                #sndcbsn = sn + dcb['BAT_DCB_SERIALCODE'].data
-                #datadcb['serial'] = hashlib.md5(sndcbsn.encode()).hexdigest()
+                for dcb in bat['BAT_DCB_INFO']:
+                    datadcb = {}
+                    #datadcb['index'] = dcb['BAT_DCB_INDEX'].data
+                    datadcb['cyclecount'] = dcb['BAT_DCB_CYCLE_COUNT'].data
+                    datadcb['soh'] = dcb['BAT_DCB_SOH'].data
+                    datadcb['maxchargevoltage'] = dcb['BAT_DCB_MAX_CHARGE_VOLTAGE'].data
+                    datadcb['endofdischarge'] = dcb['BAT_DCB_END_OF_DISCHARGE'].data
+                    datadcb['manufacture'] = dcb['BAT_DCB_MANUFACTURE_NAME'].data
+                    datadcb['type'] = dcb['BAT_DCB_DEVICE_NAME'].data
+                    #sndcbsn = sn + dcb['BAT_DCB_SERIALCODE'].data
+                    #datadcb['serial'] = hashlib.md5(sndcbsn.encode()).hexdigest()
 
-                databat['dcb'].append(datadcb)
+                    databat['dcb'].append(datadcb)
 
-            data['bat'].append(databat)
-        print(system)
-        print(data)
+                data['bat'].append(databat)
+            logger.debug('Daten: ' + json.dumps(data))
 
-        r = requests.put('https://pv.pincrushers.de/rscpgui/' + system, json = data)
-        print(r.text)
-        response = r.json()
-        print(response)
-        r.raise_for_status()
+            url = 'https://pv.pincrushers.de/rscpgui/' + system
+            logger.debug('Sende Portaldaten an url ' + url)
+
+            r = requests.put(url, json = data)
+
+            logger.debug('Http Status Code: ' + str(r.status_code))
+            logger.debug('Response: ' + r.text)
+
+            response = r.json()
+            r.raise_for_status()
+
+            logger.info('Daten erfolgreich an Portal übermittelt')
+        except:
+            logger.exception('Daten konnte nicht an das Portal übermittelt werden')
 
 
 

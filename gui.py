@@ -2057,7 +2057,7 @@ class MainFrame ( wx.Frame ):
 		self.gDCB = wx.grid.Grid( self.pBAT, wx.ID_ANY, wx.DefaultPosition, wx.Size( 600,-1 ), 0 )
 
 		# Grid
-		self.gDCB.CreateGrid( 29, 2 )
+		self.gDCB.CreateGrid( 31, 2 )
 		self.gDCB.EnableEditing( True )
 		self.gDCB.EnableGridLines( True )
 		self.gDCB.EnableDragGridSize( False )
@@ -2090,17 +2090,20 @@ class MainFrame ( wx.Frame ):
 		self.gDCB.SetRowLabelValue( 15, u"Ursprüngliche Spannung" )
 		self.gDCB.SetRowLabelValue( 16, u"Minimale Ladetemperatur" )
 		self.gDCB.SetRowLabelValue( 17, u"Maximale Ladetemperatur" )
-		self.gDCB.SetRowLabelValue( 18, u"Herstellungsdatum" )
-		self.gDCB.SetRowLabelValue( 19, u"Seriennummer" )
-		self.gDCB.SetRowLabelValue( 20, u"Firmwareversion" )
-		self.gDCB.SetRowLabelValue( 21, u"PCB Version" )
-		self.gDCB.SetRowLabelValue( 22, u"Datatable Version" )
-		self.gDCB.SetRowLabelValue( 23, u"Protokollversion" )
-		self.gDCB.SetRowLabelValue( 24, u"Zellanzahl in Serie" )
-		self.gDCB.SetRowLabelValue( 25, u"Zellanzahl in Parallel" )
-		self.gDCB.SetRowLabelValue( 26, u"Serielcode" )
-		self.gDCB.SetRowLabelValue( 27, u"Nr Sensor" )
-		self.gDCB.SetRowLabelValue( 28, u"Status" )
+		self.gDCB.SetRowLabelValue( 18, u"Hersteller" )
+		self.gDCB.SetRowLabelValue( 19, u"Typ" )
+		self.gDCB.SetRowLabelValue( 20, u"Herstellungsdatum" )
+		self.gDCB.SetRowLabelValue( 21, u"Seriennummer" )
+		self.gDCB.SetRowLabelValue( 22, u"Firmwareversion" )
+		self.gDCB.SetRowLabelValue( 23, u"PCB Version" )
+		self.gDCB.SetRowLabelValue( 24, u"Datatable Version" )
+		self.gDCB.SetRowLabelValue( 25, u"Protokollversion" )
+		self.gDCB.SetRowLabelValue( 26, u"Zellanzahl in Serie" )
+		self.gDCB.SetRowLabelValue( 27, u"Zellanzahl in Parallel" )
+		self.gDCB.SetRowLabelValue( 28, u"Serielcode" )
+		self.gDCB.SetRowLabelValue( 29, u"Nr Sensor" )
+		self.gDCB.SetRowLabelValue( 30, u"Seriencode" )
+		self.gDCB.SetRowLabelValue( 31, u"Status" )
 		self.gDCB.SetRowLabelAlignment( wx.ALIGN_LEFT, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -2108,6 +2111,11 @@ class MainFrame ( wx.Frame ):
 		# Cell Defaults
 		self.gDCB.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
 		bSizer5.Add( self.gDCB, 0, wx.ALL, 5 )
+
+		self.m_staticText2081 = wx.StaticText( self.pBAT, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2081.Wrap( -1 )
+
+		bSizer5.Add( self.m_staticText2081, 0, wx.ALL, 5 )
 
 
 		fgSizer23.Add( bSizer5, 1, wx.EXPAND, 5 )
@@ -3067,6 +3075,22 @@ class MainFrame ( wx.Frame ):
 
 		self.txtUploadMQTTPort = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		fgSizer42.Add( self.txtUploadMQTTPort, 0, wx.ALL, 5 )
+
+		self.m_staticText2091 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Benutzername", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2091.Wrap( -1 )
+
+		fgSizer42.Add( self.m_staticText2091, 0, wx.ALL, 5 )
+
+		self.txtUploadMQTTUsername = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer42.Add( self.txtUploadMQTTUsername, 0, wx.ALL, 5 )
+
+		self.m_staticText2101 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Passwort", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2101.Wrap( -1 )
+
+		fgSizer42.Add( self.m_staticText2101, 0, wx.ALL, 5 )
+
+		self.txtUploadMQTTPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PASSWORD )
+		fgSizer42.Add( self.txtUploadMQTTPassword, 0, wx.ALL, 5 )
 
 		self.m_staticText210 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"QOS", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText210.Wrap( -1 )

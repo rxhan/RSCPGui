@@ -84,6 +84,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 if self._args.export:
                     logger.debug('Export bei Programmstart aktiviert')
                     self.bUploadStartOnClick(None)
+                if self._args.portal:
+                    self.sendToPortalMin()
+
+
             except:
                 pass
 
@@ -880,7 +884,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         self.gDCB_row_voltages = None
         self.gDCB_row_temp = None
-        self.gDCB_last_row = 28
+        self.gDCB_last_row = 30
 
         f = self._data_bat[index]
 
@@ -991,34 +995,36 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                     logger.debug('Fülle weitere Infos für DCB #' + str(index))
                     dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP']) / 1000)
                     self.gDCB.SetCellValue(0, index, str(dd))
-                    self.gDCB.SetCellValue(1, index, repr(d['BAT_DCB_MAX_CHARGE_VOLTAGE']) + ' V')
-                    self.gDCB.SetCellValue(2, index, repr(d['BAT_DCB_MAX_CHARGE_CURRENT']) + ' A')
-                    self.gDCB.SetCellValue(3, index, repr(d['BAT_DCB_END_OF_DISCHARGE']) + ' V')
-                    self.gDCB.SetCellValue(4, index, repr(d['BAT_DCB_MAX_DISCHARGE_CURRENT']) + ' A')
+                    self.gDCB.SetCellValue(1, index, str(round(d['BAT_DCB_MAX_CHARGE_VOLTAGE'],3)) + ' V')
+                    self.gDCB.SetCellValue(2, index, str(round(d['BAT_DCB_MAX_CHARGE_CURRENT'],5)) + ' A')
+                    self.gDCB.SetCellValue(3, index, str(round(d['BAT_DCB_END_OF_DISCHARGE'],3)) + ' V')
+                    self.gDCB.SetCellValue(4, index, str(round(d['BAT_DCB_MAX_DISCHARGE_CURRENT'],5)) + ' A')
                     self.gDCB.SetCellValue(5, index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'], 5)) + ' Ah')
                     self.gDCB.SetCellValue(6, index, str(round(d['BAT_DCB_REMAINING_CAPACITY'], 5)) + ' Ah')
-                    self.gDCB.SetCellValue(7, index, repr(d['BAT_DCB_SOC']) + '%')
-                    self.gDCB.SetCellValue(8, index, repr(d['BAT_DCB_SOH']) + '%')
-                    self.gDCB.SetCellValue(9, index, repr(d['BAT_DCB_CYCLE_COUNT']))
+                    self.gDCB.SetCellValue(7, index, str(round(d['BAT_DCB_SOC'],2)) + '%')
+                    self.gDCB.SetCellValue(8, index, str(round(d['BAT_DCB_SOH'],2)) + '%')
+                    self.gDCB.SetCellValue(9, index, str(round(d['BAT_DCB_CYCLE_COUNT'],0)))
                     self.gDCB.SetCellValue(10, index, str(round(d['BAT_DCB_CURRENT'], 5)) + ' A')
                     self.gDCB.SetCellValue(11, index, str(round(d['BAT_DCB_VOLTAGE'], 2)) + ' V')
                     self.gDCB.SetCellValue(12, index, str(round(d['BAT_DCB_CURRENT_AVG_30S'], 5)) + ' A')
                     self.gDCB.SetCellValue(13, index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'], 2)) + ' V')
                     self.gDCB.SetCellValue(14, index, str(round(d['BAT_DCB_DESIGN_CAPACITY'], 5)) + ' Ah')
-                    self.gDCB.SetCellValue(15, index, repr(d['BAT_DCB_DESIGN_VOLTAGE']) + ' V')
-                    self.gDCB.SetCellValue(16, index, repr(d['BAT_DCB_CHARGE_LOW_TEMPERATURE']) + ' °C')
-                    self.gDCB.SetCellValue(17, index, repr(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE']) + ' °C')
-                    self.gDCB.SetCellValue(18, index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
-                    self.gDCB.SetCellValue(19, index, repr(d['BAT_DCB_SERIALNO']))
-                    self.gDCB.SetCellValue(20, index, repr(d['BAT_DCB_FW_VERSION']))
-                    self.gDCB.SetCellValue(21, index, repr(d['BAT_DCB_PCB_VERSION']))
-                    self.gDCB.SetCellValue(22, index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
-                    self.gDCB.SetCellValue(23, index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
-                    self.gDCB.SetCellValue(24, index, repr(d['BAT_DCB_NR_SERIES_CELL']))
-                    self.gDCB.SetCellValue(25, index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
-                    self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_SERIALCODE']))
-                    self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_SENSOR']))
-                    self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_STATUS']))
+                    self.gDCB.SetCellValue(15, index, str(round(d['BAT_DCB_DESIGN_VOLTAGE'],2)) + ' V')
+                    self.gDCB.SetCellValue(16, index, str(round(d['BAT_DCB_CHARGE_LOW_TEMPERATURE'],3)) + ' °C')
+                    self.gDCB.SetCellValue(17, index, str(round(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE'],3)) + ' °C')
+                    self.gDCB.SetCellValue(18, index, repr(d['BAT_DCB_MANUFACTURE_NAME']))
+                    self.gDCB.SetCellValue(19, index, repr(d['BAT_DCB_DEVICE_NAME']))
+                    self.gDCB.SetCellValue(20, index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
+                    self.gDCB.SetCellValue(21, index, repr(d['BAT_DCB_SERIALNO']))
+                    self.gDCB.SetCellValue(22, index, repr(d['BAT_DCB_FW_VERSION']))
+                    self.gDCB.SetCellValue(23, index, repr(d['BAT_DCB_PCB_VERSION']))
+                    self.gDCB.SetCellValue(24, index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
+                    self.gDCB.SetCellValue(25, index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
+                    self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_NR_SERIES_CELL']))
+                    self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
+                    self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_SERIALCODE']))
+                    self.gDCB.SetCellValue(29, index, repr(d['BAT_DCB_NR_SENSOR']))
+                    self.gDCB.SetCellValue(30, index, repr(d['BAT_DCB_STATUS']))
                     logger.debug('Weitere Infos für DCB #' + str(index) + ' gefüllt')
 
         if dcbcount > 1:
@@ -1764,6 +1770,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'mqttport': self.txtUploadMQTTPort.GetValue(),
                             'mqttqos': self.scUploadMQTTQos.GetValue(),
                             'mqttretain': self.chUploadMQTTRetain.GetValue(),
+                            'mqttusername': self.txtUploadMQTTUsername.GetValue(),
+                            'mqttpassword': '@' + self.tinycode('rscpgui_mqttpass', self.txtUploadMQTTPassword.GetValue()),
                             'http': self.chUploadHTTP.GetValue(),
                             'httpurl': self.txtUploadHTTPURL.GetValue(),
                             'intervall': self.scUploadIntervall.GetValue(),
@@ -1813,6 +1821,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.scUploadMQTTQos.SetValue(self.cfgExportmqttpos)
         if self.cfgExportmqttretain is not None:
             self.chUploadMQTTRetain.SetValue(self.cfgExportmqttretain)
+        if self.cfgExportmqttpassword is not None:
+            self.txtUploadMQTTPassword.SetValue(self.cfgExportmqttpassword)
+        if self.cfgExportmqttusername is not None:
+            self.txtUploadMQTTUsername.SetValue(self.cfgExportmqttusername)
         if self.cfgExporthttp is not None:
             self.chUploadHTTP.SetValue(self.cfgExporthttp)
         if self.cfgExporthttpurl is not None:

@@ -35,10 +35,14 @@ class RSCPGuiConsole(RSCPGuiMain):
             time.sleep(2)
 
     def MainLoop(self):
-        if self._args.export:
+        if self._args.export or self._args.portal:
             g = self.gui
             logger.debug('Export bei Programmstart aktiviert')
-            self.StartExport()
+            if self._args.export:
+                self.StartExport()
+
+            if self._args.portal:
+                self.sendToPortalMin()
 
             # Loop forever
             try:
