@@ -1889,6 +1889,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                            'websocketaddr': self.cfgLoginwebsocketaddr,
                            'connectiontype': self.cfgLoginconnectiontype,
                            'autoupdate': self.scAutoUpdate.GetValue()}
+        if self.cfgExportpaths:
+            paths = ','.join(self.cfgExportpaths)
+        else:
+            paths = ''
 
         self.config['Export'] = {'csv': self.chUploadCSV.GetValue(),
                             'csvfile': self.fpUploadCSV.GetPath(),
@@ -1904,7 +1908,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'http': self.chUploadHTTP.GetValue(),
                             'httpurl': self.txtUploadHTTPURL.GetValue(),
                             'intervall': self.scUploadIntervall.GetValue(),
-                            'paths': ','.join(self.cfgExportpaths)}
+                            'paths': paths}
 
     def saveConfig(self):
         logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
