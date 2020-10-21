@@ -105,6 +105,10 @@ class RSCPGuiMain():
         if name and kat:
             if isinstance(value, list):
                 value = ','.join(value)
+
+            if kat not in self._config:
+                self._config[kat] = {}
+
             self._config[kat][name] = value
         else:
             super(RSCPGuiMain, self).__setattr__(key, value)
@@ -123,9 +127,9 @@ class RSCPGuiMain():
         if kat in self.config:
             if kat == 'Login':
                 if name in self._config[kat]:
-                    if name == 'password' and self._config[kat][name][0] == '@':
+                    if name == 'password' and self._config[kat][name] != '' and self._config[kat][name][0] == '@':
                         return self.tinycode('rscpgui', self._config[kat][name][1:], True)
-                    elif name == 'rscppassword' and self._config[kat][name][0] == '@':
+                    elif name == 'rscppassword' and self._config[kat][name] != '' and self._config[kat][name][0] == '@':
                         return self.tinycode('rscpgui_rscppass', self._config[kat][name][1:], True)
                     else:
                         return self._config[kat][name]
@@ -143,7 +147,7 @@ class RSCPGuiMain():
                             return int(self._config[kat][name])
                     elif name == 'paths':
                         return self._config[kat][name].split(',')
-                    elif name == 'mqttpassword' and self._config[kat][name][0] == '@':
+                    elif name == 'mqttpassword' and self._config[kat][name] != '' and self._config[kat][name][0] == '@':
                         return self.tinycode('rscpgui_mqttpass', self._config[kat][name][1:], True)
                     else:
                         return self._config[kat][name]
