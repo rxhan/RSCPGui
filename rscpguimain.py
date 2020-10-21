@@ -826,6 +826,37 @@ class RSCPGuiMain():
     def fill_wb(self):
         self._data_wb = self._fill_wb()
 
+    def deleteFromPortal(self):
+        logger.info('Lösche Daten aus Portal')
+        try:
+            data = {}
+            if not self._data_info:
+                self._data_info = self._fill_info()
+                if not self._data_info:
+                    raise Exception('Abruf nicht möglich')
+
+            sn = self._data_info['INFO_SERIAL_NUMBER'].data
+            mac = self._data_info['INFO_MAC_ADDRESS'].data
+            snmac = sn+mac
+            system = hashlib.md5(snmac.encode()).hexdigest()
+
+            url = 'https://pv.pincrushers.de/rscpgui/' + system
+            logger.debug('Lösche Portaldaten mit URL ' + url)
+
+            r = requests.delete(url)
+
+            logger.debug('Http Status Code: ' + str(r.status_code))
+            logger.debug('Response: ' + r.text)
+
+            response = r.json()
+            r.raise_for_status()
+
+            logger.info('Daten erfolgreich aus Portal gelöscht')
+            return response
+        except:
+            logger.exception('Daten konnte nicht aus dem Portal gelöscht werden')
+            return None
+
     def sendToPortalMin(self):
         logger.info('Sende Daten an Portal')
         try:

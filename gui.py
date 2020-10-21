@@ -3137,10 +3137,22 @@ class MainFrame ( wx.Frame ):
 		fgSizer37.Fit( self.pEinstellungen )
 		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 		self.pPortal = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		wSizer1 = wx.WrapSizer( wx.HORIZONTAL, wx.WRAPSIZER_DEFAULT_FLAGS )
+
 		bSizer20 = wx.BoxSizer( wx.VERTICAL )
 
+		fgSizer39 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer39.SetFlexibleDirection( wx.BOTH )
+		fgSizer39.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
 		self.bPortalUpload = wx.Button( self.pPortal, wx.ID_ANY, u"Eigene Daten hochladen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		bSizer20.Add( self.bPortalUpload, 0, wx.ALL, 5 )
+		fgSizer39.Add( self.bPortalUpload, 0, wx.ALL, 5 )
+
+		self.bPortalDelete = wx.Button( self.pPortal, wx.ID_ANY, u"Eigene Daten löschen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer39.Add( self.bPortalDelete, 0, wx.ALL, 5 )
+
+
+		bSizer20.Add( fgSizer39, 1, wx.EXPAND, 5 )
 
 		self.gPortalList = wx.grid.Grid( self.pPortal, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
@@ -3169,9 +3181,12 @@ class MainFrame ( wx.Frame ):
 		bSizer20.Add( self.gPortalList, 0, wx.ALL, 5 )
 
 
-		self.pPortal.SetSizer( bSizer20 )
+		wSizer1.Add( bSizer20, 1, wx.EXPAND, 5 )
+
+
+		self.pPortal.SetSizer( wSizer1 )
 		self.pPortal.Layout()
-		bSizer20.Fit( self.pPortal )
+		wSizer1.Fit( self.pPortal )
 		self.pMainregister.AddPage( self.pPortal, u"Portal", False )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
@@ -3217,6 +3232,7 @@ class MainFrame ( wx.Frame ):
 		self.bUploadStart.Bind( wx.EVT_BUTTON, self.bUploadStartOnClick )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bPortalUpload.Bind( wx.EVT_BUTTON, self.bPortalUploadOnClick )
+		self.bPortalDelete.Bind( wx.EVT_BUTTON, self.bPortalDeleteOnClick )
 
 	def __del__( self ):
 		pass
@@ -3302,6 +3318,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bPortalUploadOnClick( self, event ):
+		event.Skip()
+
+	def bPortalDeleteOnClick( self, event ):
 		event.Skip()
 
 

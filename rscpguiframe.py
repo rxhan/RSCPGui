@@ -1622,6 +1622,21 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         else:
             wx.MessageBox('Daten konnten nicht übermittelt werden')
 
+    def bPortalDeleteOnClick(self, event):
+        response = self.deleteFromPortal()
+        if response:
+            print(response)
+            self.fill_portal()
+            if response['msg'] == 'success':
+                logger.info('Daten gelöscht')
+
+                wx.MessageBox('Alle Datensätze zu deinem System wurden gelöscht')
+
+            else:
+                wx.MessageBox('Datensätze konnten nicht gelöscht werden, Response: ' + response['hint'])
+        else:
+            wx.MessageBox('Datensätze konnten nicht gelöscht werden')
+
     def fill_portal(self):
         logger.debug('Rufe Geräteliste aus Portal ab')
 
