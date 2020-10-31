@@ -270,8 +270,24 @@ class rscp_helper():
 
         return requests
 
+    def getEMSSysSpecs(self):
+        requests = []
+        requests.append(RSCPTag.EMS_REQ_GET_SYS_SPECS)
+        return requests
 
-    def getEMSData(self):
+    def getEMSIdlePeriods(self):
+        requests = []
+        requests.append(RSCPTag.EMS_REQ_GET_IDLE_PERIODS)
+        return requests
+
+    def getEMSPowerSettings(self):
+        requests = []
+        requests.append(RSCPTag.EMS_REQ_GET_POWER_SETTINGS)
+        requests.append(RSCPTag.EMS_REQ_BATTERY_BEFORE_CAR_MODE)
+        requests.append(RSCPTag.EMS_REQ_BATTERY_TO_CAR_MODE)
+        return requests
+
+    def getEMSBasis(self):
         requests = []
 
         requests.append(RSCPTag.EMS_REQ_POWER_PV)
@@ -298,17 +314,12 @@ class rscp_helper():
         requests.append(RSCPTag.EMS_REQ_DCDC_DISCHARGE_LIMIT)
         requests.append(RSCPTag.EMS_REQ_REMAINING_BAT_CHARGE_POWER)
         requests.append(RSCPTag.EMS_REQ_REMAINING_BAT_DISCHARGE_POWER)
-        requests.append(RSCPTag.EMS_REQ_GET_IDLE_PERIODS)
-        requests.append(RSCPTag.EMS_REQ_GET_POWER_SETTINGS)
         requests.append(RSCPTag.EMS_REQ_EMERGENCY_POWER_STATUS)
 
         requests.append(RSCPTag.EMS_REQ_MODE)
         requests.append(RSCPTag.EMS_REQ_EXT_SRC_AVAILABLE)
-        requests.append(RSCPTag.EMS_REQ_BATTERY_BEFORE_CAR_MODE)
-        requests.append(RSCPTag.EMS_REQ_BATTERY_TO_CAR_MODE)
         #requests.append(RSCPTag.EMS_REQ_GET_GENERATOR_STATE)
         requests.append(RSCPTag.EMS_REQ_EMERGENCYPOWER_TEST_STATUS)
-        requests.append(RSCPTag.EMS_REQ_GET_SYS_SPECS)
         requests.append(RSCPTag.EMS_REQ_STORED_ERRORS)
         #requests.append(RSCPTag.EMS_REQ_ERROR_BUZZER_ENABLED)
 
@@ -326,6 +337,14 @@ class rscp_helper():
 
         requests.append(RSCPTag.EMS_REQ_STATUS)
 
+        return requests
+
+    def getEMSData(self):
+        requests = []
+        requests += self.getEMSSysSpecs()
+        requests += self.getEMSIdlePeriods()
+        requests += self.getEMSPowerSettings()
+        requests += self.getEMSBasis()
         return requests
 
     def getEmergencyStatus(self):

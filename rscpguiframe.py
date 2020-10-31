@@ -197,14 +197,19 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         event.Skip()
 
     def pMainChanged(self, event=None):
-        page = self.pMainregister.GetCurrentPage()
+        self.updateTab()
 
-        name = page.GetName()
+
+    def updateTab(self, page = None):
+        if page is None:
+            page = self.pMainregister.GetCurrentPage()
 
         if not self._updateRunning:
             self._updateRunning = True
             self.disableButtons()
             self.gaUpdate.SetValue(0)
+
+            name = page.GetName()
 
             try:
                 logger.debug('Aktualisiere ' + name)
@@ -227,6 +232,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                     elif page == self.pBAT:
                         try:
                             self.fill_bat()
+                            self.gDCB.AutoSizeRows()
+                            self.gDCB.AutoSizeColumns()
                         except:
                             logger.exception('Fehler beim Abruf der BAT-Daten')
                     elif page == self.pPVI:
@@ -236,8 +243,15 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             logger.exception('Fehler beim Abruf der PVI-Daten')
                     elif page == self.pEMS:
                         try:
-                            self.fill_ems()
-                            self.fill_mbs()
+                            p2 = self.m_notebook2.GetCurrentPage()
+                            if p2 == self.m_panel11: # Modbus
+                                self.fill_mbs()
+                            elif p2 == self.m_panel9: # SYS
+                                self.fill_ems_sys()
+                            elif p2 == self.m_panel8: # Ladeeinstellungen
+                                self.fill_ems_power()
+                            elif p2 == self.m_panel7: # Basis
+                                self.fill_ems_basis()
                         except:
                             logger.exception('Fehler beim Abruf der EMS-Daten')
                     elif page == self.pPM:
@@ -601,6 +615,14 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         RSCPGuiMain.fill_ems(self)
         d = self._data_ems
 
+        self.fill_ems_basis(d)
+        self.fill_ems_sys(d['EMS_GET_SYS_SPECS'])
+        self.fill_ems_power(d)
+
+    def fill_ems_basis(self, d = None):
+        if not d:
+            d = self.gui.get_data(self.gui.getEMSBasis(), True)
+
         self.txtEMSPowerPV.SetValue(repr(d['EMS_POWER_PV']) + ' W')
         self.txtEMSPowerHome.SetValue(repr(d['EMS_POWER_HOME']) + ' W')
         self.txtEMSPowerBat.SetValue(repr(d['EMS_POWER_BAT']) + ' W')
@@ -614,14 +636,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.mgEMSBatSoc.SetValue(round(d['EMS_BAT_SOC'], 0))
         self.txtEMSCouplingMode.SetValue(repr(d['EMS_COUPLING_MODE']))
         self.txtEMSMode.SetValue(repr(d['EMS_MODE']))
-        if d['EMS_BATTERY_BEFORE_CAR_MODE'].data == 1:
-            self.chEMSBatteryBeforeCarMode.SetValue(False)
-        else:
-            self.chEMSBatteryBeforeCarMode.SetValue(True)
-        if d['EMS_BATTERY_TO_CAR_MODE'].data == 1:
-            self.chEMSBatteryToCarMode.SetValue(True)
-        else:
-            self.chEMSBatteryToCarMode.SetValue(False)
         balancedphases = "{0:b}".format(d['EMS_BALANCED_PHASES'].data).replace('1', 'X ').replace('0', '0 ')
 
         self.txtEMSBalancedPhases.SetValue(balancedphases)
@@ -641,10 +655,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtEMSDCDCDischargeLimit.SetValue(repr(d['EMS_DCDC_DISCHARGE_LIMIT']) + ' W')
         self.txtEMSRemainingBatDischargePower.SetValue(repr(d['EMS_REMAINING_BAT_DISCHARGE_POWER']) + ' W')
         self.txtEMSEmergencyPowerStatus.SetValue(repr(d['EMS_EMERGENCY_POWER_STATUS']))
-        self.chEMSPowerLimitsUsed.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_POWER_LIMITS_USED'].data)
-        self.chEMSPowerSaveEnabled.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_POWERSAVE_ENABLED'].data)
-        self.chEMSWeatherRegulatedChargeEnabled.SetValue(
-            d['EMS_GET_POWER_SETTINGS']['EMS_WEATHER_REGULATED_CHARGE_ENABLED'].data)
         self.txtEMSStatus.SetValue(repr(d['EMS_STATUS']))
         eptest = d['EMS_EMERGENCYPOWER_TEST_STATUS']['EMS_EPTEST_RUNNING'].data
         if eptest:
@@ -678,7 +688,65 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         dd = datetime.datetime.fromtimestamp(laststart)
         self.txtEMSManualChargeLaststart.SetValue(dd.strftime(self._time_format))
 
-        for sysspec in d['EMS_GET_SYS_SPECS']['EMS_SYS_SPEC']:
+        self.chEPIsland.SetValue(d['EP_IS_ISLAND_GRID'].data)
+        self.chEPReadyForSwitch.SetValue(d['EP_IS_READY_FOR_SWITCH'].data)
+        self.chEPISGridConnected.SetValue(d['EP_IS_GRID_CONNECTED'].data)
+        self.chEPPossible.SetValue(d['EP_IS_POSSIBLE'].data)
+        self.chEPInvalid.SetValue(d['EP_IS_INVALID_STATE'].data)
+
+    def fill_ems_power(self, d = None):
+
+        if not d:
+            d = self.gui.get_data(self.gui.getEMSPowerSettings() + self.gui.getEMSIdlePeriods(), True)
+
+        self.sEMSMaxChargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER'].data)
+        self.txtEMSMaxChargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER']) + ' W')
+        self.sEMSMaxDischargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER'].data)
+        self.txtEMSMaxDischargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER']) + ' W')
+        self.sEMSMaxDischargeStartPower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER'].data)
+        self.txtEMSMaxDischargeStartPower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER']) + ' W')
+        self.chEMSPowerLimitsUsed.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_POWER_LIMITS_USED'].data)
+        self.chEMSPowerSaveEnabled.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_POWERSAVE_ENABLED'].data)
+        self.chEMSWeatherRegulatedChargeEnabled.SetValue(
+            d['EMS_GET_POWER_SETTINGS']['EMS_WEATHER_REGULATED_CHARGE_ENABLED'].data)
+
+        if d['EMS_BATTERY_BEFORE_CAR_MODE'].data == 1:
+            self.chEMSBatteryBeforeCarMode.SetValue(False)
+        else:
+            self.chEMSBatteryBeforeCarMode.SetValue(True)
+
+        if d['EMS_BATTERY_TO_CAR_MODE'].data == 1:
+            self.chEMSBatteryToCarMode.SetValue(True)
+        else:
+            self.chEMSBatteryToCarMode.SetValue(False)
+
+        days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
+
+        for idlePeriod in d['EMS_GET_IDLE_PERIODS']['EMS_IDLE_PERIOD']:
+            if idlePeriod['EMS_IDLE_PERIOD_TYPE'].data == 0:
+                c = 'Charge'
+            else:
+                c = 'Discharge'
+
+            day = days[int(idlePeriod['EMS_IDLE_PERIOD_DAY'])]
+            von = 'tpEMS' + c + day + 'Von'
+            bis = 'tpEMS' + c + day + 'Bis'
+            ch = 'chEMS' + c + day
+
+            self.__getattribute__(ch).SetValue(idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data)
+            self.__getattribute__(von).SetValue(
+                str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
+                    idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+            self.__getattribute__(bis).SetValue(
+                str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
+                    idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+
+
+    def fill_ems_sys(self, d = None):
+        if not d:
+            d = self.gui.get_data(self.gui.getEMSSysSpecs(), True)
+
+        for sysspec in d['EMS_SYS_SPEC']:
             if sysspec['EMS_SYS_SPEC_NAME'].data == 'hybridModeSupported':
                 self.txtEMSHybridModeSupported.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
             elif sysspec['EMS_SYS_SPEC_NAME'].data == 'installedBatteryCapacity':
@@ -723,41 +791,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 self.txtEMSstartChargeDefault.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
             elif sysspec['EMS_SYS_SPEC_NAME'].data == 'startDischargeDefault':
                 self.txtEMSstartDischargeDefault.SetValue(repr(sysspec['EMS_SYS_SPEC_VALUE_INT']))
-
-        self.sEMSMaxChargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER'].data)
-        self.txtEMSMaxChargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER']) + ' W')
-        self.sEMSMaxDischargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER'].data)
-        self.txtEMSMaxDischargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_DISCHARGE_POWER']) + ' W')
-        self.sEMSMaxDischargeStartPower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER'].data)
-        self.txtEMSMaxDischargeStartPower.SetValue(
-            repr(d['EMS_GET_POWER_SETTINGS']['EMS_DISCHARGE_START_POWER']) + ' W')
-
-        self.chEPIsland.SetValue(d['EP_IS_ISLAND_GRID'].data)
-        self.chEPReadyForSwitch.SetValue(d['EP_IS_READY_FOR_SWITCH'].data)
-        self.chEPISGridConnected.SetValue(d['EP_IS_GRID_CONNECTED'].data)
-        self.chEPPossible.SetValue(d['EP_IS_POSSIBLE'].data)
-        self.chEPInvalid.SetValue(d['EP_IS_INVALID_STATE'].data)
-
-        days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
-
-        for idlePeriod in d['EMS_GET_IDLE_PERIODS']['EMS_IDLE_PERIOD']:
-            if idlePeriod['EMS_IDLE_PERIOD_TYPE'].data == 0:
-                c = 'Charge'
-            else:
-                c = 'Discharge'
-
-            day = days[int(idlePeriod['EMS_IDLE_PERIOD_DAY'])]
-            von = 'tpEMS' + c + day + 'Von'
-            bis = 'tpEMS' + c + day + 'Bis'
-            ch = 'chEMS' + c + day
-
-            self.__getattribute__(ch).SetValue(idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data)
-            self.__getattribute__(von).SetValue(
-                str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
-                    idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
-            self.__getattribute__(bis).SetValue(
-                str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
-                    idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
 
     def fill_mbs(self):
         RSCPGuiMain.fill_mbs(self)
@@ -882,7 +915,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.gPVIAC.SetCellValue(0, 3, str(round(sum_ac_power, 3)) + ' W')
         self.gPVIAC.SetCellValue(5, 3, str(round(sum_ac_energy_all, 3)) + ' kWh')
         self.gPVIAC.SetCellValue(6, 3, str(round(sum_ac_energy_grid, 3)) + ' kWh')
-        self.gPVIAC.AutoSize()
 
         values = [{}, {}]
         for d in data:
@@ -900,18 +932,26 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         self.gPVIDC.SetCellValue(0, 2, str(round(sum_dc_power, 3)) + ' W')
         self.gPVIDC.SetCellValue(3, 2, str(round(sum_dc_energy, 3) / 1000) + ' kWh')
-        self.gPVIDC.AutoSize()
 
-        self.gPVITemps.ClearGrid()
-        self.gPVITemps.DeleteRows(numRows=self.gPVITemps.GetNumberRows())
-        self.gPVITemps.AppendRows(data['PVI_TEMPERATURE_COUNT'].data)
+        update = False
+        if self.gPVITemps.GetNumberRows() != data['PVI_TEMPERATURE_COUNT'].data:
+            self.gPVITemps.ClearGrid()
+            self.gPVITemps.DeleteRows(numRows=self.gPVITemps.GetNumberRows())
+            self.gPVITemps.AppendRows(data['PVI_TEMPERATURE_COUNT'].data)
+            update = True
+
         for d in data:
             if d.name == 'PVI_TEMPERATURE':
                 index = d['PVI_INDEX'].data
                 self.gPVITemps.SetCellValue(index, 0, str(round(d['PVI_VALUE'], 3)) + ' °C')
-                self.gPVITemps.SetRowLabelValue(index, u"Temperatur #" + str(index))
+                if update:
+                    self.gPVITemps.SetRowLabelValue(index, u"Temperatur #" + str(index))
 
-        self.gPVITemps.AutoSize()
+        if update:
+            logger.debug('Autosize gPVI')
+            self.gPVIAC.AutoSize()
+            self.gPVIDC.AutoSize()
+            self.gPVITemps.AutoSize()
 
     def fill_bat(self):
         selected = self.cbBATIndex.GetSelection()
@@ -1088,19 +1128,21 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             set_voltages(f['BAT_DCB_ALL_CELL_VOLTAGES'])
             set_info(f['BAT_DCB_INFO'])
 
-        self.gDCB.AutoSize()
         logger.debug('BAT-Datenfelder füllen abgeschlossen')
 
     def fill_pm(self):
         RSCPGuiMain.fill_pm(self)
+        update = False
 
         if self.gPM.GetNumberCols() > len(self._data_pm):
             logger.debug('Lösche alle Spalten in gPM')
             self.gPM.DeleteCols(numCols=self.gPM.GetNumberCols())
+            update = True
 
         while self.gPM.GetNumberCols() < len(self._data_pm.keys()):
             logger.debug('Füge eine Spalte in gPM hinzu')
             self.gPM.AppendCols(1)
+            update = True
 
         curcol = 0
         for index in self._data_pm.keys():
@@ -1150,16 +1192,17 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 self.gPM.SetCellValue(27, curcol, repr(d['PM_CS_ERR_FRAME']))
             curcol+=1
 
-        self.gPM.AutoSize()
+        if update:
+            self.gPM.AutoSize()
 
     def get_einheit(self, value):
         if abs(value) > 10000:
             if abs(value) > 10000000:
-                return value / 1000000, 'MWh'
+                return round(value / 1000000,3), 'MWh'
             else:
-                return value / 1000, 'kWh'
+                return round(value / 1000,3), 'kWh'
         else:
-            return value, 'Wh'
+            return round(value,3), 'Wh'
 
     def fill_wb(self):
         selected = self.cbWallbox.GetSelection()
@@ -1640,22 +1683,27 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
     def fill_portal(self):
         logger.debug('Rufe Geräteliste aus Portal ab')
 
-        self.gPortalList.ClearGrid()
-        self.gPortalList.DeleteRows(numRows = self.gPortalList.GetNumberRows())
-        self.gPortalList.DeleteCols(numCols = self.gPortalList.GetNumberCols())
-        self.gPortalList.AppendCols(9)
-        self.gPortalList.SetColLabelValue(0, 'Modell')
-        self.gPortalList.SetColLabelValue(1, 'Produktionsdatum')
-        self.gPortalList.SetColLabelValue(2, 'Softwarerelease')
-        self.gPortalList.SetColLabelValue(3, 'Anzahl Zyklen')
-        self.gPortalList.SetColLabelValue(4, 'Kapazität')
-        self.gPortalList.SetColLabelValue(5, 'SOH')
-        self.gPortalList.SetColLabelValue(6, 'Batteriemodule')
-        self.gPortalList.SetColLabelValue(7, 'Batterietyp(en)')
-        self.gPortalList.SetColLabelValue(8, 'Letztes Update')
+        self.gPortalList.DeleteRows(numRows=self.gPortalList.GetNumberRows())
+
+        update = False
+        if self.gPortalList.GetNumberCols() != 10:
+            self.gPortalList.ClearGrid()
+            self.gPortalList.DeleteCols(numCols = self.gPortalList.GetNumberCols())
+            self.gPortalList.AppendCols(10)
+            self.gPortalList.SetColLabelValue(0, 'Modell')
+            self.gPortalList.SetColLabelValue(1, 'Produktionsdatum')
+            self.gPortalList.SetColLabelValue(2, 'Softwarerelease')
+            self.gPortalList.SetColLabelValue(3, 'Zyklen')
+            self.gPortalList.SetColLabelValue(4, 'Kapazität')
+            self.gPortalList.SetColLabelValue(5, 'Energiemenge')
+            self.gPortalList.SetColLabelValue(6, 'SOH')
+            self.gPortalList.SetColLabelValue(7, 'Module')
+            self.gPortalList.SetColLabelValue(8, 'Batterietyp(en)')
+            self.gPortalList.SetColLabelValue(9, 'Letztes Update')
+            update = True
 
         try:
-            r = requests.get('https://pv.pincrushers.de/rscpgui/list.json')
+            r = requests.get('https://pv.pincrushers.de/rscpgui/list.json?f=2')
 
             logger.debug('Geräteliste abgerufen, Response: ' + r.text)
 
@@ -1665,42 +1713,29 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
             r.close()
 
-            for device in response.keys():
-                curdata = response[device]
+            for curdata in response['data']:
                 self.gPortalList.AppendRows(1)
 
                 currow = self.gPortalList.GetNumberRows() - 1
-                self.gPortalList.SetRowLabelValue(currow, device)
+                self.gPortalList.SetRowLabelValue(currow, curdata['id'])
                 self.gPortalList.SetCellValue(currow, 0, curdata['model'])
                 self.gPortalList.SetCellValue(currow, 1, curdata['productiondate'])
                 self.gPortalList.SetCellValue(currow, 2, curdata['release'])
-
-                capacity = 0
-                cyclecount = 0
-                soh = 0
-                dcbcount = 0
-                types = []
-                for bat in curdata['bat']:
-                    capacity += bat['capacity']
-                    for dcb in bat['dcb']:
-                        cyclecount+=dcb['cyclecount']
-                        soh+=dcb['soh']
-                        dcbcount += 1
-                        type = dcb['manufacture'] + ' ' + dcb['type']
-                        if type not in types:
-                            types.append(type)
-
-                soh = round(soh / dcbcount,1)
-                cyclecount = int(round(cyclecount / dcbcount,0))
-                self.gPortalList.SetCellValue(currow, 3, str(cyclecount))
-                self.gPortalList.SetCellValue(currow, 4, str(capacity) + ' Wh')
-                self.gPortalList.SetCellValue(currow, 5, str(soh) + '%')
-                self.gPortalList.SetCellValue(currow, 6, str(dcbcount))
-                self.gPortalList.SetCellValue(currow, 7, ','.join(types))
-                self.gPortalList.SetCellValue(currow, 8, str(datetime.datetime.fromtimestamp(curdata['time'])))
+                self.gPortalList.SetCellValue(currow, 3, str(curdata['cyclecount']))
+                value, einheit = self.get_einheit(curdata['capacity'])
+                self.gPortalList.SetCellValue(currow, 4, str(value) + ' ' + einheit)
+                value, einheit = self.get_einheit(curdata['energy'])
+                self.gPortalList.SetCellValue(currow, 5, str(value) + ' ' + einheit)
+                self.gPortalList.SetCellValue(currow, 6, str(curdata['soh']) + '%')
+                self.gPortalList.SetCellValue(currow, 7, str(curdata['dcbcount']))
+                self.gPortalList.SetCellValue(currow, 8, curdata['types'])
+                self.gPortalList.SetCellValue(currow, 9, curdata['time'])
 
                 #print(device, response[device])
+            if update:
+                self.gPortalList.AutoSizeColumns()
 
+            self.gPortalList.AutoSizeRows()
             self.gPortalList.AutoSize()
 
             logger.debug('Abruf der Geräteliste aus Portal erfolgreich')

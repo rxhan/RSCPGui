@@ -10,6 +10,7 @@
 import wx
 import wx.xrc
 import wx.grid
+import wx.adv
 
 ###########################################################################
 ## Class MainFrame
@@ -737,7 +738,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel7.SetSizer( fgSizer10 )
 		self.m_panel7.Layout()
 		fgSizer10.Fit( self.m_panel7 )
-		self.m_notebook2.AddPage( self.m_panel7, u"Basis", True )
+		self.m_notebook2.AddPage( self.m_panel7, u"Basis", False )
 		self.m_panel8 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer7 = wx.BoxSizer( wx.VERTICAL )
 
@@ -3145,14 +3146,29 @@ class MainFrame ( wx.Frame ):
 		fgSizer39.SetFlexibleDirection( wx.BOTH )
 		fgSizer39.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
+		fgSizer41 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer41.SetFlexibleDirection( wx.BOTH )
+		fgSizer41.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
 		self.bPortalUpload = wx.Button( self.pPortal, wx.ID_ANY, u"Eigene Daten hochladen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer39.Add( self.bPortalUpload, 0, wx.ALL, 5 )
+		fgSizer41.Add( self.bPortalUpload, 0, wx.ALL, 5 )
 
 		self.bPortalDelete = wx.Button( self.pPortal, wx.ID_ANY, u"Eigene Daten löschen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer39.Add( self.bPortalDelete, 0, wx.ALL, 5 )
+		fgSizer41.Add( self.bPortalDelete, 0, wx.ALL, 5 )
+
+
+		fgSizer39.Add( fgSizer41, 1, wx.EXPAND, 5 )
 
 
 		bSizer20.Add( fgSizer39, 1, wx.EXPAND, 5 )
+
+		self.m_staticText211 = wx.StaticText( self.pPortal, wx.ID_ANY, u"Mit der Portalfunktion können die Batteriesysteme über ihren SOH verglichen werden. Beim Hochladen werden nur Basisinformationen zu den Batteriemodulen übertragen. Es werden keine Zugangsdaten oder persönliche Daten des Systems übermittelt. Seriennummern etc. werden ebenfalls nicht übermittelt. Alle zur Verfügung gestellten Daten können jederzeit restlos gelöscht werden.", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText211.Wrap( 600 )
+
+		bSizer20.Add( self.m_staticText211, 0, wx.ALL, 5 )
+
+		self.m_hyperlink1 = wx.adv.HyperlinkCtrl( self.pPortal, wx.ID_ANY, u"https://pv.pincrushers.de/rscpgui/portal", u"https://pv.pincrushers.de/rscpgui/portal", wx.DefaultPosition, wx.DefaultSize, wx.adv.HL_DEFAULT_STYLE )
+		bSizer20.Add( self.m_hyperlink1, 0, wx.ALL, 5 )
 
 		self.gPortalList = wx.grid.Grid( self.pPortal, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
