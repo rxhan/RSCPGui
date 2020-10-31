@@ -22,13 +22,15 @@ class CustomTreeCtrl(CT.CustomTreeCtrl):
         dat = self.GetItemData(item)
         if dat is not None and not isinstance(dat, list) and not isinstance(dat, dict):
             font = self.GetItemFont(item)
-            if checked and not self.IsItemChecked(item):
+            if checked:
                 self.SetItemFont(item, font.Bold())
-                self._checked_items.append(item)
-            elif not checked and self.IsItemChecked(item):
+                if item not in self._checked_items:
+                    self._checked_items.append(item)
+            elif not checked:
                 font.SetWeight(wx.FONTWEIGHT_NORMAL)
                 self.SetItemFont(item, font)
-                self._checked_items.remove(item)
+                if item in self._checked_items:
+                    self._checked_items.remove(item)
 
         CT.CustomTreeCtrl.CheckItem2(self, item, checked, torefresh)
 
