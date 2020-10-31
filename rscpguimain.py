@@ -1,4 +1,5 @@
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -140,7 +141,7 @@ class RSCPGuiMain():
                         return 'auto'
             elif kat == 'Export':
                 if name in self._config[kat]:
-                    if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain'):
+                    if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain', 'mqttinsecure'):
                         return True if self._config[kat][name].lower() in ('true', '1', 'ja') else False
                     elif name in ('mqttport', 'mqttqos', 'intervall'):
                         if self._config[kat][name] != '':
@@ -492,11 +493,20 @@ class RSCPGuiMain():
         return data
 
     def StartAutoExport(self):
-        def mqtt_connect(broker,port,username=None,password=None):
+        def mqtt_connect(broker,port,username=None,password=None,mqttinsecure=None,mqttzertifikat=None):
             logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
+
             mqttclient = paho.Client("RSCPGui")
             if username and password:
                 mqttclient.username_pw_set(username, password)
+
+            if mqttinsecure and mqttzertifikat:
+                if os.path.isfile(mqttzertifikat):
+                    mqttclient.tls_set(ca_certs=mqttzertifikat)
+                    mqttclient.tls_insecure_set(mqttinsecure)
+
+            mqttclient.enable_logger(logger)
+
             mqttclient.connect(broker, port)
             return mqttclient
 
@@ -523,7 +533,9 @@ class RSCPGuiMain():
             mqttretain = self.cfgExportmqttretain
             mqttusername = self.cfgExportmqttusername
             mqttpassword = self.cfgExportmqttpassword
-            mqttclient = mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword) if mqttactive else None
+            mqttzertifikat = self.cfgExportmqttzertifikat
+            mqttinsecure = self.cfgExportmqttinsecure
+            mqttclient = mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat) if mqttactive else None
 
             httpactive = self.cfgExporthttp
             httpurl = self.cfgExporthttpurl

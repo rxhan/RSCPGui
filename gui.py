@@ -3087,6 +3087,20 @@ class MainFrame ( wx.Frame ):
 		self.txtUploadMQTTPassword = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, wx.TE_PASSWORD )
 		fgSizer42.Add( self.txtUploadMQTTPassword, 0, wx.ALL, 5 )
 
+		self.m_staticText214 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"SSL-Zertifikat", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText214.Wrap( -1 )
+
+		fgSizer42.Add( self.m_staticText214, 0, wx.ALL, 5 )
+
+		self.fpUploadMQTTZertifikat = wx.FilePickerCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, u"Select a file", u"*.*", wx.DefaultPosition, wx.DefaultSize, wx.FLP_DEFAULT_STYLE )
+		fgSizer42.Add( self.fpUploadMQTTZertifikat, 0, wx.ALL, 5 )
+
+		self.cbUploadMQTTInsecure = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"TLS-Insecure", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer42.Add( self.cbUploadMQTTInsecure, 0, wx.ALL, 5 )
+
+
+		fgSizer42.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
 		self.m_staticText210 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"QOS", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText210.Wrap( -1 )
 

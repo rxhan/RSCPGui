@@ -112,6 +112,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtUploadMQTTPort.Enable(value)
         self.txtUploadMQTTUsername.Enable(value)
         self.txtUploadMQTTPassword.Enable(value)
+        self.fpUploadMQTTZertifikat.Enable(value)
+        self.cbUploadMQTTInsecure.Enable(value)
 
     def hideMQTT(self, value = True):
         if value:
@@ -122,6 +124,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtUploadMQTTPort.Hide()
             self.txtUploadMQTTUsername.Hide()
             self.txtUploadMQTTPassword.Hide()
+            self.fpUploadMQTTZertifikat.Hide()
+            self.cbUploadMQTTInsecure.Hide()
+            self.m_staticText214.Hide()
             self.m_staticText208.Hide()
             self.m_staticText209.Hide()
             self.m_staticText2091.Hide()
@@ -135,6 +140,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtUploadMQTTPort.Show()
             self.txtUploadMQTTUsername.Show()
             self.txtUploadMQTTPassword.Show()
+            self.fpUploadMQTTZertifikat.Show()
+            self.cbUploadMQTTInsecure.Show()
+            self.m_staticText214.Show()
             self.m_staticText208.Show()
             self.m_staticText209.Show()
             self.m_staticText2091.Show()
@@ -1955,6 +1963,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'mqttretain': self.chUploadMQTTRetain.GetValue(),
                             'mqttusername': self.txtUploadMQTTUsername.GetValue(),
                             'mqttpassword': '@' + self.tinycode('rscpgui_mqttpass', self.txtUploadMQTTPassword.GetValue()),
+                            'mqttzertifikat' : self.fpUploadMQTTZertifikat.GetPath(),
+                            'mqttinsecure' : self.cbUploadMQTTInsecure.GetValue(),
                             'http': self.chUploadHTTP.GetValue(),
                             'httpurl': self.txtUploadHTTPURL.GetValue(),
                             'intervall': self.scUploadIntervall.GetValue(),
@@ -2008,6 +2018,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtUploadMQTTPassword.SetValue(self.cfgExportmqttpassword)
         if self.cfgExportmqttusername is not None:
             self.txtUploadMQTTUsername.SetValue(self.cfgExportmqttusername)
+        if self.cfgExportmqttzertifikat is not None:
+            self.fpUploadMQTTZertifikat.SetPath(self.cfgExportmqttzertifikat)
+        if self.cfgExportmqttinsecure is not None:
+            self.cbUploadMQTTInsecure.SetValue(self.cfgExportmqttinsecure)
         if self.cfgExporthttp is not None:
             self.chUploadHTTP.SetValue(self.cfgExporthttp)
         if self.cfgExporthttpurl is not None:
