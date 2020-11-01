@@ -2,8 +2,10 @@
 
 import datetime
 import logging
+import time
 
 from e3dc._rscp_dto import RSCPDTO
+from e3dc._rscp_exceptions import RSCPCommunicationError
 from e3dc.e3dc import E3DC
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
@@ -11,6 +13,8 @@ from e3dc.rscp_type import RSCPType
 logger = logging.getLogger(__name__)
 
 class rscp_helper():
+    _blocked = False
+
     def __init__(self, username, password, host, rscp_pass):
         self.e3dc = E3DC(username, password, host, rscp_pass)
 
@@ -488,8 +492,33 @@ class rscp_helper():
 
         return containerData
 
-    def get_data(self, requests, raw=False):
-        responses = self.e3dc.send_requests(requests)
+
+    def get_blocked(self):
+        return self._blocked
+
+    def set_blocked(self, value):
+        logger.debug('Setze blocking auf ' + str(value))
+        self._blocked = value
+
+    blocked = property(get_blocked, set_blocked)
+
+    def get_data(self, requests, raw=False, block=True):
+        if block:
+            while self.blocked:
+                logger.debug('Warte auf Freigabe der Verbindung')
+                time.sleep(0.1)
+            self.blocked = True
+
+        try:
+            responses = self.e3dc.send_requests(requests)
+        except:
+            if block:
+                self.blocked = False
+            raise
+        else:
+            if block:
+                self.blocked = False
+
         if raw:
             if len(responses) == 1:
                 return responses[0]

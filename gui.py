@@ -2113,11 +2113,6 @@ class MainFrame ( wx.Frame ):
 		self.gDCB.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
 		bSizer5.Add( self.gDCB, 0, wx.ALL, 5 )
 
-		self.m_staticText2081 = wx.StaticText( self.pBAT, wx.ID_ANY, u"MyLabel", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText2081.Wrap( -1 )
-
-		bSizer5.Add( self.m_staticText2081, 0, wx.ALL, 5 )
-
 
 		fgSizer23.Add( bSizer5, 1, wx.EXPAND, 5 )
 
