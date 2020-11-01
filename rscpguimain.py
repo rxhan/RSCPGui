@@ -932,7 +932,7 @@ class RSCPGuiMain():
             logger.info('Daten erfolgreich an Portal übermittelt')
             return response
         except:
-            logger.exception('Daten konnte nicht an das Portal übermittelt werden')
+            logger.exception('Daten konnten nicht an das Portal übermittelt werden')
             return None
 
 
