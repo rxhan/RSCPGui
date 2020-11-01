@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+import socket
 import time
 
 from e3dc._rscp_dto import RSCPDTO
@@ -509,15 +510,17 @@ class rscp_helper():
                 time.sleep(0.1)
             self.blocked = True
 
+        responses = []
+
         try:
             responses = self.e3dc.send_requests(requests)
         except:
             if block:
                 self.blocked = False
             raise
-        else:
-            if block:
-                self.blocked = False
+
+        if block:
+            self.blocked = False
 
         if raw:
             if len(responses) == 1:

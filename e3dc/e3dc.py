@@ -21,10 +21,13 @@ class E3DC:
     def __init__(self, username, password, ip, key):
         self.password = password
         self.username = username
-        self.encrypt_decrypt = RSCPEncryptDecrypt(key)
         self.ip = ip
         self.socket = None
+        self.key = key
         self.rscp_utils = RSCPUtils()
+
+    def create_encrypt(self):
+        self.encrypt_decrypt = RSCPEncryptDecrypt(self.key)
 
     def send_requests(self, payload: [Union[RSCPDTO, RSCPTag]]) -> [RSCPDTO]:
         """
@@ -72,7 +75,12 @@ class E3DC:
         rawdata = binascii.hexlify(prepared_data)
         logger.debug('Send RAW: ' + str(rawdata))
         encrypted_data = self.encrypt_decrypt.encrypt(prepared_data)
-        self.socket.send(encrypted_data)
+        try:
+            self.socket.send(encrypted_data)
+        except:
+            self._disconnect()
+            raise
+
         # Fix for MAC-Connectionerrors @eba
         if platform.system() == 'Darwin':
             time.sleep(0.05)
@@ -94,6 +102,7 @@ class E3DC:
             rscp_dto = RSCPDTO(RSCPTag.RSCP_REQ_AUTHENTICATION, RSCPType.Container,
                                [RSCPDTO(RSCPTag.RSCP_AUTHENTICATION_USER, RSCPType.CString, self.username),
                                 RSCPDTO(RSCPTag.RSCP_AUTHENTICATION_PASSWORD, RSCPType.CString, self.password)], None)
+            self.create_encrypt()
             result = self.send_request(rscp_dto, True)
             if result.type == RSCPType.Error:
                 self._disconnect()
