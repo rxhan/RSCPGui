@@ -1,5 +1,6 @@
 import logging
 import argparse
+import socket
 import sys
 
 parser = argparse.ArgumentParser(description='Ruft Daten von E3DC-Systemen mittels RSCP ab')
@@ -16,6 +17,15 @@ parser.add_argument("-p", "--portal", action='store_true', help='Sende Batteried
 
 args = parser.parse_args()
 loglevel = args.verbose
+
+# Patch für schnellere Namensauflösung in IPv6 - Netzwerken:
+
+orig_getaddrinfo = socket.getaddrinfo
+
+def _getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+    return orig_getaddrinfo(host, port, socket.AF_INET, type, proto, flags)
+
+socket.getaddrinfo = _getaddrinfo
 
 def setLoglevel(loglevel, filename = None, console = True, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'):
     loggernames = [__name__, 'rscpguiframe','rscpguimain','rscpguiconsole','export','e3dcwebgui','e3dc']
