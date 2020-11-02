@@ -1969,7 +1969,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( self.txtUsableCapacity, 0, wx.ALL, 5 )
 
-		self.m_staticText31 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Verbleibende Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText31 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Restliche nutzbare Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText31.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText31, 0, wx.ALL, 5 )
@@ -1979,7 +1979,27 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( self.txtUsableRemainingCapacity, 0, wx.ALL, 5 )
 
-		self.m_staticText32 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Verfügbarer SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText33 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Maximale Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText33.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText33, 0, wx.ALL, 5 )
+
+		self.txtFCC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtFCC.Enable( False )
+
+		gSizer3.Add( self.txtFCC, 0, wx.ALL, 5 )
+
+		self.m_staticText34 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Verbleibende Kapazität", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText34.Wrap( -1 )
+
+		gSizer3.Add( self.m_staticText34, 0, wx.ALL, 5 )
+
+		self.txtRC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtRC.Enable( False )
+
+		gSizer3.Add( self.txtRC, 0, wx.ALL, 5 )
+
+		self.m_staticText32 = wx.StaticText( self.pBAT, wx.ID_ANY, u"State of Health (SOH)", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText32.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText32, 0, wx.ALL, 5 )
@@ -1989,7 +2009,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer3.Add( self.txtASOC, 0, wx.ALL, 5 )
 
-		self.m_staticText14 = wx.StaticText( self.pBAT, wx.ID_ANY, u"Verbleibender SOC", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText14 = wx.StaticText( self.pBAT, wx.ID_ANY, u"SOC im Portal", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText14.Wrap( -1 )
 
 		gSizer3.Add( self.m_staticText14, 0, wx.ALL, 5 )
@@ -2008,26 +2028,6 @@ class MainFrame ( wx.Frame ):
 		self.txtRSOCREAL.Enable( False )
 
 		gSizer3.Add( self.txtRSOCREAL, 0, wx.ALL, 5 )
-
-		self.m_staticText33 = wx.StaticText( self.pBAT, wx.ID_ANY, u"FCC", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText33.Wrap( -1 )
-
-		gSizer3.Add( self.m_staticText33, 0, wx.ALL, 5 )
-
-		self.txtFCC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.txtFCC.Enable( False )
-
-		gSizer3.Add( self.txtFCC, 0, wx.ALL, 5 )
-
-		self.m_staticText34 = wx.StaticText( self.pBAT, wx.ID_ANY, u"RC", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText34.Wrap( -1 )
-
-		gSizer3.Add( self.m_staticText34, 0, wx.ALL, 5 )
-
-		self.txtRC = wx.TextCtrl( self.pBAT, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.txtRC.Enable( False )
-
-		gSizer3.Add( self.txtRC, 0, wx.ALL, 5 )
 
 		self.chBATDeviceConnected = wx.CheckBox( self.pBAT, wx.ID_ANY, u"Gerät verbunden", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chBATDeviceConnected.Enable( False )

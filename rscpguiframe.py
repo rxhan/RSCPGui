@@ -993,8 +993,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtUsableCapacity.SetValue(str(round(f['BAT_USABLE_CAPACITY'], 5)) + ' Ah')
         self.txtUsableRemainingCapacity.SetValue(str(round(f['BAT_USABLE_REMAINING_CAPACITY'], 5)) + ' Ah')
         self.txtASOC.SetValue(str(round(f['BAT_ASOC'], 1)) + '%')
-        self.txtFCC.SetValue(str(round(f['BAT_FCC'], 3)))
-        self.txtRC.SetValue(str(round(f['BAT_RC'], 1)) + '%')
+        self.txtFCC.SetValue(str(round(f['BAT_FCC'], 5)) + ' Ah')
+        self.txtRC.SetValue(str(round(f['BAT_RC'], 5)) + ' Ah')
         self.txtRSOC.SetValue(str(round(f['BAT_INFO']['BAT_RSOC'], 1)) + '%')
         self.txtRSOCREAL.SetValue(str(round(f['BAT_RSOC_REAL'], 1)) + '%')
         self.txtModuleVoltage.SetValue(str(round(f['BAT_INFO']['BAT_MODULE_VOLTAGE'], 3)) + ' V')
@@ -1024,8 +1024,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtBATMaxChargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_CHARGE_POWER']) + ' W')
         self.txtBATMaxDischargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_DSCHARGE_POWER']) + ' W')
 
-        self.txtBATMeasuredResistance.SetValue(repr(f['BAT_INTERNALS']['BAT_MEASURED_RESISTANCE']))
-        self.txtBATRunMeasuredResistance.SetValue(repr(f['BAT_INTERNALS']['BAT_RUN_MEASURED_RESISTANCE']))
+        self.txtBATMeasuredResistance.SetValue(str(round(f['BAT_INTERNALS']['BAT_MEASURED_RESISTANCE'],5)))
+        self.txtBATRunMeasuredResistance.SetValue(str(round(f['BAT_INTERNALS']['BAT_RUN_MEASURED_RESISTANCE'],5)))
 
         if f['BAT_TRAINING_MODE'].data == 0:
             s = 'Nicht im Training'
