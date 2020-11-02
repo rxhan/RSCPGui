@@ -3427,6 +3427,7 @@ class ExportFrame ( wx.Frame ):
 
 		# Connect Events
 		self.tcUpload.Bind( wx.EVT_TREE_SEL_CHANGED, self.tcUploadOnSelChanged )
+		self.tcUpload.Bind( wx.EVT_TREE_SEL_CHANGING, self.tcUploadOnSelChanging )
 		self.bSave.Bind( wx.EVT_BUTTON, self.bSaveOnClick )
 
 	def __del__( self ):
@@ -3435,6 +3436,9 @@ class ExportFrame ( wx.Frame ):
 
 	# Virtual event handlers, overide them in your derived class
 	def tcUploadOnSelChanged( self, event ):
+		event.Skip()
+
+	def tcUploadOnSelChanging( self, event ):
 		event.Skip()
 
 	def bSaveOnClick( self, event ):

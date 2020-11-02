@@ -18,6 +18,19 @@ class CustomTreeCtrl(CT.CustomTreeCtrl):
     def GetCheckedItems(self):
         return self._checked_items
 
+    def GetAllItems(self, item = None):
+        if not item:
+            item = self.GetRootItem()
+        items = []
+        (child, cookie) = self.GetFirstChild(item)
+        while child and child.IsOk():
+            items.append(child)
+            items += self.GetAllItems(child)
+
+            (child, cookie) = self.GetNextChild(item, cookie)
+
+        return items
+
     def CheckItem2(self, item, checked=True, torefresh=False):
         dat = self.GetItemData(item)
         if dat is not None and not isinstance(dat, list) and not isinstance(dat, dict):
@@ -39,11 +52,13 @@ class E3DCExport(ExportFrame):
     _UploadStarted = False
 
 
-    def __init__(self, parent, paths = None):
+    def __init__(self, parent, paths = None, names = None):
         if not paths:
             self._paths = []
         else:
             self._paths = paths
+
+        self._customNames = {}
 
         self._parent = parent
         wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 522,609 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
@@ -118,10 +133,19 @@ class E3DCExport(ExportFrame):
         self.bSave.Bind(wx.EVT_BUTTON, self.bSaveOnClick)
 
         self.tcUpload.Bind(CT.EVT_TREE_ITEM_CHECKED, self.bUploadLoadItemChecked)
+        self.tcUpload.Bind(wx.EVT_TREE_SEL_CHANGING, self.tcUploadOnSelChanging)
+
+        self.txtUploadData.Enable(False)
+        self.txtUploadName.Enable(False)
+        self.txtUploadPath.Enable(False)
 
         self.loadData()
 
+        if names:
+            self.setCustomNames(names)
+
     def bSaveOnClick( self, event ):
+        self.saveCustomName()
         self.Close()
 
     def bUploadLoadItemChecked(self, event):
@@ -181,17 +205,86 @@ class E3DCExport(ExportFrame):
         elif data is None:
             self.txtUploadData.SetValue('none')
         else:
-            self.txtUploadData.SetValue('list/dict')
+            self.txtUploadData.SetValue(' - ')
         self.txtUploadName.SetValue(text)
 
         path = self.getUploadPath(ret)
         self.txtUploadPath.SetValue(path)
 
+        if path in self._customNames:
+            self.txtUploadCustom.SetValue(self._customNames[path])
+        else:
+            self.txtUploadCustom.SetValue(path)
+
+    def tcUploadOnSelChanging( self, event ):
+        self.saveCustomName()
+
+    def saveCustomName(self):
+        ret: wx.TreeItemId = self.tcUpload.GetSelection()
+        custom = self.txtUploadCustom.GetValue()
+        path = self.getUploadPath(ret)
+
+        if path not in self._customNames or self._customNames[path] != custom:
+            self.changeCustomName(ret, custom, path)
+
+            if custom != path:
+                data = self.tcUpload.GetItemData(ret)
+                if isinstance(data, dict) or isinstance(data, list):
+                    res = wx.MessageBox(
+                        'Der Bezeichner eines Knoten wurde geändert, soll für alle untergeordneten markierten Einträge der Knotenname angepasst werden?',
+                        'Knotenname geändert', wx.YES_NO)
+                    if res == wx.YES:
+                        logger.debug('Unterknoten von ' + path + ' werden geändert')
+                        changed = self.changeCustomNames(ret, custom)
+                        logger.debug('Es wurden ' + str(changed) + ' Einträge geändert')
+
+    def changeCustomName(self, item, custom, path=None):
+        if not path:
+            path = self.getUploadPath(item)
+
+        if path not in self._customNames or self._customNames[path] != custom:
+            logger.debug('Individueller Bezeichner für ' + path + ' geändert auf ' + custom)
+            self._customNames[path] = custom
+
+        if custom != path:
+            self.tcUpload.SetItemTextColour(item, wx.Colour( 0xff, 0x80, 0x80 ))
+        else:
+            self.tcUpload.SetItemTextColour(item, wx.Colour( 0x00, 0x00, 0x00 ))
+
+
+    def changeCustomNames(self, item, custom, all=True):
+        path = self.getUploadPath(item)
+        name = self.tcUpload.GetItemText(item)
+
+        replace_path = path
+        changed = 0
+
+        (child, cookie) = self.tcUpload.GetFirstChild(item)
+        while child and child.IsOk():
+            p = self.getUploadPath(child)
+            if all or (p not in self._customNames or self._customNames[p] == p):
+                newname = custom + p[len(replace_path):]
+                self.changeCustomName(child, newname, p)
+                changed += 1
+                data = self.tcUpload.GetItemData(child)
+                if isinstance(data, dict) or isinstance(data, list):
+                    changed += self.changeCustomNames(child, newname)
+
+            (child, cookie) = self.tcUpload.GetNextChild(item, cookie)
+
+        return changed
+
+
     def getUploadPath(self, item):
-        path = self.tcUpload.GetItemText(item)
-        parent = self.tcUpload.GetItemParent(item)
-        if parent:
-            path = self.getUploadPath(parent) + '/' + path
+        try:
+            path = self.tcUpload.GetItemText(item)
+            parent = self.tcUpload.GetItemParent(item)
+            if parent:
+                path = self.getUploadPath(parent) + '/' + path
+        except:
+            logger.exception('Fehler beim Ermitteln des Pfades: ')
+            print(item, type(item))
+            return ''
 
         return path
 
@@ -203,4 +296,19 @@ class E3DCExport(ExportFrame):
             paths.append(self.getUploadPath(item))
 
         return paths
+
+    def getCustomNames(self):
+        return self._customNames
+
+    def setCustomNames(self, value):
+        items = self.tcUpload.GetAllItems()
+        logger.debug('Alle items ' + str(len(items)))
+        for item in items:
+            path = self.getUploadPath(item)
+            if path in value:
+                self.changeCustomName(item, value[path], path)
+
+
+
+
 

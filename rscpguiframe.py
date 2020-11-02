@@ -189,19 +189,38 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.bUploadStart.Enable(True)
 
     def bUploadSetDataOnClick(self, event):
-        self._e3dcexportFrame = E3DCExport(self, paths=self.cfgExportpaths)
+        self.bUploadSetData.Enable(False)
+        if self._e3dcexportFrame:
+            try:
+                logger.warning('Exportdialog scheinbar noch geöffnet, schließe Dialog')
+                self._e3dcexportFrame.Close()
+            except:
+                logger.exception('Fehler beim schließen des Exportdialogs')
+
+
+        self._e3dcexportFrame = E3DCExport(self, paths=self.cfgExportpaths, names = self.cfgExportpathnames)
         self._e3dcexportFrame.Bind(wx.EVT_CLOSE, self.ExportFrameOnClose)
         self._e3dcexportFrame.Show()
 
     def ExportFrameOnClose(self, event):
         logger.debug('Exportfenster wurde geschlossen')
         self.cfgExportpaths = self._e3dcexportFrame.getExportPaths()
+        self.cfgExportpathnames = self._e3dcexportFrame.getCustomNames()
 
         self.stUploadCount.SetLabel('Es wurden ' + str(len(self.cfgExportpaths)) + ' Datenfelder angewählt')
 
-        for path in self.cfgExportpaths:
-            logger.debug('Pfad: ' + path + ' angewählt und gespeichert')
 
+        for path in self.cfgExportpaths:
+            if path in self._e3dcexportFrame._customNames:
+                custom = self._e3dcexportFrame._customNames[path]
+                logger.debug('Pfad: ' + path + ' angewählt und gespeichert unter dem Namen ' + custom)
+            else:
+                logger.debug('Pfad: ' + path + ' angewählt und gespeichert')
+
+
+
+        self.bUploadSetData.Enable(True)
+        self._e3dcexportFrame = None
         event.Skip()
 
     def pMainChanged(self, event=None):
@@ -1479,7 +1498,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.bWBSave.Enable(value)
         self.bWBStopLoading.Enable(value)
         self.bUploadStart.Enable(value)
-        self.bUploadSetData.Enable(value)
+        if not self._e3dcexportFrame:
+            self.bUploadSetData.Enable(value)
         self.cbBATIndex.Enable(value)
         self.cbWallbox.Enable(value)
         self.chPVIIndex.Enable(value)
@@ -1947,10 +1967,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                            'websocketaddr': self.cfgLoginwebsocketaddr,
                            'connectiontype': self.cfgLoginconnectiontype,
                            'autoupdate': self.scAutoUpdate.GetValue()}
-        if self.cfgExportpaths:
-            paths = ','.join(self.cfgExportpaths)
-        else:
-            paths = ''
 
         self.config['Export'] = {'csv': self.chUploadCSV.GetValue(),
                             'csvfile': self.fpUploadCSV.GetPath(),
@@ -1968,7 +1984,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'http': self.chUploadHTTP.GetValue(),
                             'httpurl': self.txtUploadHTTPURL.GetValue(),
                             'intervall': self.scUploadIntervall.GetValue(),
-                            'paths': paths}
+                            'paths': self._config['Export']['paths'],
+                            'pathnames' : self._config['Export']['pathnames']}
 
     def saveConfig(self):
         logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)

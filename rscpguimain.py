@@ -54,6 +54,8 @@ class RSCPGuiMain():
         self._config = None
         self._gui = None
 
+        self._cached = {}
+
         setdefaulttimeout(2)
 
     def clear_values(self):
@@ -104,11 +106,20 @@ class RSCPGuiMain():
             kat = None
 
         if name and kat:
+            if isinstance(value, dict):
+                self._cached[name + kat] = value
+                newvalue = []
+                for k in value.keys():
+                    newvalue.append(k + '|' + value[k])
+                value = ','.join(newvalue)
+
             if isinstance(value, list):
+                self._cached[name + kat] = value
                 value = ','.join(value)
 
             if kat not in self._config:
                 self._config[kat] = {}
+
 
             self._config[kat][name] = value
         else:
@@ -147,9 +158,20 @@ class RSCPGuiMain():
                         if self._config[kat][name] != '':
                             return int(self._config[kat][name])
                     elif name == 'paths':
-                        return self._config[kat][name].split(',')
+                        #if kat + name not in self._cached:
+                        self._cached[kat + name] = self._config[kat][name].split(',')
+                        return self._cached[kat + name]
                     elif name == 'mqttpassword' and self._config[kat][name] != '' and self._config[kat][name][0] == '@':
                         return self.tinycode('rscpgui_mqttpass', self._config[kat][name][1:], True)
+                    elif name == 'pathnames':
+                        items = self._config[kat][name].split(',')
+                        ret = {}
+                        for item in items:
+                            tmp = item.split('|')
+                            ret[tmp[0]] = tmp[1]
+                        self._cached[kat + name] = ret
+
+                        return self._cached[kat + name]
                     else:
                         return self._config[kat][name]
 
@@ -649,56 +671,64 @@ class RSCPGuiMain():
             logger.debug('Ermittle Pfad aus ' + path)
             teile = path.split('/')
             if teile[0] == 'E3DC':
+                newvalue = None
                 if teile[1] == 'EMS_DATA':
                     try:
                         if not ems_data:
                             ems_data = self._fill_ems().asDict()
 
-                        values[path] = getDataFromPath(teile[2:], ems_data)
+                        newvalue = getDataFromPath(teile[2:], ems_data)
                     except:
                         logger.exception('Fehler beim Abruf von EMS')
                 elif teile[1] == 'BAT_DATA':
                     try:
                         if not bat_data:
                             bat_data = self.gui.get_data(self.gui.getBatDcbData(bat_index=int(teile[2])), True).asDict()
-                        values[path] = getDataFromPath(teile[3:], bat_data)
+                        newvalue = getDataFromPath(teile[3:], bat_data)
                     except:
                         logger.exception('Fehler beim Abruf von BAT')
                 elif teile[1] == 'INFO_DATA':
                     try:
                         if not info_data:
                             info_data = self._fill_info().asDict()
-                        values[path] = getDataFromPath(teile[2:], info_data)
+                        newvalue = getDataFromPath(teile[2:], info_data)
                     except:
                         logger.exception('Fehler beim Abruf von INFO')
                 elif teile[1] == 'DCDC_DATA':
                     try:
                         if not dcdc_data:
                             dcdc_data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=int(teile[2])), True).asDict()
-                        values[path] = getDataFromPath(teile[3:], dcdc_data)
+                        newvalue = getDataFromPath(teile[3:], dcdc_data)
                     except:
                         logger.exception('Fehler beim Abruf von DCDC')
                 elif teile[1] == 'PM_DATA':
                     try:
                         if not pm_data:
                             pm_data = self.gui.get_data(self.gui.getPMData(pm_index=int(teile[2])), True).asDict()
-                        values[path] = getDataFromPath(teile[3:], pm_data)
+                        newvalue = getDataFromPath(teile[3:], pm_data)
                     except:
                         logger.exception('Fehler beim Abruf von PM')
                 elif teile[1] == 'PVI_DATA':
                     try:
                         if not pvi_data:
                             pvi_data = self.gui.get_data(self.gui.getPVIData(pvi_index=int(teile[2])), True).asDict()
-                        values[path] = getDataFromPath(teile[3:], pvi_data)
+                        newvalue = getDataFromPath(teile[3:], pvi_data)
                     except:
                         logger.exception('Fehler beim Abruf von PVI')
                 elif teile[1] == 'WB_DATA':
                     try:
                         if not wb_data:
                             wb_data = self.gui.get_data(self.gui.getWB(index=int(teile[2])), True).asDict()
-                        values[path] = getDataFromPath(teile[3:], wb_data)
+                        newvalue = getDataFromPath(teile[3:], wb_data)
                     except:
                         logger.exception('Fehler beim Abruf von WB')
+
+                if path in self.cfgExportpathnames:
+                    key = self.cfgExportpathnames[path]
+                else:
+                    key = path
+
+                values[key] = newvalue
             else:
                 logger.debug('Pfadangabe falsch: ' + path)
 

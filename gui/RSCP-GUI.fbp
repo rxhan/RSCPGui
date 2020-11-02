@@ -34078,6 +34078,7 @@
                         <property name="window_name"></property>
                         <property name="window_style"></property>
                         <event name="OnTreeSelChanged">tcUploadOnSelChanged</event>
+                        <event name="OnTreeSelChanging">tcUploadOnSelChanging</event>
                     </object>
                 </object>
                 <object class="sizeritem" expanded="1">
