@@ -321,6 +321,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         return RSCPGuiMain.gui.fget(self)
 
     def bEMSUploadChangesOnClick(self, event):
+        if self._data_ems is None:
+            RSCPGuiMain.fill_ems(self)
+
         r = []
         test = 1 if self.chEMSBatteryBeforeCarMode.GetValue() == False else 0
         if test != self._data_ems['EMS_BATTERY_BEFORE_CAR_MODE'].data:
@@ -378,17 +381,15 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 von_data_hour = int(von_data[0])
                 von_data_minute = int(von_data[1])
             else:
+                wx.MessageBox('Dateneingabe im Feld ' + von + ' ist falsch', 'Ladeeinstellungen speichern', wx.ICON_WARNING)
                 raise Exception('Dateneingabe im Feld ' + von + ' falsch')
-
-            self.__getattribute__(bis).SetValue(
-                str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
-                    idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
 
             bis_data = self.__getattribute__(bis).GetValue().split(':')
             if len(bis_data) == 2:
                 bis_data_hour = int(bis_data[0])
                 bis_data_minute = int(bis_data[1])
             else:
+                wx.MessageBox('Dateneingabe im Feld ' + bis + ' ist falsch', 'Ladeeinstellungen speichern', wx.ICON_WARNING)
                 raise Exception('Dateneingabe im Feld ' + bis + ' falsch')
 
             if idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data != ch_data or \
@@ -449,7 +450,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 except:
                     traceback.print_exc()
                     wx.MessageBox('Übertragung fehlgeschlagen')
-        self.pMainChanged()
+        self.fill_ems()
 
     def set_wb_enabled(self):
         def set_wb_enableddisabled(value):
@@ -724,7 +725,15 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
     def fill_ems_power(self, d = None):
 
         if not d:
-            d = self.gui.get_data(self.gui.getEMSPowerSettings() + self.gui.getEMSIdlePeriods(), True)
+            d = self.gui.get_data(self.gui.getEMSPowerSettings() + self.gui.getEMSIdlePeriods() + self.gui.getEMSSysSpecs(), True)
+
+        for sysspec in d['EMS_GET_SYS_SPECS']['EMS_SYS_SPEC']:
+            if sysspec['EMS_SYS_SPEC_NAME'].data == 'maxStartChargePower':
+                self.sEMSMaxDischargeStartPower.SetMax(sysspec['EMS_SYS_SPEC_VALUE_INT'].data)
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxChargePower':
+                self.sEMSMaxChargePower.SetMax(sysspec['EMS_SYS_SPEC_VALUE_INT'].data)
+            elif sysspec['EMS_SYS_SPEC_NAME'].data == 'maxDischargePower':
+                self.sEMSMaxDischargePower.SetMax(sysspec['EMS_SYS_SPEC_VALUE_INT'].data)
 
         self.sEMSMaxChargePower.SetValue(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER'].data)
         self.txtEMSMaxChargePower.SetValue(repr(d['EMS_GET_POWER_SETTINGS']['EMS_MAX_CHARGE_POWER']) + ' W')
