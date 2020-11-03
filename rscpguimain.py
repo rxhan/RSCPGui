@@ -567,7 +567,12 @@ class RSCPGuiMain():
 
             if csvactive:
                 csvfile = open(csvfilename, 'a', newline='')
-                fields = self.cfgExportpaths.copy()
+                fields: list = self.cfgExportpaths.copy()
+
+                for key,val in enumerate(fields):
+                    if val in self.cfgExportpathnames:
+                        fields[key] = self.cfgExportpathnames[val]
+
                 fields.insert(0,'datetime')
                 fields.insert(0,'ts')
                 csvwriter = csv.DictWriter(csvfile, fieldnames = fields)
