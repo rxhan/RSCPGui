@@ -101,6 +101,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.enabledisableMQTT(False)
 
         self.chUploadMQTTOnCheck(None)
+        self.chUploadInfluxOnCheck(None)
 
         logger.info('Init abgeschlossen')
 
@@ -158,6 +159,39 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         parent = self.chUploadMQTT.Parent
         parent.GetSizer().Layout()
 
+    def hideInflux(self, value = True):
+        if value:
+            self.m_staticText213.Hide()
+            self.m_staticText215.Hide()
+            self.m_staticText216.Hide()
+            self.m_staticText217.Hide()
+            self.m_staticText218.Hide()
+            self.txtUploadInfluxHost.Hide()
+            self.txtUploadInfluxPort.Hide()
+            self.txtUploadInfluxDatenbank.Hide()
+            self.scUploadInfluxTimeout.Hide()
+            self.txtUploadInfluxName.Hide()
+        else:
+            self.m_staticText213.Show()
+            self.m_staticText215.Show()
+            self.m_staticText216.Show()
+            self.m_staticText217.Show()
+            self.m_staticText218.Show()
+            self.txtUploadInfluxHost.Show()
+            self.txtUploadInfluxPort.Show()
+            self.txtUploadInfluxDatenbank.Show()
+            self.scUploadInfluxTimeout.Show()
+            self.txtUploadInfluxName.Show()
+
+    def chUploadInfluxOnCheck(self, event):
+        if self.chUploadInfluxdb.GetValue():
+            self.hideInflux(False)
+        else:
+            self.hideInflux(True)
+
+        parent = self.chUploadInfluxdb.Parent
+        parent.GetSizer().Layout()
+
     def scAutoUpdateOnChange(self, event):
         autoupdate = self.scAutoUpdate.GetValue()
         if autoupdate > 0 and self._autothread is None:
@@ -178,14 +212,14 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         if not self._AutoExportStarted:
             self.refreshConfig()
             RSCPGuiMain.StartExport(self)
-            self.bUploadStart.SetLabel('Beenden!')
+            self.bUploadStart.SetLabel('Export beenden')
         else:
             self._AutoExportStarted = False
             self.bUploadStart.Enable(False)
 
     def StartAutoExport(self):
         RSCPGuiMain.StartAutoExport(self)
-        self.bUploadStart.SetLabel('Starten!')
+        self.bUploadStart.SetLabel('Export starten')
         self.bUploadStart.Enable(True)
 
     def bUploadSetDataOnClick(self, event):
@@ -1990,6 +2024,12 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'mqttpassword': '@' + self.tinycode('rscpgui_mqttpass', self.txtUploadMQTTPassword.GetValue()),
                             'mqttzertifikat' : self.fpUploadMQTTZertifikat.GetPath(),
                             'mqttinsecure' : self.cbUploadMQTTInsecure.GetValue(),
+                            'influx' : self.chUploadInfluxdb.GetValue(),
+                            'influxhost' : self.txtUploadInfluxHost.GetValue(),
+                            'influxport' : self.txtUploadInfluxPort.GetValue(),
+                            'influxdatenbank' : self.txtUploadInfluxDatenbank.GetValue(),
+                            'influxtimeout' : self.scUploadInfluxTimeout.GetValue(),
+                            'influxname' : self.txtUploadInfluxName.GetValue(),
                             'http': self.chUploadHTTP.GetValue(),
                             'httpurl': self.txtUploadHTTPURL.GetValue(),
                             'intervall': self.scUploadIntervall.GetValue(),
@@ -2008,6 +2048,13 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
     def loadConfig(self):
         logger.info('Lade Konfigurationsdaten in Oberfläche')
+        # Defaults
+
+        if self.cfgLoginwebsocketaddr in ('', None):
+            self.cfgLoginwebsocketaddr = 'wss://s10.e3dc.com/ws'
+
+        if self.cfgLoginconnectiontype not in ('auto', 'direkt', 'web'):
+            self.cfgLoginconnectiontype = 'auto'
 
         if self.cfgLoginusername is not None:
             self.txtUsername.SetValue(self.cfgLoginusername)
@@ -2022,14 +2069,48 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         if self.cfgLoginautoupdate is not None:
             self.scAutoUpdate.SetValue(self.cfgLoginautoupdate)
 
+        if self.cfgExportmqttbroker in ('', None):
+            self.cfgExportmqttbroker = 'localhost'
+
+        if self.cfgExportmqttport in ('', None, 0):
+            self.cfgExportmqttport = 1883
+
+        if self.cfgExportmqttqos in ('', None):
+            self.cfgExportmqttqos = 0
+
+        if self.cfgExportinfluxhost in ('', None):
+            self.cfgExportinfluxhost = 'localhost'
+
+        if self.cfgExportinfluxport in ('', None, 0):
+            self.cfgExportinfluxport = 8086
+
+        if self.cfgExportinfluxtimeout in ('', None):
+            self.cfgExportinfluxtimeout = 0
+
+        if self.cfgExportinfluxname in ('', None):
+            self.cfgExportinfluxname = 'rscpgui'
+
+        if self.cfgExportinfluxhost is not None:
+            self.txtUploadInfluxHost.SetValue(self.cfgExportinfluxhost)
+        if self.cfgExportinfluxdatenbank is not None:
+            self.txtUploadInfluxDatenbank.SetValue(self.cfgExportinfluxdatenbank)
+        if self.cfgExportinfluxport is not None:
+            self.txtUploadInfluxPort.SetValue(str(self.cfgExportinfluxport))
+        if self.cfgExportinfluxtimeout is not None:
+            self.scUploadInfluxTimeout.SetValue(self.cfgExportinfluxtimeout)
+        if self.cfgExportinflux is not None:
+            self.chUploadInfluxdb.SetValue(self.cfgExportinflux)
+        if self.cfgExportinfluxname is not None:
+            self.txtUploadInfluxName.SetValue(self.cfgExportinfluxname)
+
         if self.cfgExportcsv is not None:
             self.chUploadCSV.SetValue(self.cfgExportcsv)
         if self.cfgExportcsvfile is not None:
             self.fpUploadCSV.SetPath(self.cfgExportcsvfile)
         if self.cfgExportjson is not None:
             self.chUploadJSON.SetValue(self.cfgExportjson)
-        if self.cfgExportcsvpath is not None:
-            self.fpUploadJSON.SetPath(self.cfgExportcsvpath)
+        if self.cfgExportjsonfile is not None:
+            self.fpUploadJSON.SetPath(self.cfgExportjsonfile)
         if self.cfgExportmqtt is not None:
             self.chUploadMQTT.SetValue(self.cfgExportmqtt)
         if self.cfgExportmqttbroker is not None:
@@ -2062,8 +2143,4 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         logger.info('Konfigurationsdatei geladen')
 
-        if self.cfgLoginwebsocketaddr in ('', None):
-            self.cfgLoginwebsocketaddr = 'wss://s10.e3dc.com/ws'
 
-        if self.cfgLoginconnectiontype not in ('auto', 'direkt', 'web'):
-            self.cfgLoginconnectiontype = 'auto'

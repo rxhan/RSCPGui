@@ -3116,6 +3116,56 @@ class MainFrame ( wx.Frame ):
 		self.txtUploadHTTPURL = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, u"https://pv.pincrushers.de/rscpgui", wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
 		fgSizer40.Add( self.txtUploadHTTPURL, 0, wx.ALL, 5 )
 
+		self.chUploadInfluxdb = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"Influx DB (v1)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer40.Add( self.chUploadInfluxdb, 0, wx.ALIGN_CENTER_VERTICAL|wx.ALL, 5 )
+
+		fgSizer411 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer411.SetFlexibleDirection( wx.BOTH )
+		fgSizer411.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText213 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Host", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText213.Wrap( -1 )
+
+		fgSizer411.Add( self.m_staticText213, 0, wx.ALL, 5 )
+
+		self.txtUploadInfluxHost = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer411.Add( self.txtUploadInfluxHost, 0, wx.ALL, 5 )
+
+		self.m_staticText215 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Port", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText215.Wrap( -1 )
+
+		fgSizer411.Add( self.m_staticText215, 0, wx.ALL, 5 )
+
+		self.txtUploadInfluxPort = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer411.Add( self.txtUploadInfluxPort, 0, wx.ALL, 5 )
+
+		self.m_staticText217 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Datenbank", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText217.Wrap( -1 )
+
+		fgSizer411.Add( self.m_staticText217, 0, wx.ALL, 5 )
+
+		self.txtUploadInfluxDatenbank = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer411.Add( self.txtUploadInfluxDatenbank, 0, wx.ALL, 5 )
+
+		self.m_staticText218 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Name", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText218.Wrap( -1 )
+
+		fgSizer411.Add( self.m_staticText218, 0, wx.ALL, 5 )
+
+		self.txtUploadInfluxName = wx.TextCtrl( self.pEinstellungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer411.Add( self.txtUploadInfluxName, 0, wx.ALL, 5 )
+
+		self.m_staticText216 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Timeout", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText216.Wrap( -1 )
+
+		fgSizer411.Add( self.m_staticText216, 0, wx.ALL, 5 )
+
+		self.scUploadInfluxTimeout = wx.SpinCtrl( self.pEinstellungen, wx.ID_ANY, u"1", wx.DefaultPosition, wx.DefaultSize, wx.SP_ARROW_KEYS, 1, 300, 1 )
+		fgSizer411.Add( self.scUploadInfluxTimeout, 0, wx.ALL, 5 )
+
+
+		fgSizer40.Add( fgSizer411, 1, wx.EXPAND, 5 )
+
 		self.m_staticText206 = wx.StaticText( self.pEinstellungen, wx.ID_ANY, u"Intervall (s)", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText206.Wrap( -1 )
 
@@ -3253,6 +3303,7 @@ class MainFrame ( wx.Frame ):
 		self.bConfigGetSerialNo.Bind( wx.EVT_BUTTON, self.bConfigGetSerialNoOnClick )
 		self.scAutoUpdate.Bind( wx.EVT_SPINCTRL, self.scAutoUpdateOnChange )
 		self.chUploadMQTT.Bind( wx.EVT_CHECKBOX, self.chUploadMQTTOnCheck )
+		self.chUploadInfluxdb.Bind( wx.EVT_CHECKBOX, self.chUploadInfluxOnCheck )
 		self.bUploadSetData.Bind( wx.EVT_BUTTON, self.bUploadSetDataOnClick )
 		self.bUploadStart.Bind( wx.EVT_BUTTON, self.bUploadStartOnClick )
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
@@ -3331,6 +3382,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def chUploadMQTTOnCheck( self, event ):
+		event.Skip()
+
+	def chUploadInfluxOnCheck( self, event ):
 		event.Skip()
 
 	def bUploadSetDataOnClick( self, event ):

@@ -28,6 +28,12 @@ except:
     logger.warning('Paho-Libary nicht gefunden, MQTT wird nicht zur Verfügung stehen')
 
 try:
+    import influxdb
+    from influxdb.exceptions import InfluxDBClientError
+except:
+    logger.warning('Influxdb-Libary nicht gefunden, Influx wird nicht zur Verfügung stehen')
+
+try:
     import thread
 except ImportError:
     import _thread as thread
@@ -117,6 +123,9 @@ class RSCPGuiMain():
                 self._cached[name + kat] = value
                 value = ','.join(value)
 
+            if isinstance(value, int):
+                value = str(value)
+
             if kat not in self._config:
                 self._config[kat] = {}
 
@@ -152,9 +161,9 @@ class RSCPGuiMain():
                         return 'auto'
             elif kat == 'Export':
                 if name in self._config[kat]:
-                    if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain', 'mqttinsecure'):
+                    if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain', 'mqttinsecure', 'influx'):
                         return True if self._config[kat][name].lower() in ('true', '1', 'ja') else False
-                    elif name in ('mqttport', 'mqttqos', 'intervall'):
+                    elif name in ('mqttport', 'mqttqos', 'intervall', 'influxport', 'influxtimeout'):
                         if self._config[kat][name] != '':
                             return int(self._config[kat][name])
                     elif name == 'paths':
@@ -174,13 +183,6 @@ class RSCPGuiMain():
                         return self._cached[kat + name]
                     else:
                         return self._config[kat][name]
-
-                if name == 'mqttbroker':
-                    return 'localhost'
-                elif name == 'mqttport':
-                    return 1883
-                elif name == 'mqttpos':
-                    return 0
 
         return None
 
@@ -261,6 +263,8 @@ class RSCPGuiMain():
                         seriennummer = repr(result['INFO_SERIAL_NUMBER'])
                     logger.info('Verwende Direkte Verbindung / Verbindung mit System ' + repr(
                         result['INFO_SERIAL_NUMBER']) + ' / ' + repr(result['INFO_IP_ADDRESS']))
+
+                    self.serialnumber = result['INFO_SERIAL_NUMBER']
                 except ConnectionResetError as e:
                     logger.warning(
                         "Direkte Verbindung fehlgeschlagen (Socket) error({0}): {1}".format(e.errno, e.strerror))
@@ -285,6 +289,8 @@ class RSCPGuiMain():
                             address = repr(result['INFO_IP_ADDRESS'])
                         logger.info('Verwende Web Verbindung / Verbindung mit System ' + repr(
                             result['INFO_SERIAL_NUMBER']) + ' / ' + repr(result['INFO_IP_ADDRESS']))
+
+                        self.serialnumber = result['INFO_SERIAL_NUMBER']
                     except:
                         logger.exception('Fehler beim Aufbau der Web Verbindung')
                         testgui = None
@@ -331,7 +337,7 @@ class RSCPGuiMain():
         if sn[0:2] == '70':
             return 'P10-' + sn
         elif sn[0:2] == '60':
-            return 'Q10-'
+            return 'Q10-' + sn
         else:
             return 'S10-' + sn
 
@@ -516,23 +522,31 @@ class RSCPGuiMain():
             data = nl
         return data
 
+    def mqtt_connect(self, broker, port, username=None, password=None, mqttinsecure=None, mqttzertifikat=None):
+        logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
+
+        mqttclient = paho.Client("RSCPGui")
+        if username and password:
+            mqttclient.username_pw_set(username, password)
+
+        if mqttinsecure and mqttzertifikat:
+            if os.path.isfile(mqttzertifikat):
+                mqttclient.tls_set(ca_certs=mqttzertifikat)
+                mqttclient.tls_insecure_set(mqttinsecure)
+
+        mqttclient.enable_logger(logger)
+
+        mqttclient.connect(broker, port)
+        return mqttclient
+
     def StartAutoExport(self):
-        def mqtt_connect(broker,port,username=None,password=None,mqttinsecure=None,mqttzertifikat=None):
-            logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
 
-            mqttclient = paho.Client("RSCPGui")
-            if username and password:
-                mqttclient.username_pw_set(username, password)
+        def influx_connect(influxhost, influxport, influxtimeout, influxdatenbank):
+            logger.debug('Verbinde mit Influxdb ' + influxhost + ':' + str(influxport) + '/' + influxdatenbank)
+            influxclient = influxdb.InfluxDBClient(host=influxhost, port=influxport, timeout=influxtimeout)
+            influxclient.switch_database(influxdatenbank)
 
-            if mqttinsecure and mqttzertifikat:
-                if os.path.isfile(mqttzertifikat):
-                    mqttclient.tls_set(ca_certs=mqttzertifikat)
-                    mqttclient.tls_insecure_set(mqttinsecure)
-
-            mqttclient.enable_logger(logger)
-
-            mqttclient.connect(broker, port)
-            return mqttclient
+            return influxclient
 
         try:
             logger.info('Starte automatischen Export')
@@ -559,10 +573,18 @@ class RSCPGuiMain():
             mqttpassword = self.cfgExportmqttpassword
             mqttzertifikat = self.cfgExportmqttzertifikat
             mqttinsecure = self.cfgExportmqttinsecure
-            mqttclient = mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat) if mqttactive else None
+            mqttclient = self.mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat) if mqttactive else None
 
             httpactive = self.cfgExporthttp
             httpurl = self.cfgExporthttpurl
+
+            influxactive = self.cfgExportinflux if 'influxdb' in sys.modules.keys() else False
+            influxhost = self.cfgExportinfluxhost
+            influxport = self.cfgExportinfluxport
+            influxdatenbank = self.cfgExportinfluxdatenbank
+            influxtimeout = self.cfgExportinfluxtimeout
+            influxname = self.cfgExportinfluxname
+            influxclient = influx_connect(influxhost, influxport, influxtimeout, influxdatenbank) if influxactive else None
 
             intervall = self.cfgExportintervall
 
@@ -588,45 +610,19 @@ class RSCPGuiMain():
                     values['ts'] = time.time()
                     values['datetime'] = datetime.datetime.now().isoformat()
                     if csvactive:
-                        try:
-                            logger.info('Exportiere in CSV-Datei ' + csvfilename)
-                            csvwriter.writerow(values)
-                            csvfile.flush()
-                        except:
-                            logger.exception('Fehler beim Export in CSV-Datei')
+                        threading.Thread(target=self.exportCSV, args=(csvfilename, csvwriter, csvfile, values)).start()
 
                     if jsonactive:
-                        try:
-                            logger.info('Exportiere in JSON-Datei ' + jsonfilename)
-                            with open(jsonfilename, 'w') as jsonfile:
-                                json.dump(values, jsonfile)
-                        except:
-                            logger.exception('Fehler beim Export in JSON-Datei')
+                        threading.Thread(target=self.exportJson, args=(jsonfilename, values)).start()
 
                     if mqttactive:
-                        try:
-                            logger.info('Exportiere nach MQTT')
-                            for key in values.keys():
-                                if key not in ('ts', 'datetime'):
-                                    topic = '/' + key
-                                    res,mid = mqttclient.publish(topic, values[key], mqttqos, mqttretain)
-                                    if res != 0:
-                                        mqttclient.disconnect()
-                                        logger.error('Fehler bei Export an MQTT bei Topic ' + topic + ' Errorcode: ' + str(res))
-                                        mqttclient = mqtt_connect(mqttbroker, mqttport)
-                        except:
-                            logger.exception('Fehler beim Export nach MQTT')
+                        threading.Thread(target=self.exportMQTT, args=(mqttclient, mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat, mqttqos, mqttretain, values)).start()
 
                     if httpactive:
-                        try:
-                            logger.info('Exportiere an Http-Url ' + httpurl)
-                            r = requests.post(httpurl, json=values)
-                            r.raise_for_status()
-                            logger.debug('Export an URL Erfolgreich ' + str(r.status_code))
-                            logger.debug('Response: ' + r.text)
-                        except:
-                            logger.exception('Fehler beim Export in Http')
+                        threading.Thread(target=self.exportHTTP, args=(httpurl, values)).start()
 
+                    if influxactive:
+                        threading.Thread(target=self.exportInflux, args=(influxclient, influxname,values)).start()
 
                 except:
                     logger.exception('Fehler beim Abruf der Exportdaten')
@@ -645,6 +641,68 @@ class RSCPGuiMain():
             logger.exception('Fehler beim automatischen Export')
 
         self._AutoExportStarted = False
+
+    def exportCSV(self, csvfilename, csvwriter, csvfile, values):
+        logger.info('Exportiere in CSV-Datei ' + csvfilename)
+        try:
+            csvwriter.writerow(values)
+            csvfile.flush()
+            logger.debug('Export in CSV-Datei erfolgreich')
+        except:
+            logger.exception('Fehler beim Export in CSV-Datei')
+
+    def exportHTTP(self, httpurl, values):
+        try:
+            logger.info('Exportiere an Http-Url ' + httpurl)
+            r = requests.post(httpurl, json=values)
+            r.raise_for_status()
+            logger.debug('Export an URL erfolgreich ' + str(r.status_code))
+            logger.debug('Response: ' + r.text)
+        except:
+            logger.exception('Fehler beim Export in Http')
+
+    def exportMQTT(self, mqttclient, mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat, mqttqos, mqttretain, values):
+        try:
+            logger.info('Exportiere nach MQTT ' + mqttbroker)
+            for key in values.keys():
+                if key not in ('ts', 'datetime'):
+                    topic = '/' + key
+                    res, mid = mqttclient.publish(topic, values[key], mqttqos, mqttretain)
+                    if res != 0:
+                        mqttclient.disconnect()
+                        logger.error('Fehler bei Export an MQTT bei Topic ' + topic + ' Errorcode: ' + str(res))
+                        mqttclient = self.mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure,
+                                                  mqttzertifikat)
+
+            logger.debug('Export an MQTT abgeschlossen')
+        except:
+            logger.exception('Fehler beim Export nach MQTT')
+
+    def exportJson(self, jsonfilename, values):
+        try:
+            logger.info('Exportiere in JSON-Datei ' + jsonfilename)
+            with open(jsonfilename, 'w') as jsonfile:
+                json.dump(values, jsonfile)
+            logger.debug('Export an JSON-Datei erfolgreich')
+        except:
+            logger.exception('Fehler beim Export in JSON-Datei')
+
+    def exportInflux(self, influxclient, influxname, fields):
+        try:
+            logger.info('Exportiere an Influxdb')
+            values = {}
+            for key in fields.keys():
+                if key not in ('ts', 'datetime'):
+                    values[key] = fields[key]
+
+
+            write_points = [{'measurement': influxname, 'fields': values}]
+            influxclient.write_points(write_points)
+
+            logger.debug('Export an Influxdb erfolgreich')
+
+        except:
+            logger.exception('Fehler beim Export an Influxdb')
 
     def getUploadDataFromPath(self):
         def getDataFromPath(teile, data):
