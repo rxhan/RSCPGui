@@ -129,20 +129,8 @@ class RSCPUtils:
         data_tag = RSCPTag(data_tag_hex)
         data_type = RSCPType(data_type_hex)
 
-        # Check the data type name to handle the values accordingly
-        if data_type == RSCPType.Container:
-            container_data = []
-            current_byte = data_header_size
-            while current_byte < data_header_size + data_length:
-                # inner_data, used_length = self.decode_data(data[current_byte:])
-                data_tag_hex_c, data_type_hex_c, data_length_c = struct.unpack(self._DATA_HEADER_FORMAT,
-                                                                         data[current_byte:current_byte + data_header_size])
-                inner_rscp_dto = self.decode_data(data[current_byte:data_header_size + current_byte + data_length_c])
-                current_byte += inner_rscp_dto.size
-                container_data.append(inner_rscp_dto)
-            return RSCPDTO(data_tag, data_type, container_data, current_byte)
         # Für Datensammlungen ohne Container, es wird ein Dummy gebildet
-        elif data_header_size + data_length != len(data):
+        if data_header_size + data_length != len(data):
             container_data = []
             current_byte = 0
             while current_byte < len(data):
@@ -153,6 +141,18 @@ class RSCPUtils:
                 current_byte += inner_rscp_dto.size
                 container_data.append(inner_rscp_dto)
             return RSCPDTO(RSCPTag.LIST_TYPE, RSCPType.Container, container_data, current_byte)
+        # Check the data type name to handle the values accordingly
+        elif data_type == RSCPType.Container:
+            container_data = []
+            current_byte = data_header_size
+            while current_byte < data_header_size + data_length:
+                # inner_data, used_length = self.decode_data(data[current_byte:])
+                data_tag_hex_c, data_type_hex_c, data_length_c = struct.unpack(self._DATA_HEADER_FORMAT,
+                                                                         data[current_byte:current_byte + data_header_size])
+                inner_rscp_dto = self.decode_data(data[current_byte:data_header_size + current_byte + data_length_c])
+                current_byte += inner_rscp_dto.size
+                container_data.append(inner_rscp_dto)
+            return RSCPDTO(data_tag, data_type, container_data, current_byte)
         elif data_type == RSCPType.Timestamp:
             data_format = "<iii"
             high, low, ms = struct.unpack(data_format,

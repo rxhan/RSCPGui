@@ -135,7 +135,6 @@ class E3DCWeb(E3DC):
 
             elif res.name == 'SERVER_REQ_RSCP_CMD':
                 if res['SERVER_RSCP_DATA']:
-                    logger.debug(res.name)
                     p = []
                     rscp_data = res['SERVER_RSCP_DATA']
 
