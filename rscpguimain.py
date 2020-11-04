@@ -330,6 +330,8 @@ class RSCPGuiMain():
     def getSNFromNumbers(self, sn):
         if sn[0:2] == '70':
             return 'P10-' + sn
+        elif sn[0:2] == '60':
+            return 'Q10-'
         else:
             return 'S10-' + sn
 
