@@ -1335,25 +1335,30 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             alg_data = d['WB_EXTERN_DATA_ALG']['WB_EXTERN_DATA'].data
             sb = alg_data[2]
             if wallbox_type == WB_TYPE.E3DC:
-                self.chWB1PH.SetValue(alg_data[4] < 3)
-                self.sWBLadestrom.SetValue(alg_data[4])
+                self.sWBLadestrom.SetValue(alg_data[3])
             else:
-                self.chWB1PH.SetValue(alg_data[1] == 1)
-                self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
+                self.sWBLadestrom.SetValue(alg_data[4])
 
+            self.chWB1PH.SetValue(alg_data[1] == 1)
             self.sWBLadestromOnScroll(None)
+
+            status = []
 
             if (sb & 64) == 64:
                 logger.debug('WB charging canceled True')
+                status.append('Ladenvorgang abgebrochen')
             else:
                 logger.debug('WB charging canceled False')
             if (sb & 32) == 32:
                 logger.debug('WB charging active True')
+                status.append('Ladevorgang aktiv')
             else:
                 logger.debug('WB charging active False')
 
-            self.chWBSunmode.SetValue((sb & 128) == 128)
+            if sb == 0:
+                status.append('Kein Auto angesteckt')
 
+            self.chWBSunmode.SetValue((sb & 128) == 128)
 
             def get_load(data):
                 return data[1] << 8 | data[0]
@@ -1368,27 +1373,19 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtWBLadeleistung.SetValue(str(wbload) + ' W')
 
             if wallbox_type == WB_TYPE.E3DC:
-                if wbload > 0:
-                    self.txtWBMode.SetValue(WB_MODE.LOADING.name)
+                if len(status) > 0:
+                    self.txtWBMode.SetValue(','.join(status))
                 else:
-                    self.txtWBMode.SetValue(WB_MODE.NOT_LOADING.name)
+                    if wbload > 0:
+                        self.txtWBMode.SetValue(WB_MODE.LOADING.name)
+                    else:
+                        self.txtWBMode.SetValue(WB_MODE.NOT_LOADING.name)
             else:
                 self.txtWBMode.SetValue(repr(d['WB_MODE']))
 
             logger.debug('Darstellung Wallbox abgeschlossen')
         else:
             logger.debug('Daten für Wallbox #' + str(index) + ' existieren nicht, Darstellung abgebrochen')
-
-            # Bedeutung???
-            # WB_REQ_SET_MODE = 0x0E000030
-            # WB_REQ_SET_EXTERN = 0x0E041010
-            # WB_REQ_SET_BAT_CAPACITY = 0x0E041015
-            # WB_REQ_SET_ENERGY_ALL = 0x0E041016
-            # WB_REQ_SET_ENERGY_SOLAR = 0x0E041017
-            # WB_REQ_SET_PARAM_1 = 0x0E041018
-            # WB_REQ_SET_PARAM_2 = 0x0E041019
-            # WB_REQ_SET_PW = 0x0E041020
-            # WB_REQ_SET_DEVICE_NAME
 
     def bSaveClick(self, event):
         self.saveConfig()
