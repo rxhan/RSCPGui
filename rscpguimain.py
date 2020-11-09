@@ -992,21 +992,20 @@ class RSCPGuiMain():
 
             for bat in self._data_bat:
                 databat = {}
-                #databat['index'] = bat['BAT_INDEX'].data
                 databat['capacity'] = bat['BAT_SPECIFICATION']['BAT_SPECIFIED_CAPACITY'].data
                 databat['dcb'] = []
 
-                for dcb in bat['BAT_DCB_INFO']:
+                dcbcount = int(bat['BAT_DCB_COUNT'])
+                dcbinfo = bat['BAT_DCB_INFO'] if dcbcount > 1 else [bat['BAT_DCB_INFO']]
+
+                for dcb in dcbinfo:
                     datadcb = {}
-                    #datadcb['index'] = dcb['BAT_DCB_INDEX'].data
                     datadcb['cyclecount'] = dcb['BAT_DCB_CYCLE_COUNT'].data
                     datadcb['soh'] = dcb['BAT_DCB_SOH'].data
                     datadcb['maxchargevoltage'] = dcb['BAT_DCB_MAX_CHARGE_VOLTAGE'].data
                     datadcb['endofdischarge'] = dcb['BAT_DCB_END_OF_DISCHARGE'].data
                     datadcb['manufacture'] = dcb['BAT_DCB_MANUFACTURE_NAME'].data
                     datadcb['type'] = dcb['BAT_DCB_DEVICE_NAME'].data
-                    #sndcbsn = sn + dcb['BAT_DCB_SERIALCODE'].data
-                    #datadcb['serial'] = hashlib.md5(sndcbsn.encode()).hexdigest()
 
                     databat['dcb'].append(datadcb)
 
