@@ -31,7 +31,7 @@ except:
 
 from e3dc._rscp_dto import RSCPDTO
 from e3dc.rscp_tag import RSCPTag
-from e3dc.rscp_type import RSCPType, WB_TYPE
+from e3dc.rscp_type import RSCPType, WB_TYPE, WB_MODE
 from e3dcwebgui import E3DCWebGui
 from rscpguimain import RSCPGuiMain
 
@@ -1311,7 +1311,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtWBSOC.SetValue(repr(d['WB_SOC']))
             self.txtWBErrorCode.SetValue(repr(d['WB_ERROR_CODE']))
             self.txtWBDeviceName.SetValue(repr(d['WB_DEVICE_NAME']))
-            self.txtWBMode.SetValue(repr(d['WB_MODE']))
+            #self.txtWBMode.SetValue(repr(d['WB_MODE']))
 
             self.gWBData.SetCellValue(0, 0, str(round(d['WB_PM_POWER_L1'], 3)) + ' W')
             self.gWBData.SetCellValue(0, 1, str(round(d['WB_PM_POWER_L2'], 3)) + ' W')
@@ -1341,6 +1341,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 self.chWB1PH.SetValue(alg_data[1] == 1)
                 self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
 
+            self.sWBLadestromOnScroll(None)
 
             if (sb & 64) == 64:
                 logger.debug('WB charging canceled True')
@@ -1363,10 +1364,16 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             netload = get_load(d['WB_EXTERN_DATA_NET']['WB_EXTERN_DATA'].data)
             self.txtWBNet.SetValue(str(netload) + ' W')
 
-            self.txtWBLadeleistung.SetValue(str(sunload + netload) + ' W')
+            wbload = sunload+netload
+            self.txtWBLadeleistung.SetValue(str(wbload) + ' W')
 
-            self.sWBLadestrom.SetValue(d['WB_RSP_PARAM_1']['WB_EXTERN_DATA'].data[2])
-            self.sWBLadestromOnScroll(None)
+            if wallbox_type == WB_TYPE.E3DC:
+                if wbload > 0:
+                    self.txtWBMode.SetValue(WB_MODE.LOADING.name)
+                else:
+                    self.txtWBMode.SetValue(WB_MODE.NOT_LOADING.name)
+            else:
+                self.txtWBMode.SetValue(repr(d['WB_MODE']))
 
             logger.debug('Darstellung Wallbox abgeschlossen')
         else:
