@@ -95,17 +95,20 @@ class RSCPDTO:
             elif len(result) > 1:
                 return result
         else:
-            if self.data:
+            if isinstance(self.data, RSCPDTO):
                 if self.data.tag == RSCPTag.LIST_TYPE:
                     return self.data[key]
                 elif self.data.name == key:
                     return self.data
 
-        return None
+        raise AttributeError()
 
     def __cmp__(self, item):
         if isinstance(item, RSCPDTO):
             if self.name == item.name:
+                return True
+        elif isinstance(item, RSCPTag):
+            if self.tag == item:
                 return True
 
         return False
@@ -129,11 +132,13 @@ class RSCPDTO:
                     if data == item:
                         return True
         else:
-            if self.data:
+            if isinstance(self.data, RSCPDTO):
                 if self.data.tag == RSCPTag.LIST_TYPE:
                     return item in self.data
                 elif self.data.name == item:
                     return True
+            else:
+                return False
 
         return False
 

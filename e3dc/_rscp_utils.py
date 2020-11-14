@@ -106,14 +106,14 @@ class RSCPUtils:
             data = binascii.unhexlify(data)
 
         rscp_dto = self.decode_data(data)
-
-        f = rscp_dto['SERVER_RSCP_DATA']
-        if f:
-            b = f.data
-            res, timestamp = self._decode_frame(b)
-            f.type = RSCPType.Container
-            data = self.decode_data(res)
-            f.data = data
+        if 'SERVER_RSCP_DATA' in rscp_dto:
+            f = rscp_dto['SERVER_RSCP_DATA']
+            if f:
+                b = f.data
+                res, timestamp = self._decode_frame(b)
+                f.type = RSCPType.Container
+                data = self.decode_data(res)
+                f.data = data
 
         return rscp_dto
 
