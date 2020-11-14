@@ -4,7 +4,8 @@ logger = logging.getLogger(__name__)
 
 logger.debug('Programmstart')
 
-import configparser
+import locale
+
 import datetime
 import json
 import os
@@ -54,6 +55,35 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         MainFrame.__init__(self, parent)
 
+        def t(col, ascending = True):
+            logger.debug('Portal: Sortiere nach Spalte: ' + str(col) + ' Ascending: ' + str(ascending))
+            if col < self.gPortalList.GetNumberCols():
+                lst = []
+                for currow in range(0, self.gPortalList.GetNumberRows()):
+                    data = []
+                    for curcol in range(0, self.gPortalList.GetNumberCols()):
+                        data.append(self.gPortalList.GetCellValue(currow, curcol))
+                    value = self.gPortalList.SortingRowsData[currow][self.gPortalList.SortingColNames[col]]
+                    lst.append((currow, value, data))
+
+                result = sorted(lst, key = lambda v: v[1], reverse = ascending)
+
+                currow = 0
+                newrowsdata = []
+                for oldrow, value, data in result:
+                    newrowsdata.append(self.gPortalList.SortingRowsData[oldrow])
+                    curcol = 0
+                    for value in data:
+                        self.gPortalList.SetCellValue(currow, curcol, value)
+                        curcol += 1
+                    currow += 1
+
+                self.gPortalList.SortingRowsData = newrowsdata
+            else:
+                return False
+
+        self.gPortalList.SortColumn = t
+
         logger.info('Oberfläche geladen')
 
         self.loadConfig()
@@ -102,6 +132,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         self.chUploadMQTTOnCheck(None)
         self.chUploadInfluxOnCheck(None)
+
+        locale.setlocale(locale.LC_ALL, '')
 
         logger.info('Init abgeschlossen')
 
@@ -1755,8 +1787,22 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         else:
             wx.MessageBox('Datensätze konnten nicht gelöscht werden')
 
+    def gPortalListOnLabelLeftClick( self, event ):
+        self.gPortalSortColumn(event.Col)
+
+    def gPortalSortColumn(self, col):
+        scol = self.gPortalList.GetSortingColumn()
+        if scol == col:
+            ascending = not self.gPortalList.IsSortOrderAscending()
+            self.gPortalList.SetSortingColumn(col, ascending)
+            logger.debug('Portal: Ändere Sortierungsrichtung für ' + str(col) + ' : ' + str(ascending))
+        else:
+            self.gPortalList.SetSortingColumn(col)
+            ascending= True
+        self.gPortalList.SortColumn(col, ascending)
+
     def fill_portal(self):
-        logger.debug('Rufe Geräteliste aus Portal ab')
+        logger.debug('Portal: Rufe Geräteliste ab')
 
         self.gPortalList.DeleteRows(numRows=self.gPortalList.GetNumberRows())
 
@@ -1775,6 +1821,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.gPortalList.SetColLabelValue(7, 'Module')
             self.gPortalList.SetColLabelValue(8, 'Batterietyp(en)')
             self.gPortalList.SetColLabelValue(9, 'Letztes Update')
+            self.gPortalList.SortingColTypes = [str, str, str, int, int, int, int, int, str, datetime]
+            self.gPortalList.SortingColNames = ['model','productiondate','release','cyclecount','capacity','energy','soh','dcbcount','types','time']
             update = True
 
         try:
@@ -1787,6 +1835,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             r.raise_for_status()
 
             r.close()
+
+            self.gPortalList.SortingRowsData = []
+
+
 
             for curdata in response['data']:
                 self.gPortalList.AppendRows(1)
@@ -1806,9 +1858,19 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 self.gPortalList.SetCellValue(currow, 8, curdata['types'])
                 self.gPortalList.SetCellValue(currow, 9, curdata['time'])
 
-                #print(device, response[device])
+                i = 0
+                for name in self.gPortalList.SortingColNames:
+                    if self.gPortalList.SortingColTypes[i] == int:
+                        curdata[name] = int(curdata[name])
+                    elif self.gPortalList.SortingColTypes[i] == datetime:
+                        curdata[name] = datetime.datetime.strptime(curdata['time'], '%d.%m.%Y %H:%M:%S')
+                    i+=1
+
+                self.gPortalList.SortingRowsData.append(curdata)
+
             if update:
                 self.gPortalList.AutoSizeColumns()
+                self.gPortalSortColumn(9)
 
             self.gPortalList.AutoSizeRows()
             self.gPortalList.AutoSize()

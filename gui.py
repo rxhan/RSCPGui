@@ -3235,11 +3235,11 @@ class MainFrame ( wx.Frame ):
 		self.gPortalList.CreateGrid( 5, 5 )
 		self.gPortalList.EnableEditing( True )
 		self.gPortalList.EnableGridLines( True )
-		self.gPortalList.EnableDragGridSize( False )
+		self.gPortalList.EnableDragGridSize( True )
 		self.gPortalList.SetMargins( 0, 0 )
 
 		# Columns
-		self.gPortalList.EnableDragColMove( False )
+		self.gPortalList.EnableDragColMove( True )
 		self.gPortalList.EnableDragColSize( True )
 		self.gPortalList.SetColLabelSize( 30 )
 		self.gPortalList.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
@@ -3309,6 +3309,7 @@ class MainFrame ( wx.Frame ):
 		self.bUpload.Bind( wx.EVT_BUTTON, self.sendToServer )
 		self.bPortalUpload.Bind( wx.EVT_BUTTON, self.bPortalUploadOnClick )
 		self.bPortalDelete.Bind( wx.EVT_BUTTON, self.bPortalDeleteOnClick )
+		self.gPortalList.Bind( wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.gPortalListOnLabelLeftClick )
 
 	def __del__( self ):
 		pass
@@ -3400,6 +3401,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def bPortalDeleteOnClick( self, event ):
+		event.Skip()
+
+	def gPortalListOnLabelLeftClick( self, event ):
 		event.Skip()
 
 

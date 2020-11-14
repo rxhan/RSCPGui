@@ -75,6 +75,7 @@ if 'wx' in sys.modules.keys() and not args.console:
 
     logger.info('Module geladen, initialisiere App')
     app = wx.App()
+    app.InitLocale()
     logger.info('App initialisiert, lade Fenster')
     g = RSCPGuiFrame(None, args)
     logger.info('Fenster geladen')
