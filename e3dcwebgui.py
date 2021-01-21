@@ -29,11 +29,22 @@ from e3dc.rscp_type import RSCPType
 class E3DCWebGui(rscp_helper):
     timeout = 5
     timeout_connect = 10
+    autoreconnect = True
 
     def __init__(self, username, password, identifier, url = None):
         self.e3dc = E3DCWeb(username, password, identifier, url)
-        self._wsthread = threading.Thread(target=self.e3dc.start_ws, args = ())
-        self._wsthread.start()
+        self.connect()
+
+    def connect(self):
+        if self.e3dc.conid is None:
+            self._wsthread = threading.Thread(target=self.e3dc.start_ws, args = ())
+            self._wsthread.start()
+        else:
+            logger.debug('Eine erneute Webverbindung ist nicht möglich')
+
+    def reconnect(self):
+        self.e3dc.close_ws()
+        self.connect()
 
     def __del__(self):
         del self.e3dc
@@ -41,20 +52,30 @@ class E3DCWebGui(rscp_helper):
     def get_data(self, requests, raw=False, block=True):
         start = time.time()
         while not self.e3dc.connected:
-            if (time.time() - start) > self.timeout_connect:
-                raise Exception('WebGui Verbindungsaufbau fehlgeschlagen, Timeout')
+            if (time.time() - start) > self.timeout_connect or self.e3dc.lasterror is not None:
+                error = str(self.e3dc.lasterror) if self.e3dc.lasterror is not None else ''
+                if self.autoreconnect:
+                    self.reconnect()
+                raise Exception('WebGui Verbindungsaufbau fehlgeschlagen, Timeout: ' + error)
             time.sleep(0.1)
 
         r = self.e3dc.getRSCPToServer(requests)
         self.e3dc.register_next_response()
-        self.e3dc.send_data(r)
-        start = time.time()
-        while self.e3dc.next_response:
-            if (time.time() - start) > self.timeout:
-                raise Exception('WebGui Datenabfrage fehlgeschlagen, Timeout')
-            time.sleep(0.1)
+        try:
+            self.e3dc.send_data(r)
+            start = time.time()
+            while self.e3dc.next_response:
+                if (time.time() - start) > self.timeout or self.e3dc.lasterror is not None:
+                    error = str(self.e3dc.lasterror) if self.e3dc.lasterror is not None else ''
+                    raise Exception('WebGui Datenabfrage fehlgeschlagen, Timeout: ' + error)
+                time.sleep(0.1)
 
-        return self.e3dc.next_response_data
+            return self.e3dc.next_response_data
+        except websocket._exceptions.WebSocketConnectionClosedException as e:
+            if self.autoreconnect:
+                self.reconnect()
+            logger.error('Verbindung zu Websocket unterbrochen, versuche Verbindung wiederherzustellen: ' + str(e))
+            return self.get_data(requests, raw, block)
 
 
 class E3DCWeb(E3DC):
@@ -69,6 +90,9 @@ class E3DCWeb(E3DC):
         self.url = url
         logger.debug('Init abgeschlossen')
 
+    lasterror = None
+    conid = None
+
     server_connection_id = None
     server_auth_level = None
     info_serial_number = None
@@ -79,12 +103,21 @@ class E3DCWeb(E3DC):
     next_response_data = None
 
     def get_connected(self):
-        if self.server_auth_level == 10 and self.server_connection_id and self.server_auth_level and self.identifier:
+        if self.server_auth_level == 10 and self.server_connection_id and self.server_auth_level and self.identifier and self.conid:
             return True
         else:
             return False
 
-    connected = property(get_connected)
+    def set_connected(self, value):
+        if value == False:
+            self.server_auth_level = None
+            self.server_connection_id = None
+            self.server_auth_level = None
+            self.ws = None
+            self.server_type = None
+            self.conid = None
+
+    connected = property(get_connected, set_connected)
 
 
     def register_next_response(self):
@@ -227,22 +260,39 @@ class E3DCWeb(E3DC):
         logger.debug('Sende Daten ' + str(len(bindat)))
         ws.send(bindat, websocket.ABNF.OPCODE_BINARY)
 
+    def close_ws(self):
+        if self.ws and self.conid:
+            self.ws.close()
+
+
     def start_ws(self):
+        if self.connected:
+            conid = 'ConID: ' + self.conid
+            logger.warning(conid + ' - Websocket-Verbindung besteht bereits, eine erneute Verbindung ist nicht möglich')
+            return False
+
+        self.conid = str(round(time.time(),2))
+        conid = 'ConID: ' + self.conid
+
         def on_message(ws, message):
             try:
                 data = self.rscp_utils.decode_server_data(message)
                 res = self.interpreter_serverdata(data)
                 for r in res:
                     self.send_data(r, ws)
-
-            except:
-                traceback.print_exc()
+                self.lasterror = None
+            except Exception as e:
+                self.lasterror = e
+                logger.exception(conid + ' - Fehler beim Verarbeiten der Daten : ' + str(e))
 
         def on_error(ws, error):
-            logger.error('Verbindungsfehler ' + str(error))
+            self.lasterror = error
+            logger.error(conid + ' - Verbindungsfehler ' + str(error))
 
         def on_close(ws):
-            logger.info('Verbindung geschlossen')
+            self.lasterror = 'Connection closed'
+            self.connected = False
+            logger.info(conid + ' - Verbindung geschlossen')
 
         #websocket.enableTrace(True)
         ws = websocket.WebSocketApp(self.url,
@@ -251,8 +301,10 @@ class E3DCWeb(E3DC):
                                     on_close=on_close)
 
         self.ws = ws
-        logger.debug('Starte Websocket-Verbindung mit ' + self.url)
+        logger.debug(conid + ' - Starte Websocket-Verbindung mit ' + self.url)
         ws.run_forever()
+        logger.debug(conid + ' - Websocket-Verbindung beendet')
+        self.conid = None
 
     def __del__(self):
         self.ws.close()
