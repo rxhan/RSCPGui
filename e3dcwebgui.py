@@ -38,7 +38,7 @@ class E3DCWebGui(rscp_helper):
     def __del__(self):
         del self.e3dc
 
-    def get_data(self, requests, raw=False):
+    def get_data(self, requests, raw=False, block=True):
         start = time.time()
         while not self.e3dc.connected:
             if (time.time() - start) > self.timeout_connect:
@@ -239,7 +239,7 @@ class E3DCWeb(E3DC):
                 traceback.print_exc()
 
         def on_error(ws, error):
-            logger.info('Verbindungsfehler', error)
+            logger.error('Verbindungsfehler ' + str(error))
 
         def on_close(ws):
             logger.info('Verbindung geschlossen')
