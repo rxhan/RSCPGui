@@ -695,12 +695,13 @@ class RSCPGuiMain():
                 if key not in ('ts', 'datetime'):
                     values[key] = fields[key]
 
+            if len(values) > 0:
+                write_points = [{'measurement': influxname, 'fields': values}]
+                influxclient.write_points(write_points)
 
-            write_points = [{'measurement': influxname, 'fields': values}]
-            influxclient.write_points(write_points)
-
-            logger.debug('Export an Influxdb erfolgreich')
-
+                logger.debug('Export an Influxdb erfolgreich')
+            else:
+                logger.warning('Keine Daten zur Übergabe an Influxdb zur Verfügung')
         except:
             logger.exception('Fehler beim Export an Influxdb')
 
