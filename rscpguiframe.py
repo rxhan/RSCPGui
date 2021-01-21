@@ -2099,8 +2099,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'http': self.chUploadHTTP.GetValue(),
                             'httpurl': self.txtUploadHTTPURL.GetValue(),
                             'intervall': self.scUploadIntervall.GetValue(),
-                            'paths': self._config['Export']['paths'],
-                            'pathnames' : self._config['Export']['pathnames']}
+                            'paths': self._config['Export']['paths'] if 'paths' in self._config['Export'] else '',
+                            'pathnames' : self._config['Export']['pathnames'] if 'pathnames' in self._config['Export'] else ''}
 
     def saveConfig(self):
         logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
