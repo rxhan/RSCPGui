@@ -1,6 +1,10 @@
 import logging
 import os
 
+import telegram
+
+from e3dc._rscp_dto import RSCPDTO
+
 logger = logging.getLogger(__name__)
 
 from socket import setdefaulttimeout
@@ -25,13 +29,18 @@ from e3dcwebgui import E3DCWebGui
 try:
     import paho.mqtt.client as paho
 except:
-    logger.warning('Paho-Libary nicht gefunden, MQTT wird nicht zur Verfügung stehen')
+    logger.warning('Paho-Libary (paho) nicht gefunden, MQTT wird nicht zur Verfügung stehen')
 
 try:
     import influxdb
     from influxdb.exceptions import InfluxDBClientError
 except:
     logger.warning('Influxdb-Libary nicht gefunden, Influx wird nicht zur Verfügung stehen')
+
+try:
+    import telegram
+except Exception as e:
+    logger.warning('Telegram-Libary (python-telegram-bot) nicht gefunden, Telegram-Benachrichtigungen stehen nicht zur Verfügung')
 
 try:
     import thread
@@ -51,6 +60,9 @@ class RSCPGuiMain():
     _args = None
     _updateRunning = None
     _try_connect = False
+    _notificationblocker = {}
+    _mqttclient = None
+    _exportcache = None
 
     def __init__(self, args):
         logger.info('Main initialisiert')
@@ -107,6 +119,9 @@ class RSCPGuiMain():
         elif len(key) > 9 and key[0:9] == 'cfgExport':
             name = key[9:]
             kat = 'Export'
+        elif len(key) > 15 and key[0:15] == 'cfgNotification':
+            name = key[15:]
+            kat = 'Notification'
         else:
             name = None
             kat = None
@@ -142,6 +157,9 @@ class RSCPGuiMain():
         elif len(item) > 9 and item[0:9] == 'cfgExport':
             name = item[9:]
             kat = 'Export'
+        elif len(item) > 15 and item[0:15] == 'cfgNotification':
+            name = item[15:]
+            kat = 'Notification'
         else:
             raise AttributeError('Wert ' + item + ' existiert nicht (get)')
 
@@ -161,7 +179,7 @@ class RSCPGuiMain():
                         return 'auto'
             elif kat == 'Export':
                 if name in self._config[kat]:
-                    if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain', 'mqttinsecure', 'influx'):
+                    if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain', 'mqttinsecure', 'influx', 'mqttsub'):
                         return True if self._config[kat][name].lower() in ('true', '1', 'ja') else False
                     elif name in ('mqttport', 'mqttqos', 'intervall', 'influxport', 'influxtimeout'):
                         if self._config[kat][name] != '':
@@ -176,11 +194,21 @@ class RSCPGuiMain():
                         items = self._config[kat][name].split(',')
                         ret = {}
                         for item in items:
-                            tmp = item.split('|')
-                            ret[tmp[0]] = tmp[1]
+                            if item:
+                                tmp = item.split('|')
+                                if len(tmp) == 2:
+                                    ret[tmp[0]] = tmp[1]
                         self._cached[kat + name] = ret
 
                         return self._cached[kat + name]
+                    else:
+                        return self._config[kat][name]
+            elif kat == 'Notification':
+                if name in self._config[kat]:
+                    if name == 'telegramtoken' and self._config[kat][name] != '' and self._config[kat][name][0] == '@':
+                        return self.tinycode('telegramtoken', self._config[kat][name][1:], True)
+                    elif name in ('telegram'):
+                        return True if self._config[kat][name].lower() in ('true', '1', 'ja') else False
                     else:
                         return self._config[kat][name]
 
@@ -522,22 +550,79 @@ class RSCPGuiMain():
             data = nl
         return data
 
-    def mqtt_connect(self, broker, port, username=None, password=None, mqttinsecure=None, mqttzertifikat=None):
-        logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
+    def setMaxChargePower(self, value):
+        temp = []
+        temp.append(RSCPDTO(tag=RSCPTag.EMS_MAX_CHARGE_POWER, rscp_type=RSCPType.Uint32, data=int(value)))
 
-        mqttclient = paho.Client("RSCPGui")
-        if username and password:
-            mqttclient.username_pw_set(username, password)
+        r = []
+        r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_POWER_SETTINGS, rscp_type=RSCPType.Container, data=temp))
 
-        if mqttinsecure and mqttzertifikat:
-            if os.path.isfile(mqttzertifikat):
-                mqttclient.tls_set(ca_certs=mqttzertifikat)
-                mqttclient.tls_insecure_set(mqttinsecure)
+        res = self.gui.get_data(r, True)
+        logger.info('Wert über setMaxChargePower auf ' + str(value) + ' geändert')
 
-        mqttclient.enable_logger(logger)
+    @property
+    def mqttclient(self):
+        sublist = ['E3DC/EMS_DATA/EMS_GET_POWER_SETTINGS/EMS_MAX_CHARGE_POWER']
 
-        mqttclient.connect(broker, port)
-        return mqttclient
+        def on_message(client, userdata, message):
+            topic = message.topic[1:]
+            if topic[-4:] == '/SET':
+                print("message topic=", message.topic)
+                topic = topic[:-4]
+                if topic in self.cfgExportpathnames.values():
+                    path = list(self.cfgExportpathnames.keys())[list(self.cfgExportpathnames.values()).index(topic)]
+                    print(topic,path)
+                    if path in sublist:
+                        value = str(message.payload.decode("utf-8"))
+                        try:
+                            test = int(self._exportcache[topic])
+                            if test != value:
+                                self.setMaxChargePower(value)
+                            else:
+                                logger.debug('setMaxChargePower Wert hat sich nicht geändert ' + str(value) + ' <-> ' + str(test))
+                        except:
+                            logger.exception('Fehler bei setMaxChargePower(' + value + ')')
+
+        if self._mqttclient is not None:
+            if self._mqttclient.is_connected():
+                return self._mqttclient
+
+        self._mqttclient = None
+
+        if self.cfgExportmqtt if 'paho' in sys.modules.keys() else False:
+            broker = self.cfgExportmqttbroker
+            port = self.cfgExportmqttport
+            sub = self.cfgExportmqttsub
+            username = self.cfgExportmqttusername
+            password = self.cfgExportmqttpassword
+            zertifikat = self.cfgExportmqttzertifikat
+            insecure = self.cfgExportmqttinsecure
+
+            logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
+
+            self._mqttclient = paho.Client("RSCPGui")
+
+            if username and password:
+                self._mqttclient.username_pw_set(username, password)
+
+            if insecure and zertifikat:
+                if os.path.isfile(zertifikat):
+                    self._mqttclient.tls_set(ca_certs=zertifikat)
+                    self._mqttclient.tls_insecure_set(insecure)
+
+            self._mqttclient.enable_logger(logger)
+
+            self._mqttclient.on_message=on_message
+            self._mqttclient.connect(broker, port)
+            if sub:
+                for path in sublist:
+                    if path in self.cfgExportpathnames.keys():
+                        topic = '/' + self.cfgExportpathnames[path] + '/SET'
+                        logger.debug('MQTT Subscribe: ' + topic)
+                        self._mqttclient.subscribe(topic)
+            self._mqttclient.loop_start()
+
+        return self._mqttclient
 
     def StartAutoExport(self):
 
@@ -564,16 +649,8 @@ class RSCPGuiMain():
             jsonactive = self.cfgExportjson
             jsonfilename = self.cfgExportjsonfile
 
-            mqttactive = self.cfgExportmqtt if 'paho' in sys.modules.keys() else False
-            mqttbroker = self.cfgExportmqttbroker
-            mqttport = self.cfgExportmqttport
             mqttqos = self.cfgExportmqttqos
             mqttretain = self.cfgExportmqttretain
-            mqttusername = self.cfgExportmqttusername
-            mqttpassword = self.cfgExportmqttpassword
-            mqttzertifikat = self.cfgExportmqttzertifikat
-            mqttinsecure = self.cfgExportmqttinsecure
-            mqttclient = self.mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat) if mqttactive else None
 
             httpactive = self.cfgExporthttp
             httpurl = self.cfgExporthttpurl
@@ -588,6 +665,14 @@ class RSCPGuiMain():
 
             intervall = self.cfgExportintervall
 
+            notificationactive = False
+            if 'telegram' in sys.modules.keys():
+                if self.cfgNotificationtelegram is True:
+                    if not self.cfgNotificationtelegramtoken or not self.cfgNotificationtelegramempfaenger:
+                        logger.warning('Benachrichtigung an Telegram nicht möglich, Token oder Empfänger sind nicht gefüllt')
+                    else:
+                        self.notificationblocker = {}
+                        notificationactive = True
 
             if csvactive:
                 csvfile = open(csvfilename, 'a', newline='')
@@ -606,17 +691,18 @@ class RSCPGuiMain():
                 laststart = time.time()
                 logger.debug('Exportiere Daten (autoexport)')
                 try:
-                    values = self.getUploadDataFromPath()
+                    values, value_path = self.getUploadDataFromPath()
                     values['ts'] = time.time()
                     values['datetime'] = datetime.datetime.now().isoformat()
+                    self._exportcache = values
                     if csvactive:
                         threading.Thread(target=self.exportCSV, args=(csvfilename, csvwriter, csvfile, values)).start()
 
                     if jsonactive:
                         threading.Thread(target=self.exportJson, args=(jsonfilename, values)).start()
 
-                    if mqttactive:
-                        threading.Thread(target=self.exportMQTT, args=(mqttclient, mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat, mqttqos, mqttretain, values)).start()
+                    if self.mqttclient is not None:
+                        threading.Thread(target=self.exportMQTT, args=(mqttqos, mqttretain, values)).start()
 
                     if httpactive:
                         threading.Thread(target=self.exportHTTP, args=(httpurl, values)).start()
@@ -624,6 +710,9 @@ class RSCPGuiMain():
                     if influxactive:
                         threading.Thread(target=self.exportInflux, args=(influxclient, influxname,values)).start()
 
+                    if notificationactive:
+                        self.notify(value_path)
+                        #threading.Thread(target=self.notify, args={values}).start()
                 except:
                     logger.exception('Fehler beim Abruf der Exportdaten')
 
@@ -632,6 +721,10 @@ class RSCPGuiMain():
                     wait = intervall - diff
                     logger.debug('Warte ' + str(wait) + 's')
                     time.sleep(wait)
+
+            if self._mqttclient is not None:
+                self._mqttclient.loop_stop()
+                self._mqttclient.disconnect()
 
             if csvactive:
                 csvfile.close()
@@ -661,18 +754,15 @@ class RSCPGuiMain():
         except:
             logger.exception('Fehler beim Export in Http')
 
-    def exportMQTT(self, mqttclient, mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure, mqttzertifikat, mqttqos, mqttretain, values):
+    def exportMQTT(self, mqttqos, mqttretain, values):
         try:
-            logger.info('Exportiere nach MQTT ' + mqttbroker)
+            logger.info('Exportiere nach MQTT')
             for key in values.keys():
                 if key not in ('ts', 'datetime'):
                     topic = '/' + key
-                    res, mid = mqttclient.publish(topic, values[key], mqttqos, mqttretain)
+                    res, mid = self.mqttclient.publish(topic, values[key], mqttqos, mqttretain)
                     if res != 0:
-                        mqttclient.disconnect()
-                        logger.error('Fehler bei Export an MQTT bei Topic ' + topic + ' Errorcode: ' + str(res))
-                        mqttclient = self.mqtt_connect(mqttbroker, mqttport, mqttusername, mqttpassword, mqttinsecure,
-                                                  mqttzertifikat)
+                        self.mqttclient.disconnect()
 
             logger.debug('Export an MQTT abgeschlossen')
         except:
@@ -705,6 +795,85 @@ class RSCPGuiMain():
         except:
             logger.exception('Fehler beim Export an Influxdb')
 
+    def notify(self, values):
+        # path|datatype|expression|notificationservice|text|waittime(seconds)
+        #[Notification / Rules]
+        #1 = E3DC / EMS_DATA / EMS_POWER_GRID | int | {value} < -2000 | telegram | Einspeiseleistung > 2000
+        #W({value}) | 3600
+
+
+        def execute_rule(value, datatype, expression, text):
+            try:
+                if datatype in ('int', 'integer', 'smallint', 'uint', 'int16', 'int32', 'int64'):
+                    value = int(value)
+                elif datatype in ('float', 'numeric', 'double'):
+                    value = float(value)
+                elif datatype in ('str','string',''):
+                    value = str(value)
+            except:
+                logger.exception('Datenkonvertierung in notify fehlgeschlagen: ' + str(value) + ' Datentyp: ' + datatype)
+
+            expression = expression.format(value=str(value))
+            logger.debug('Validiere Daten ' + expression )
+            try:
+                if eval(expression):
+                    text = text.format(value=str(value))
+
+                    return text
+            except:
+                logger.exception('Fehler beim Ausführen der Expression: ' + expression)
+
+            return ''
+
+        def send_telegram(text):
+            logger.debug('Sende Nachricht über Telegram: ' + text)
+            try:
+                bot = telegram.Bot(token=self.cfgNotificationtelegramtoken)
+                bot.send_message(chat_id=self.cfgNotificationtelegramempfaenger, text=text)
+            except:
+                logger.exception('Fehler beim versand einer Telegram-Benachrichtigung')
+
+        logger.debug('Sende Benachrichtigungen')
+        rules = self._config['Notification/Rules']
+        for rule in rules:
+            path,datatype,expression,service,text,waittime = rules[rule].split('|')
+            waittime = float(waittime)
+            telegramactive = service == 'telegram'
+
+            block = False
+            if waittime > 0:
+                if rule in self._notificationblocker:
+                    if time.time() - self._notificationblocker[rule] < waittime:
+                        logger.debug('Benachrichtigung nicht verschickt, Wartezeit nicht abgelaufen ' + str(time.time() - self._notificationblocker[rule]) + 'ts < ' + str(waittime))
+                        block = True
+
+            if not block:
+                if path in values:
+                    if values[path] is not None:
+                        logger.debug('Regel (' + rule + ') für Path ' + path + ' gefunden mit Value: ' + str(values[path]))
+                        if waittime == -1:
+                            if rule not in self._notificationblocker:
+                                pass
+                            elif self._notificationblocker[rule] != values[path]:
+                                text = execute_rule(values[path], datatype, expression, text)
+                                if text != '':
+                                    if telegramactive:
+                                        send_telegram(text)
+                            else:
+                                logger.debug('Keine Benachrichtigung für ' + path + ' verschickt, Wert hat sich nicht geändert ' + str(values[path]))
+
+                            self._notificationblocker[rule] = values[path]
+
+                        else:
+                            text = execute_rule(values[path], datatype, expression, text)
+                            if text != '':
+                                self._notificationblocker[rule] = time.time()
+                                if telegramactive:
+                                    send_telegram(text)
+                    else:
+                        logger.warning('Wert für Pfad ' + path + ' konnte nicht ermittelt werden, überspringe Benachrichtigung')
+
+
     def getUploadDataFromPath(self):
         def getDataFromPath(teile, data):
             if data is not None:
@@ -732,6 +901,7 @@ class RSCPGuiMain():
         wb_data = None
 
         values = {}
+        value_path = {}
 
         for path in self.cfgExportpaths:
             logger.debug('Ermittle Pfad aus ' + path)
@@ -791,14 +961,16 @@ class RSCPGuiMain():
 
                 if path in self.cfgExportpathnames:
                     key = self.cfgExportpathnames[path]
+                    if key == '':
+                        key = path
                 else:
                     key = path
-
+                value_path[path] = newvalue
                 values[key] = newvalue
             else:
                 logger.debug('Pfadangabe falsch: ' + path)
 
-        return values
+        return values, value_path
 
     def _fill_info(self):
         logger.debug('Rufe INFO-Daten ab')

@@ -20,7 +20,7 @@ import requests
 try:
     import paho.mqtt.client as paho
 except:
-    logger.warning('Paho-Libary nicht gefunden, MQTT wird nicht zur Verfügung stehen')
+    logger.warning('Paho-Libary (paho) nicht gefunden, MQTT wird nicht zur Verfügung stehen')
 
 try:
     import wx
@@ -29,6 +29,11 @@ try:
     from gui import MainFrame
 except:
     logger.warning('wxPython steht nicht zur Verfügung, Programm beschränkt sich auf die Console')
+
+try:
+    import telegram
+except Exception as e:
+    logger.warning('Telegram-Libary (python-telegram-bot) nicht gefunden, Telegram-Benachrichtigungen stehen nicht zur Verfügung')
 
 from e3dc._rscp_dto import RSCPDTO
 from e3dc.rscp_tag import RSCPTag
@@ -130,12 +135,21 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             logger.debug('Deaktiviere MQTT-Felder, da MQTT nicht zur Verfügung steht (paho nicht installiert)')
             self.enabledisableMQTT(False)
 
+        if 'telegram' not in sys.modules.keys():
+            logger.debug('Deaktiviere Telegram-Benachrichtigungen, da Telegram nicht zur Verfügung steht (python-telegram-bot nicht installiert)')
+            self.enabledisableTelegram(False)
+
         self.chUploadMQTTOnCheck(None)
         self.chUploadInfluxOnCheck(None)
 
         locale.setlocale(locale.LC_ALL, '')
 
         logger.info('Init abgeschlossen')
+
+    def enabledisableTelegram(self, value):
+        self.chBenachrichtigungTelegram.Enable(value)
+        self.txtTelegramToken.Enable(value)
+        self.txtTelegramEmpfaenger.Enable(value)
 
     def enabledisableMQTT(self, value):
         self.scUploadMQTTQos.Enable(value)
@@ -272,6 +286,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         logger.debug('Exportfenster wurde geschlossen')
         self.cfgExportpaths = self._e3dcexportFrame.getExportPaths()
         self.cfgExportpathnames = self._e3dcexportFrame.getCustomNames()
+        if len(self.cfgExportpaths) != len(self.cfgExportpathnames):
+            logger.error('Ausgewählte Pfadanzahl stimmt nicht mit Bezeichneranzahl überein')
 
         self.stUploadCount.SetLabel('Es wurden ' + str(len(self.cfgExportpaths)) + ' Datenfelder angewählt')
 
@@ -311,6 +327,11 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                         self.fill_portal()
                     except:
                         logger.exception('Fehler beim Darstellen der Portal-Daten')
+                elif page == self.pBenachrichtigungen:
+                    try:
+                        self.fill_benachrichtigungen()
+                    except:
+                        logger.exception('Fehler beim Darstellen der Benachrichtigung')
                 elif self.gui:
                     if page == self.pDCDC:
                         try:
@@ -1801,6 +1822,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             ascending= True
         self.gPortalList.SortColumn(col, ascending)
 
+    def fill_benachrichtigungen(self):
+        logger.debug('Benachrichtigungen: Lade Seite')
+
     def fill_portal(self):
         logger.debug('Portal: Rufe Geräteliste ab')
 
@@ -2077,6 +2101,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                            'connectiontype': self.cfgLoginconnectiontype,
                            'autoupdate': self.scAutoUpdate.GetValue()}
 
+        self.config['Notification'] = {'telegram': self.chBenachrichtigungTelegram.GetValue(),
+                                       'telegramtoken': '@' + self.tinycode('telegramtoken', self.txtTelegramToken.GetValue()),
+                                       'telegramempfaenger': self.txtTelegramEmpfaenger.GetValue()}
+
         self.config['Export'] = {'csv': self.chUploadCSV.GetValue(),
                             'csvfile': self.fpUploadCSV.GetPath(),
                             'json': self.chUploadJSON.GetValue(),
@@ -2086,6 +2114,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'mqttport': self.txtUploadMQTTPort.GetValue(),
                             'mqttqos': self.scUploadMQTTQos.GetValue(),
                             'mqttretain': self.chUploadMQTTRetain.GetValue(),
+                            'mqttsub': self.chUploadMQTTSub.GetValue(),
                             'mqttusername': self.txtUploadMQTTUsername.GetValue(),
                             'mqttpassword': '@' + self.tinycode('rscpgui_mqttpass', self.txtUploadMQTTPassword.GetValue()),
                             'mqttzertifikat' : self.fpUploadMQTTZertifikat.GetPath(),
@@ -2101,6 +2130,19 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'intervall': self.scUploadIntervall.GetValue(),
                             'paths': self._config['Export']['paths'] if 'paths' in self._config['Export'] else '',
                             'pathnames' : self._config['Export']['pathnames'] if 'pathnames' in self._config['Export'] else ''}
+
+        self.config['Notification/Rules'] = {}
+
+        for currow in range(0,self.gBenachrichtigungen.GetNumberRows()):
+            path = self.gBenachrichtigungen.GetCellValue(currow, 0)
+            datatype = self.gBenachrichtigungen.GetCellValue(currow, 1)
+            expression = self.gBenachrichtigungen.GetCellValue(currow, 2)
+            service = self.gBenachrichtigungen.GetCellValue(currow, 3)
+            text = self.gBenachrichtigungen.GetCellValue(currow, 4)
+            waittime = self.gBenachrichtigungen.GetCellValue(currow, 5)
+            data = '|'.join([path,datatype,expression,service,text,waittime])
+            self.config['Notification/Rules'][str(currow+1)] = data
+
 
     def saveConfig(self):
         logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
@@ -2187,6 +2229,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.scUploadMQTTQos.SetValue(self.cfgExportmqttpos)
         if self.cfgExportmqttretain is not None:
             self.chUploadMQTTRetain.SetValue(self.cfgExportmqttretain)
+        if self.cfgExportmqttsub is not None:
+            self.chUploadMQTTSub.SetValue(self.cfgExportmqttsub)
         if self.cfgExportmqttpassword is not None:
             self.txtUploadMQTTPassword.SetValue(self.cfgExportmqttpassword)
         if self.cfgExportmqttusername is not None:
@@ -2201,12 +2245,38 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtUploadHTTPURL.SetValue(self.cfgExporthttpurl)
         if self.cfgExportintervall is not None:
             self.scUploadIntervall.SetValue(self.cfgExportintervall)
+        if self.cfgNotificationtelegram is not None:
+            self.chBenachrichtigungTelegram.SetValue(self.cfgNotificationtelegram)
+        if self.cfgNotificationtelegramtoken is not None:
+            self.txtTelegramToken.SetValue(self.cfgNotificationtelegramtoken)
+        if self.cfgNotificationtelegramempfaenger is not None:
+            self.txtTelegramEmpfaenger.SetValue(self.cfgNotificationtelegramempfaenger)
 
         if self.cfgExportpaths is not None and len(self.cfgExportpaths) > 0:
             self.stUploadCount.SetLabel('Es wurden ' + str(len(self.cfgExportpaths)) + ' Datenfelder angewählt')
         else:
             self.stUploadCount.SetLabel('Keine Datenfelder angewählt')
 
+        self.gBenachrichtigungen.DeleteRows(numRows=self.gBenachrichtigungen.GetNumberRows())
+        if 'Notification/Rules' in self._config:
+            rules = self._config['Notification/Rules']
+            for rule in rules:
+                try:
+                    path, datatype, expression, service, text, waittime = rules[rule].split('|')
+                    self.gBenachrichtigungen.AppendRows(1, False)
+                    currow = self.gBenachrichtigungen.GetNumberRows()-1
+                    self.gBenachrichtigungen.SetCellValue(currow, 0, path)
+                    self.gBenachrichtigungen.SetCellValue(currow, 1, datatype)
+                    self.gBenachrichtigungen.SetCellValue(currow, 2, expression)
+                    self.gBenachrichtigungen.SetCellValue(currow, 3, service)
+                    self.gBenachrichtigungen.SetCellValue(currow, 4, text)
+                    self.gBenachrichtigungen.SetCellValue(currow, 5, waittime)
+                except ValueError:
+                    logger.error('Konfigurationsdatei nicht lesbar, Bereich Notification/Rules falsch gefüllt, Beispiel: path|datatype|expression|service|text|waittime')
+        else:
+            self._config['Notification/Rules'] = {}
+
+
+        self.gBenachrichtigungen.AutoSize()
+
         logger.info('Konfigurationsdatei geladen')
-
-

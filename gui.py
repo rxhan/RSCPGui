@@ -3108,6 +3108,12 @@ class MainFrame ( wx.Frame ):
 		fgSizer42.Add( self.chUploadMQTTRetain, 0, wx.ALL, 5 )
 
 
+		fgSizer42.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.chUploadMQTTSub = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"Werteänderung zulassen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer42.Add( self.chUploadMQTTSub, 0, wx.ALL, 5 )
+
+
 		fgSizer40.Add( fgSizer42, 1, wx.EXPAND, 5 )
 
 		self.chUploadHTTP = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"an URL senden (POST)", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -3195,12 +3201,13 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer37 )
 		self.pEinstellungen.Layout()
 		fgSizer37.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
 		self.pPortal = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		wSizer1 = wx.WrapSizer( wx.HORIZONTAL, wx.WRAPSIZER_DEFAULT_FLAGS )
 
 		bSizer20 = wx.BoxSizer( wx.VERTICAL )
 
+		bSizer20.SetMinSize( wx.Size( 700,200 ) )
 		fgSizer39 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer39.SetFlexibleDirection( wx.BOTH )
 		fgSizer39.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -3229,7 +3236,7 @@ class MainFrame ( wx.Frame ):
 		self.m_hyperlink1 = wx.adv.HyperlinkCtrl( self.pPortal, wx.ID_ANY, u"https://pv.pincrushers.de/rscpgui/portal", u"https://pv.pincrushers.de/rscpgui/portal", wx.DefaultPosition, wx.DefaultSize, wx.adv.HL_DEFAULT_STYLE )
 		bSizer20.Add( self.m_hyperlink1, 0, wx.ALL, 5 )
 
-		self.gPortalList = wx.grid.Grid( self.pPortal, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.gPortalList = wx.grid.Grid( self.pPortal, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.HSCROLL )
 
 		# Grid
 		self.gPortalList.CreateGrid( 5, 5 )
@@ -3263,8 +3270,121 @@ class MainFrame ( wx.Frame ):
 		self.pPortal.Layout()
 		wSizer1.Fit( self.pPortal )
 		self.pMainregister.AddPage( self.pPortal, u"Portal", False )
+		self.pBenachrichtigungen = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		fgSizer46 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer46.SetFlexibleDirection( wx.BOTH )
+		fgSizer46.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		fgSizer421 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer421.SetFlexibleDirection( wx.BOTH )
+		fgSizer421.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText2171 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"Ziele", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2171.Wrap( -1 )
+
+		fgSizer421.Add( self.m_staticText2171, 0, wx.ALL, 5 )
+
+
+		fgSizer421.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticline211 = wx.StaticLine( self.pBenachrichtigungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer421.Add( self.m_staticline211, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline22 = wx.StaticLine( self.pBenachrichtigungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer421.Add( self.m_staticline22, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.chBenachrichtigungTelegram = wx.CheckBox( self.pBenachrichtigungen, wx.ID_ANY, u"Telegram", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer421.Add( self.chBenachrichtigungTelegram, 0, wx.ALL, 5 )
+
+		fgSizer44 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer44.SetFlexibleDirection( wx.BOTH )
+		fgSizer44.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText2181 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"Token", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2181.Wrap( -1 )
+
+		fgSizer44.Add( self.m_staticText2181, 0, wx.ALL, 5 )
+
+		self.txtTelegramToken = wx.TextCtrl( self.pBenachrichtigungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer44.Add( self.txtTelegramToken, 0, wx.ALL, 5 )
+
+		self.m_staticText219 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"EmpfängerID", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText219.Wrap( -1 )
+
+		fgSizer44.Add( self.m_staticText219, 0, wx.ALL, 5 )
+
+		self.txtTelegramEmpfaenger = wx.TextCtrl( self.pBenachrichtigungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer44.Add( self.txtTelegramEmpfaenger, 0, wx.ALL, 5 )
+
+
+		fgSizer421.Add( fgSizer44, 1, wx.EXPAND, 5 )
+
+
+		fgSizer46.Add( fgSizer421, 1, wx.EXPAND, 5 )
+
+
+		fgSizer46.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticText220 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"Benachrichtigungseinstellungen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText220.Wrap( -1 )
+
+		fgSizer46.Add( self.m_staticText220, 0, wx.ALL, 5 )
+
+
+		fgSizer46.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.gBenachrichtigungen = wx.grid.Grid( self.pBenachrichtigungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+
+		# Grid
+		self.gBenachrichtigungen.CreateGrid( 5, 6 )
+		self.gBenachrichtigungen.EnableEditing( True )
+		self.gBenachrichtigungen.EnableGridLines( True )
+		self.gBenachrichtigungen.EnableDragGridSize( False )
+		self.gBenachrichtigungen.SetMargins( 0, 0 )
+
+		# Columns
+		self.gBenachrichtigungen.EnableDragColMove( False )
+		self.gBenachrichtigungen.EnableDragColSize( True )
+		self.gBenachrichtigungen.SetColLabelSize( 30 )
+		self.gBenachrichtigungen.SetColLabelValue( 0, u"Pfad" )
+		self.gBenachrichtigungen.SetColLabelValue( 1, u"Datentyp" )
+		self.gBenachrichtigungen.SetColLabelValue( 2, u"Ausdruck" )
+		self.gBenachrichtigungen.SetColLabelValue( 3, u"Dienst" )
+		self.gBenachrichtigungen.SetColLabelValue( 4, u"Text" )
+		self.gBenachrichtigungen.SetColLabelValue( 5, u"Sendeintervall" )
+		self.gBenachrichtigungen.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Rows
+		self.gBenachrichtigungen.EnableDragRowSize( True )
+		self.gBenachrichtigungen.SetRowLabelSize( 80 )
+		self.gBenachrichtigungen.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Label Appearance
+
+		# Cell Defaults
+		self.gBenachrichtigungen.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		fgSizer46.Add( self.gBenachrichtigungen, 0, wx.ALL, 5 )
+
+
+		fgSizer46.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.bSaveBenachrichtigungen = wx.Button( self.pBenachrichtigungen, wx.ID_ANY, u"Änderungen speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer46.Add( self.bSaveBenachrichtigungen, 0, wx.ALL, 5 )
+
+
+		self.pBenachrichtigungen.SetSizer( fgSizer46 )
+		self.pBenachrichtigungen.Layout()
+		fgSizer46.Fit( self.pBenachrichtigungen )
+		self.pMainregister.AddPage( self.pBenachrichtigungen, u"Benachrichtigungen", True )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
+
+		fgSizer43 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer43.SetFlexibleDirection( wx.BOTH )
+		fgSizer43.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+
+		bSizer1.Add( fgSizer43, 1, wx.EXPAND, 5 )
 
 		self.bUpdate = wx.Button( self, wx.ID_ANY, u"aktualisieren", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer1.Add( self.bUpdate, 0, wx.ALL, 5 )
@@ -3310,6 +3430,7 @@ class MainFrame ( wx.Frame ):
 		self.bPortalUpload.Bind( wx.EVT_BUTTON, self.bPortalUploadOnClick )
 		self.bPortalDelete.Bind( wx.EVT_BUTTON, self.bPortalDeleteOnClick )
 		self.gPortalList.Bind( wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.gPortalListOnLabelLeftClick )
+		self.bSaveBenachrichtigungen.Bind( wx.EVT_BUTTON, self.bSaveBenachrichtigungenOnClick )
 
 	def __del__( self ):
 		pass
@@ -3404,6 +3525,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def gPortalListOnLabelLeftClick( self, event ):
+		event.Skip()
+
+	def bSaveBenachrichtigungenOnClick( self, event ):
 		event.Skip()
 
 
