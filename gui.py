@@ -3201,7 +3201,7 @@ class MainFrame ( wx.Frame ):
 		self.pEinstellungen.SetSizer( fgSizer37 )
 		self.pEinstellungen.Layout()
 		fgSizer37.Fit( self.pEinstellungen )
-		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", False )
+		self.pMainregister.AddPage( self.pEinstellungen, u"Einstellungen", True )
 		self.pPortal = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		wSizer1 = wx.WrapSizer( wx.HORIZONTAL, wx.WRAPSIZER_DEFAULT_FLAGS )
 
@@ -3375,7 +3375,7 @@ class MainFrame ( wx.Frame ):
 		self.pBenachrichtigungen.SetSizer( fgSizer46 )
 		self.pBenachrichtigungen.Layout()
 		fgSizer46.Fit( self.pBenachrichtigungen )
-		self.pMainregister.AddPage( self.pBenachrichtigungen, u"Benachrichtigungen", True )
+		self.pMainregister.AddPage( self.pBenachrichtigungen, u"Benachrichtigungen", False )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
 

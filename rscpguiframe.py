@@ -161,6 +161,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtUploadMQTTPassword.Enable(value)
         self.fpUploadMQTTZertifikat.Enable(value)
         self.cbUploadMQTTInsecure.Enable(value)
+        self.chUploadMQTTSub.Enable(value)
 
     def hideMQTT(self, value = True):
         if value:
@@ -173,6 +174,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtUploadMQTTPassword.Hide()
             self.fpUploadMQTTZertifikat.Hide()
             self.cbUploadMQTTInsecure.Hide()
+            self.chUploadMQTTSub.Hide()
             self.m_staticText214.Hide()
             self.m_staticText208.Hide()
             self.m_staticText209.Hide()
@@ -189,6 +191,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtUploadMQTTPassword.Show()
             self.fpUploadMQTTZertifikat.Show()
             self.cbUploadMQTTInsecure.Show()
+            self.chUploadMQTTSub.Show()
             self.m_staticText214.Show()
             self.m_staticText208.Show()
             self.m_staticText209.Show()
