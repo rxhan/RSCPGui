@@ -69,6 +69,7 @@ class RSCPGuiMain():
         self._args = args
         self.clear_values()
         self.ConfigFilename = 'rscpe3dc.conf.ini'
+
         self._config = None
         self._gui = None
 

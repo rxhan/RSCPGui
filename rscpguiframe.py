@@ -2131,8 +2131,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'http': self.chUploadHTTP.GetValue(),
                             'httpurl': self.txtUploadHTTPURL.GetValue(),
                             'intervall': self.scUploadIntervall.GetValue(),
-                            'paths': self._config['Export']['paths'] if 'paths' in self._config['Export'] else '',
-                            'pathnames' : self._config['Export']['pathnames'] if 'pathnames' in self._config['Export'] else ''}
+                            'paths': self._config['Export'].get('paths', ''),
+                            'pathnames' : self._config['Export'].get('pathnames', '')}
 
         self.config['Notification/Rules'] = {}
 
@@ -2144,13 +2144,16 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             text = self.gBenachrichtigungen.GetCellValue(currow, 4)
             waittime = self.gBenachrichtigungen.GetCellValue(currow, 5)
             data = '|'.join([path,datatype,expression,service,text,waittime])
-            self.config['Notification/Rules'][str(currow+1)] = data
+            if len(data) > 8:
+                self.config['Notification/Rules'][str(currow+1)] = data
 
 
     def saveConfig(self):
         logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
 
         self.refreshConfig()
+
+
 
         with open(self.ConfigFilename, 'w') as configfile:
             self.config.write(configfile)
@@ -2261,24 +2264,38 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.stUploadCount.SetLabel('Keine Datenfelder angewählt')
 
         self.gBenachrichtigungen.DeleteRows(numRows=self.gBenachrichtigungen.GetNumberRows())
-        if 'Notification/Rules' in self._config:
-            rules = self._config['Notification/Rules']
-            for rule in rules:
-                try:
-                    path, datatype, expression, service, text, waittime = rules[rule].split('|')
-                    self.gBenachrichtigungen.AppendRows(1, False)
-                    currow = self.gBenachrichtigungen.GetNumberRows()-1
-                    self.gBenachrichtigungen.SetCellValue(currow, 0, path)
-                    self.gBenachrichtigungen.SetCellValue(currow, 1, datatype)
-                    self.gBenachrichtigungen.SetCellValue(currow, 2, expression)
-                    self.gBenachrichtigungen.SetCellValue(currow, 3, service)
-                    self.gBenachrichtigungen.SetCellValue(currow, 4, text)
-                    self.gBenachrichtigungen.SetCellValue(currow, 5, waittime)
-                except ValueError:
-                    logger.error('Konfigurationsdatei nicht lesbar, Bereich Notification/Rules falsch gefüllt, Beispiel: path|datatype|expression|service|text|waittime')
-        else:
+        if 'Notification/Rules' not in self._config:
             self._config['Notification/Rules'] = {}
 
+        if len(self._config['Notification/Rules']) == 0:
+            self._config['Notification/Rules']['1'] = 'E3DC/EMS_DATA/EMS_POWER_GRID|int|{value}<-2000|telegram|Einspeiseleistung > 2000W ({value})|3600'
+            self._config['Notification/Rules']['2'] = 'E3DC/EMS_DATA/EMS_EMERGENCY_POWER_STATUS|int|{value}==0|telegram|Notstrom nicht möglich|-1'
+            self._config['Notification/Rules']['3'] = 'E3DC/EMS_DATA/EMS_EMERGENCY_POWER_STATUS|int|{value}==1|telegram|Notstrom aktiv|-1'
+            self._config['Notification/Rules']['4'] = 'E3DC/EMS_DATA/EMS_EMERGENCY_POWER_STATUS|int|{value}==2|telegram|Notstrom nicht aktiv|-1'
+            self._config['Notification/Rules']['5'] = 'E3DC/EMS_DATA/EMS_EMERGENCY_POWER_STATUS|int|{value}==3|telegram|Notstrom derzeit nicht verfügbar|-1'
+            self._config['Notification/Rules']['6'] = 'E3DC/EMS_DATA/EMS_EMERGENCY_POWER_STATUS|int|{value}==4|telegram|Motorschalter in Inselbetrieb|-1'
+            self._config['Notification/Rules']['7'] = 'E3DC/PVI_DATA/0/PVI_DATA/PVI_SYSTEM_MODE|int|{value}==0|telegram|Wechselrichter in IDLE geschaltet|-1'
+            self._config['Notification/Rules']['8'] = 'E3DC/PVI_DATA/0/PVI_DATA/PVI_SYSTEM_MODE|int|{value}==1|telegram|Wechselrichter in Normal geschaltet|-1'
+            self._config['Notification/Rules']['9'] = 'E3DC/PVI_DATA/0/PVI_DATA/PVI_SYSTEM_MODE|int|{value}==2|telegram|Wechselrichter in Gridcharge geschaltet|-1'
+            self._config['Notification/Rules']['10'] = 'E3DC/PVI_DATA/0/PVI_DATA/PVI_SYSTEM_MODE|int|{value}==3|telegram|Wechselrichter in Backuppower geschaltet|-1'
+            self._config['Notification/Rules']['11'] = 'E3DC/PVI_DATA/0/PVI_DATA/PVI_SYSTEM_MODE|int|{value}>3|telegram|Wechselrichter - Mode unbekannt (PVI_SYSTEM_MODE={value})|-1'
+
+        rules = self._config['Notification/Rules']
+        for rule in rules:
+            try:
+                path, datatype, expression, service, text, waittime = rules[rule].split('|')
+                self.gBenachrichtigungen.AppendRows(1, False)
+                currow = self.gBenachrichtigungen.GetNumberRows()-1
+                self.gBenachrichtigungen.SetCellValue(currow, 0, path)
+                self.gBenachrichtigungen.SetCellValue(currow, 1, datatype)
+                self.gBenachrichtigungen.SetCellValue(currow, 2, expression)
+                self.gBenachrichtigungen.SetCellValue(currow, 3, service)
+                self.gBenachrichtigungen.SetCellValue(currow, 4, text)
+                self.gBenachrichtigungen.SetCellValue(currow, 5, waittime)
+            except ValueError:
+                logger.error('Konfigurationsdatei nicht lesbar, Bereich Notification/Rules falsch gefüllt, Beispiel: path|datatype|expression|service|text|waittime')
+
+        self.gBenachrichtigungen.AppendRows(1, False)
 
         self.gBenachrichtigungen.AutoSize()
 
