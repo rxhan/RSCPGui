@@ -1124,12 +1124,12 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.gDCB.AppendCols(dcbcount)
         for i in range(0, dcbcount):
             self.gDCB.SetColLabelValue(i, 'DCB #' + str(i))
-        self.txtMaxBatVoltage.SetValue(repr(f['BAT_MAX_BAT_VOLTAGE']) + ' V')
+        self.txtMaxBatVoltage.SetValue(str(round(f['BAT_MAX_BAT_VOLTAGE'],2)) + ' V')
         self.txtMaxChargeCurrent.SetValue(repr(f['BAT_MAX_CHARGE_CURRENT']) + ' A')
         self.txtEodVoltage.SetValue(repr(f['BAT_EOD_VOLTAGE']) + ' V')
         self.txtMaxDischargeCurrent.SetValue(repr(f['BAT_MAX_DISCHARGE_CURRENT']) + ' A')
         self.txtChargeCycles.SetValue(repr(f['BAT_CHARGE_CYCLES']))
-        self.txtTerminalVoltage.SetValue(repr(f['BAT_TERMINAL_VOLTAGE']) + ' V')
+        self.txtTerminalVoltage.SetValue(str(round(f['BAT_TERMINAL_VOLTAGE'],2)) + ' V')
         self.txtMaxDcbCellTemperature.SetValue(str(round(f['BAT_MAX_DCB_CELL_TEMPERATURE'], 2)) + ' °C')
         self.txtMinDcbCellTemperature.SetValue(str(round(f['BAT_MIN_DCB_CELL_TEMPERATURE'], 2)) + ' °C')
 

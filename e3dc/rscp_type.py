@@ -104,8 +104,8 @@ class EMS_SET_EMERGENCY_POWER(Enum):
 
 class WB_MODE(Enum):
     NONE = 0
-    LOADING = 144
-    NOT_LOADING = 128
+    LOADING = 144 #00001001
+    NOT_LOADING = 128 #00000001
 
 class WB_TYPE(Enum):
     E3DC = 1
