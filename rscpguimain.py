@@ -1,5 +1,6 @@
 import logging
 import os
+import traceback
 
 import telegram
 
@@ -975,6 +976,13 @@ class RSCPGuiMain():
 
     def _fill_info(self):
         logger.debug('Rufe INFO-Daten ab')
+
+        try:
+            data = self.gui.get_data(self.gui.getDB(0,0,0), True)
+            print(data)
+        except:
+            traceback.print_exc()
+
         requests = self.gui.getInfo() + self.gui.getUpdateStatus()
         #TODO: Herausfinden warum die Additional-Abfrage nicht bei direkter Verbindung funktioniert!
         if self.connectiontype == 'web':

@@ -16,7 +16,7 @@ _data_type_mapping = {
     "CString": "s",
     "Container": "s",
     "ByteArray": "r",
-    "Error": "s",
+    "Error": "i",
     "Nil": None,
 }
 
@@ -125,6 +125,12 @@ class UM_UPDATE_STATUS(Enum):
     UPDATE_CHECK_RUNNING=0x01
     UPDATING_MODULES_AND_FILES=0x02
     UPDATING_HARDWARE=0x03
+
+class ERROR_CODE(Enum):
+    ERR_NOT_HANDLED=0x01
+    ERR_ACCESS_DENIED=0x02
+    ERR_FORMAT=0x03
+    ERR_AGAIN=0x04
 
 class RSCPType(Enum):
     Nil = 0x00

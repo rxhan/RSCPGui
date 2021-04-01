@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Optional, Union
 
 from e3dc.rscp_tag import RSCPTag, RSCPTag2Type
-from e3dc.rscp_type import RSCPType
+from e3dc.rscp_type import RSCPType, ERROR_CODE
 
 """
 This is a data wrapper to send and receive data to the e3dc.
@@ -255,7 +255,9 @@ class RSCPDTO:
                 pass
             if self.type == RSCPType.ByteArray:
                 data = binascii.hexlify(self.data)
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(data))
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(data) + " (Dt: " + str(self.data) + ")")
+            elif self.type == RSCPType.Error:
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(ERROR_CODE(self.data)))
             else:
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(self.data))
 
