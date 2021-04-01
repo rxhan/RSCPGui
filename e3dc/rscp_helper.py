@@ -105,7 +105,6 @@ class rscp_helper():
         r += RSCPTag.WB_REQ_DIAG_DIG_IN_2
         r += RSCPTag.WB_REQ_PM_MAX_PHASE_POWER
         r += RSCPTag.WB_REQ_DEVICE_NAME
-        r += RSCPTag.WB_REQ_AVAILABLE_SOLAR_POWER
         r += RSCPTag.WB_REQ_EXTERN_DATA_SUN
         r += RSCPTag.WB_REQ_EXTERN_DATA_NET
         r += RSCPTag.WB_REQ_EXTERN_DATA_ALL
@@ -140,6 +139,10 @@ class rscp_helper():
         requests.append(RSCPTag.INFO_REQ_GATEWAY)
         requests.append(RSCPTag.INFO_REQ_DNS)
         requests.append(RSCPTag.INFO_REQ_DHCP_STATUS)
+        #requests.append(RSCPTag.INFO_REQ_GET_FACILITY) -> Leere Tags (INFO_NAME, INFO_STREET, INFO_STREET_NO, INFO_POSTCODE, INFO_CITY, INFO_FON, INFO_E_MAIL, INFO_COUNTRY)
+        #requests.append(RSCPTag.INFO_REQ_IS_CALIBRATED) -> Fehler
+        #requests.append(RSCPTag.INFO_REQ_HW_TIME) -> Fehler
+        requests.append(RSCPTag.INFO_REQ_GET_FS_USAGE) # Rückgabe: INFO_FS_SIZE, INFO_FS_USED, INFO_FS_AVAILABLE, INFO_FS_USE_PERCENT
         requests.append(RSCPTag.SRV_REQ_IS_ONLINE)
         requests.append(RSCPTag.SYS_REQ_IS_SYSTEM_REBOOTING)
         requests.append(RSCPTag.RSCP_REQ_USER_LEVEL)
