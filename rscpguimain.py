@@ -1103,7 +1103,7 @@ class RSCPGuiMain():
         try:
             data = self.gui.get_data(self.gui.getWBCount(), True)
             if data.type == RSCPType.Error:
-                raise RSCPCommunicationError('Error bei WB-Abruf', logger)
+                raise RSCPCommunicationError('Error bei WB-Abruf', logger, data)
         except RSCPCommunicationError:
             logger.info('Keine Wallbox vorhanden')
             return ddata

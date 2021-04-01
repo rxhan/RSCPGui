@@ -42,8 +42,8 @@ class RSCPUtils:
         if rscp_dto.type == RSCPType.Nil:
             return struct.pack(self._DATA_HEADER_FORMAT, rscp_dto.tag.value, rscp_dto.type.value, 0)
         elif rscp_dto.type == RSCPType.Timestamp:
-            timestamp = int(rscp_dto.data / 1000)
-            milliseconds = int((rscp_dto.data - timestamp * 1000) * 1e6)
+            timestamp = int(rscp_dto.data)
+            milliseconds = int((rscp_dto.data - timestamp) * 1e6)
             high = timestamp >> 32
             low = timestamp & 0xffffffff
             length = struct.calcsize("iii") - data_header_length
@@ -53,12 +53,12 @@ class RSCPUtils:
                 new_data = b''
                 for data_chunk in rscp_dto.data:
                     new_data += self.encode_data(data_chunk)
-                rscp_dto.set_data(new_data)
+                rscp_dto.data = new_data
                 pack_format += str(len(rscp_dto.data)) + rscp_dto.type.mapping
         elif rscp_dto.type.mapping in ("s","r"):
             if isinstance(rscp_dto.data, str):
                 # We do expect a string object. Make it to bytes array
-                rscp_dto.set_data(bytes(rscp_dto.data, encoding="latin_1"))
+                rscp_dto.data = bytes(rscp_dto.data, encoding="latin_1")
             pack_format += str(len(rscp_dto.data)) + "s"
         elif rscp_dto.type.mapping != "s":
             pack_format += rscp_dto.type.mapping

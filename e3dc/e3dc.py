@@ -89,7 +89,7 @@ class E3DC:
         response = self._receive()
         if response.type == RSCPType.Error:
             logger.debug("Error type returned: " + str(response.data))
-            raise (RSCPCommunicationError('Error type returned: ' + str(response.data), logger))
+            raise (RSCPCommunicationError('Error type returned: ' + str(response.data), logger, response))
         if not keep_connection_alive:
             self._disconnect()
         return response
