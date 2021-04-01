@@ -1,4 +1,5 @@
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -728,6 +729,39 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.chSRVIsOnline.SetValue(d['SRV_IS_ONLINE'].data)
         self.chSYSReboot.SetValue(d['SYS_IS_SYSTEM_REBOOTING'].data)
         self.txtRSCPUserLevel.SetValue(repr(d['RSCP_USER_LEVEL']))
+        self.gInfoFilesystem.SetValue(int(d['INFO_GET_FS_USAGE']['INFO_FS_USE_PERCENT'].data[:-1]))
+        self.txtFilesystemPercent.SetValue(repr(d['INFO_GET_FS_USAGE']['INFO_FS_USE_PERCENT']))
+        ts = repr(d['INFO_GET_FS_USAGE']['INFO_FS_USED']) + ' von ' + repr(d['INFO_GET_FS_USAGE']['INFO_FS_SIZE']) + ' in Verwendung, ' + repr(d['INFO_GET_FS_USAGE']['INFO_FS_AVAILABLE']) + ' frei'
+        self.txtFilesystem.SetValue(ts)
+        if 'INFO_MODULES_SW_VERSIONS' in d:
+            self.gSoftwaremodules.Show()
+            self.gSoftwaremodules.DeleteRows(0, self.gSoftwaremodules.GetNumberRows())
+            self.gSoftwaremodules.AppendRows(len(d['INFO_MODULES_SW_VERSIONS']))
+            row = 0
+            regex = r"([\d\.]*) \[(.*)\] \(SVN:([\da-zA-Z]*)\)"
+
+            for moduleversion in d['INFO_MODULES_SW_VERSIONS']:
+                module = moduleversion['INFO_MODULE'].data
+                self.gSoftwaremodules.SetCellValue(row, 0, module)
+                versiondata = moduleversion['INFO_VERSION'].data
+                try:
+
+                    matches = re.findall(regex, versiondata)[0]
+                    version = matches[0]
+                    dt = matches[1]
+                    svn = matches[2]
+                    self.gSoftwaremodules.SetCellValue(row, 1, version)
+                    self.gSoftwaremodules.SetCellValue(row, 2, dt)
+                    self.gSoftwaremodules.SetCellValue(row, 3, svn)
+                except Exception as e:
+                    self.gSoftwaremodules.SetCellValue(row, 1, versiondata)
+                    logger.error('Fehler beim Parsen der Modul-Software-Versionen (' + str(module) + ' / ' + str(versiondata) + '): ' + str(e))
+                row+=1
+            self.gSoftwaremodules.AutoSizeColumns()
+        else:
+            self.gSoftwaremodules.Hide()
+
+
 
     def fill_ems(self):
         RSCPGuiMain.fill_ems(self)
@@ -1355,6 +1389,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         if len(self._data_wb) > index:
             logger.debug('Stelle Daten der Wallbox #' + str(index) + ' dar')
             d = self._data_wb[index]
+            for val in d:
+                print(val)
 
             index = d['WB_INDEX'].data
             wallbox_type = WB_TYPE.E3DC if d['WB_DEVICE_NAME'].data != 'Easy Connect' else WB_TYPE.EASYCONNECT
@@ -1900,7 +1936,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 self.gPortalSortColumn(9)
 
             self.gPortalList.AutoSizeRows()
-            self.gPortalList.AutoSize()
 
             logger.debug('Abruf der Geräteliste aus Portal erfolgreich')
         except:

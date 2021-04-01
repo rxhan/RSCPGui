@@ -123,6 +123,10 @@ class rscp_helper():
 
         return requests
 
+    def getInfoAdditional(self):
+        requests = []
+        requests.append(RSCPTag.INFO_REQ_MODULES_SW_VERSIONS)
+        return requests
 
     def getInfo(self):
         requests = []
@@ -143,6 +147,8 @@ class rscp_helper():
         #requests.append(RSCPTag.INFO_REQ_IS_CALIBRATED) -> Fehler
         #requests.append(RSCPTag.INFO_REQ_HW_TIME) -> Fehler
         requests.append(RSCPTag.INFO_REQ_GET_FS_USAGE) # Rückgabe: INFO_FS_SIZE, INFO_FS_USED, INFO_FS_AVAILABLE, INFO_FS_USE_PERCENT
+        requests.append(RSCPTag.INFO_REQ_GUI_TARGET)
+        #requests.append(RSCPTag.INFO_REQ_PLATFORM_TYPE) -> Fehler
         requests.append(RSCPTag.SRV_REQ_IS_ONLINE)
         requests.append(RSCPTag.SYS_REQ_IS_SYSTEM_REBOOTING)
         requests.append(RSCPTag.RSCP_REQ_USER_LEVEL)
