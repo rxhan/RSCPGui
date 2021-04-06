@@ -1,5 +1,5 @@
 # RSCPGui
-Das Programm fragt Daten per RSCP von einem E3/DC - Hauskraftwerk ab und stellt diese dar. Dabei wird versucht möglichst viele Daten richtig darzustellen. Mit dem Programm können die Daten auch "headless" zyklisch exportiert werden. Unterstützt werden csv, json, influxdb, mqtt. Darüberhinaus ist es möglich Benachrichtigungen über Telegram zu erhalten, wenn bestimmte Ereignisse eintreten oder Werte gelesen wurden. Über MQTT können auch bestimmte Werte wieder zurückgeschrieben werden.
+Das Programm fragt Daten per RSCP von einem E3/DC - Hauskraftwerk ab und stellt diese dar. Die über RSCP veränderbaren Einstellungen im USER-Modus können auch geschrieben werden. Auch Aktionen wie z.B. Notstrombetrieb oder Systemneustart können ausgelöst werden. Dabei wird versucht möglichst viele Daten richtig darzustellen. Mit dem Programm können die Daten auch "headless" zyklisch exportiert werden. Unterstützt werden csv, json, influxdb, mqtt. Darüberhinaus ist es möglich Benachrichtigungen über Telegram zu erhalten, wenn bestimmte Ereignisse eintreten oder Werte gelesen wurden. Über MQTT können auch bestimmte Werte wieder zurückgeschrieben werden.
 
 **Das Programm befindet sich in einem frühen Entwicklungsstatus nicht alle Funktionen stehen zur Verfügung**
 **Benutzung erfolgt auf eigene Gefahr, für Schäden kann der Author nicht haftbar gemacht werden**
@@ -73,6 +73,16 @@ usage: rscpgui.exe [-h] [-e [EXPORT]] [-i] [-c [CONSOLE]] [-f [LOGFILE]]
                    [-v [{CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]] [-l] [-p]
 ...
 ```
+
+# Screenshots
+
+![Übersicht der Batteriedaten](../images/RSCPGUI_BAT.png)
+
+![Übersicht der Ladeeinstellungen](../images/RSCPGUI_Ladeeinstellungen.png)
+
+![Übersicht der Wechselrichter](../images/RSCPGUI_Wechselrichter.png)
+
+![Übersicht der Basisdaten / EMS](../images/RSCPGUI_EMS.png)
 
 # Windows-Binary
 
