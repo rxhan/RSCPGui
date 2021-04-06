@@ -76,13 +76,13 @@ usage: rscpgui.exe [-h] [-e [EXPORT]] [-i] [-c [CONSOLE]] [-f [LOGFILE]]
 
 # Screenshots
 
-![Übersicht der Batteriedaten](../images/RSCPGUI_BAT.png)
+![Übersicht der Batteriedaten](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_BAT.png)
 
-![Übersicht der Ladeeinstellungen](../images/RSCPGUI_Ladeeinstellungen.png)
+![Übersicht der Ladeeinstellungen](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_Ladeeinstellungen.png)
 
-![Übersicht der Wechselrichter](../images/RSCPGUI_Wechselrichter.png)
+![Übersicht der Wechselrichter](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_Wechselrichter.png)
 
-![Übersicht der Basisdaten / EMS](../images/RSCPGUI_EMS.png)
+![Übersicht der Basisdaten / EMS](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_EMS.png)
 
 # Windows-Binary
 
