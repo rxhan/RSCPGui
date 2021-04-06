@@ -49,7 +49,7 @@ class E3DCWebGui(rscp_helper):
     def __del__(self):
         del self.e3dc
 
-    def get_data(self, requests, raw=False, block=True):
+    def get_data(self, requests, raw=False, block=True, waittime=None):
         start = time.time()
         while not self.e3dc.connected:
             if (time.time() - start) > self.timeout_connect or self.e3dc.lasterror is not None:
@@ -62,7 +62,7 @@ class E3DCWebGui(rscp_helper):
         r = self.e3dc.getRSCPToServer(requests)
         self.e3dc.register_next_response()
         try:
-            self.e3dc.send_data(r)
+            self.e3dc.send_data(r, waittime=waittime)
             start = time.time()
             while self.e3dc.next_response:
                 if (time.time() - start) > self.timeout or self.e3dc.lasterror is not None:
@@ -252,7 +252,7 @@ class E3DCWeb(E3DC):
         r += RSCPDTO(tag=RSCPTag.SERVER_RSCP_DATA, rscp_type=RSCPType.ByteArray, data=payload)
         return r
 
-    def send_data(self, r, ws = None):
+    def send_data(self, r, ws = None, waittime=None):
         if not ws:
             ws = self.ws
         dataframe = self.rscp_utils.encode_data(r)

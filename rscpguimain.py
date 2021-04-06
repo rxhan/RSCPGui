@@ -992,11 +992,9 @@ class RSCPGuiMain():
         logger.debug('Rufe INFO-Daten ab')
 
         requests = self.gui.getInfo() + self.gui.getUpdateStatus()
-        #TODO: Herausfinden warum die Additional-Abfrage nicht bei direkter Verbindung funktioniert!
-        if self.connectiontype == 'web':
-            requests+=self.gui.getInfoAdditional()
+        requests+=self.gui.getInfoAdditional()
 
-        data = self.gui.get_data(requests, True)
+        data = self.gui.get_data(requests, True, waittime=0.05)
 
         logger.debug('Abruf INFO-Daten abgeschlossen')
         return data

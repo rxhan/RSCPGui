@@ -530,7 +530,7 @@ class rscp_helper():
 
     blocked = property(get_blocked, set_blocked)
 
-    def get_data(self, requests, raw=False, block=True):
+    def get_data(self, requests, raw=False, block=True, waittime=0.01):
         if block:
             while self.blocked:
                 logger.debug('Warte auf Freigabe der Verbindung')
@@ -540,7 +540,7 @@ class rscp_helper():
         responses = []
 
         try:
-            responses = self.e3dc.send_requests(requests)
+            responses = self.e3dc.send_requests(requests, waittime=waittime)
         except:
             if block:
                 self.blocked = False
