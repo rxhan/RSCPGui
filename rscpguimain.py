@@ -2,8 +2,6 @@ import logging
 import os
 import traceback
 
-import telegram
-
 from e3dc._rscp_dto import RSCPDTO
 
 logger = logging.getLogger(__name__)
@@ -586,11 +584,9 @@ class RSCPGuiMain():
         def on_message(client, userdata, message):
             topic = message.topic[1:]
             if topic[-4:] == '/SET':
-                print("message topic=", message.topic)
                 topic = topic[:-4]
                 if topic in self.cfgExportpathnames.values():
                     path = list(self.cfgExportpathnames.keys())[list(self.cfgExportpathnames.values()).index(topic)]
-                    print(topic,path)
                     if path in sublist.keys():
                         callback = sublist[path]
                         value = str(message.payload.decode("utf-8"))
