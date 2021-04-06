@@ -553,18 +553,35 @@ class RSCPGuiMain():
         return data
 
     def setMaxChargePower(self, value):
-        temp = []
-        temp.append(RSCPDTO(tag=RSCPTag.EMS_MAX_CHARGE_POWER, rscp_type=RSCPType.Uint32, data=int(value)))
-
-        r = []
-        r.append(RSCPDTO(tag=RSCPTag.EMS_REQ_SET_POWER_SETTINGS, rscp_type=RSCPType.Container, data=temp))
+        temp = [RSCPDTO(tag=RSCPTag.EMS_MAX_CHARGE_POWER, rscp_type=RSCPType.Uint32, data=int(value))]
+        r = [RSCPDTO(tag=RSCPTag.EMS_REQ_SET_POWER_SETTINGS, rscp_type=RSCPType.Container, data=temp)]
 
         res = self.gui.get_data(r, True)
         logger.info('Wert über setMaxChargePower auf ' + str(value) + ' geändert')
 
+    def setMaxDischargePower(self, value):
+        temp = [RSCPDTO(tag=RSCPTag.EMS_MAX_DISCHARGE_POWER, rscp_type=RSCPType.Uint32, data=int(value))]
+        r = [RSCPDTO(tag=RSCPTag.EMS_REQ_SET_POWER_SETTINGS, rscp_type=RSCPType.Container, data=temp)]
+
+        res = self.gui.get_data(r, True)
+        logger.info('Wert über setMaxDischargePower auf ' + str(value) + ' geändert') \
+
+    def setDischargeStartPower(self, value):
+        temp = [RSCPDTO(tag=RSCPTag.EMS_DISCHARGE_START_POWER, rscp_type=RSCPType.Uint32, data=int(value))]
+        r = [RSCPDTO(tag=RSCPTag.EMS_REQ_SET_POWER_SETTINGS, rscp_type=RSCPType.Container, data=temp)]
+
+        res = self.gui.get_data(r, True)
+        logger.info('Wert über setDischageStartPower auf ' + str(value) + ' geändert') \
+
     @property
     def mqttclient(self):
-        sublist = ['E3DC/EMS_DATA/EMS_GET_POWER_SETTINGS/EMS_MAX_CHARGE_POWER']
+        #TODO: Weitere Möglichkeiten ergänzen
+        sublist = {
+                    'E3DC/EMS_DATA/EMS_GET_POWER_SETTINGS/EMS_MAX_CHARGE_POWER': self.setMaxChargePower,
+                    'E3DC/EMS_DATA/EMS_GET_POWER_SETTINGS/EMS_MAX_DISCHARGE_POWER': self.setMaxDischargePower,
+                    'E3DC/EMS_DATA/EMS_GET_POWER_SETTINGS/EMS_DISCHARGE_START_POWER': self.setDischargeStartPower
+
+        }
 
         def on_message(client, userdata, message):
             topic = message.topic[1:]
@@ -574,16 +591,17 @@ class RSCPGuiMain():
                 if topic in self.cfgExportpathnames.values():
                     path = list(self.cfgExportpathnames.keys())[list(self.cfgExportpathnames.values()).index(topic)]
                     print(topic,path)
-                    if path in sublist:
+                    if path in sublist.keys():
+                        callback = sublist[path]
                         value = str(message.payload.decode("utf-8"))
                         try:
                             test = int(self._exportcache[topic])
                             if test != value:
-                                self.setMaxChargePower(value)
+                                callback(value)
                             else:
-                                logger.debug('setMaxChargePower Wert hat sich nicht geändert ' + str(value) + ' <-> ' + str(test))
+                                logger.debug(topic + ' Wert hat sich nicht geändert ' + str(value) + ' <-> ' + str(test))
                         except:
-                            logger.exception('Fehler bei setMaxChargePower(' + value + ')')
+                            logger.exception('Fehler bei ' + topic + ' (' + value + ')')
 
         if self._mqttclient is not None:
             if self._mqttclient.is_connected():
@@ -617,7 +635,7 @@ class RSCPGuiMain():
             self._mqttclient.on_message=on_message
             self._mqttclient.connect(broker, port)
             if sub:
-                for path in sublist:
+                for path in sublist.keys():
                     if path in self.cfgExportpathnames.keys():
                         topic = '/' + self.cfgExportpathnames[path] + '/SET'
                         logger.debug('MQTT Subscribe: ' + topic)
