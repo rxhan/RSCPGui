@@ -1,5 +1,5 @@
 # RSCPGui
-RSCPGui für die Abfrage und Darstellung von Daten aus einem E3DC - System
+Das Programm fragt Daten per RSCP von einem E3/DC - Hauskraftwerk ab und stellt diese dar. Dabei wird versucht möglichst viele Daten richtig darzustellen. Mit dem Programm können die Daten auch "headless" zyklisch exportiert werden. Unterstützt werden csv, json, influxdb, mqtt. Darüberhinaus ist es möglich Benachrichtigungen über Telegram zu erhalten, wenn bestimmte Ereignisse eintreten oder Werte gelesen wurden. Über MQTT können auch bestimmte Werte wieder zurückgeschrieben werden.
 
 **Das Programm befindet sich in einem frühen Entwicklungsstatus nicht alle Funktionen stehen zur Verfügung**
 **Benutzung erfolgt auf eigene Gefahr, für Schäden kann der Author nicht haftbar gemacht werden**
@@ -35,6 +35,7 @@ Für Konsolenbetrieb wenn z.B. nur Export der Daten genügt
     
 Die Installation von wxPython wird dann fehlschlagen, dieses wird für den Konsolenbetrieb aber nicht benötigt.
 
+
 # Nutzung
 
 Es werden mindestens Angaben zu Benutzername und Passwort benötigt. 
@@ -42,8 +43,41 @@ Weitere Informationen werden automatisch ermittelt sofern ein Internetzugriff be
 Soll ein lokaler Zugriff erfolgen muss das RSCP-Passwort angegeben werden. 
 Dies kann aber auch vom Programm gesetzt werden.
 
+### Export von Daten
+
+Zum Export von Daten stehen CSV (historisch), JSON (Statusdatei), MQTT, Influx und ein URL-Post zur Verfügung. Die zu übertragenen Daten müssen vorher ausgewählt werden.
+Achtung: Es werden die RAW-Werte übertragen! Der Bezeichner entspricht dabei dem TOPIC in MQTT, oder der Überschrift der CSV-Datei bzw. der Key in der JSON-Datei. Es können auch ganze Knoten mit ihren Unterknoten umbenannt werden. Beim Export sollten nicht unnötig viele Daten angewählt werden.
+
+Um die Daten nun "headless" zu exportieren muss das Programm nach der Konfiguration mit **-e -c** gestartet werden. Dadurch wird (-e) der Export automatisch gestartet und das Programm startet im Konsolenmodus (-c).
+Die Konfigurationsdatei kann dafür an einem anderen Rechner mit Oberfläche erzeugt werden und auf den Zielrechner kopiert werden. (rscpgui.conf.ini)
+
+### Benachrichtigungen
+
+Aktuell noch nicht ganz fertig! - Work in progess ;-)
+
+### Werte über MQTT zurückschreiben
+
+Über MQTT können Werte auch wieder an das Hauskraftwerk zurückübertragen werden. Aktuell unterstützt werden: 
+**maximale Ladeleistung, maximale Entladeleistung und untere Schwelle Lade-/Entladung.**
+Dies funktioniert nur bei aktiviertem Export. Zusätzlich müssen die zu ändernden Werte auch in den Exportdaten enthalten sein. Ein zurückschreiben der Werte ist nun mit dem angegebenen Bezeichner + /SET möglich.
+Ohne Anpassung des Bezeichners ist dies z.B. für die maximale Ladeleistung: 
+*E3DC/EMS_DATA/EMS_GET_POWER_SETTINGS/EMS_MAX_CHARGE_POWER/SET*
+
+# Kommandozeilenparameter
+
+Können mit rscpgui.exe -h angezeigt werden:
+
+```sh
+
+usage: rscpgui.exe [-h] [-e [EXPORT]] [-i] [-c [CONSOLE]] [-f [LOGFILE]]
+                   [-v [{CRITICAL,FATAL,ERROR,WARN,WARNING,INFO,DEBUG,NOTSET}]] [-l] [-p]
+...
+```
+
 # Windows-Binary
 
-Aktuelle stehen in den Releasen bereit:
+Aktuelle stehen in den Releasen bereit.
 
 https://github.com/rxhan/RSCPGui/releases
+
+# 
