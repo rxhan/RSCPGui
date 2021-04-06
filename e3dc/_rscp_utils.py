@@ -43,7 +43,7 @@ class RSCPUtils:
             return struct.pack(self._DATA_HEADER_FORMAT, rscp_dto.tag.value, rscp_dto.type.value, 0)
         elif rscp_dto.type == RSCPType.Timestamp:
             timestamp = int(rscp_dto.data)
-            milliseconds = int((rscp_dto.data - timestamp) * 1e6)
+            milliseconds = int((rscp_dto.data - timestamp) * 1e9)
             high = timestamp >> 32
             low = timestamp & 0xffffffff
             length = struct.calcsize("iii") - data_header_length

@@ -1,5 +1,6 @@
 import binascii
 import copy
+import datetime
 import json
 import traceback
 from enum import Enum
@@ -258,6 +259,8 @@ class RSCPDTO:
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(data) + " (Dt: " + str(self.data) + ")")
             elif self.type == RSCPType.Error:
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(ERROR_CODE(self.data)))
+            elif self.type == RSCPType.Timestamp:
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + datetime.datetime.utcfromtimestamp(self.data).isoformat() + " (Dt: " + str(self.data) + ")")
             else:
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(self.data))
 

@@ -131,6 +131,7 @@ class ERROR_CODE(Enum):
     ERR_ACCESS_DENIED=0x02
     ERR_FORMAT=0x03
     ERR_AGAIN=0x04
+    ERR_UNKNOWN=-1
 
 class RSCPType(Enum):
     Nil = 0x00
