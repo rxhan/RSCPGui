@@ -35,6 +35,23 @@ Für Konsolenbetrieb wenn z.B. nur Export der Daten genügt
     
 Die Installation von wxPython wird dann fehlschlagen, dieses wird für den Konsolenbetrieb aber nicht benötigt.
 
+### Manuelle Konfiguration
+
+Um die RSCPGui manuell zu konfigurieren muss lediglich die Datei rscpe3dc.conf.default.ini zu rscpe3dc.conf.ini umbenannt werden und diese mit den ensprechenden Werten gefüllt werden.
+
+Für eine korrekte Funktion der grundlegenden Programmeigenschaften sind mindestens folgende Einstellungen zu setzen:
+
+> [Login]
+> 
+> username=mye3dportalusername
+> 
+> password=mypassword
+> 
+> rscppassword=myrscppassword
+> 
+> address=192.168.xxx.yyy
+> 
+> seriennummer=S10-xxxxxxxxxxxx
 
 # Nutzung
 
