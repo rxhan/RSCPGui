@@ -19,7 +19,7 @@ import wx.adv
 class MainFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 1029,867 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"E3/DC RSCPGui", pos = wx.Point( 100,100 ), size = wx.Size( 1073,796 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -69,7 +69,7 @@ class MainFrame ( wx.Frame ):
 		gSizer5.Add( self.btnUpdatecheck, 0, wx.ALL, 5 )
 
 
-		gSizer2.Add( gSizer5, 1, wx.EXPAND, 5 )
+		gSizer2.Add( gSizer5, 1, wx.EXPAND, 2 )
 
 		self.m_staticText12 = wx.StaticText( self.pMain, wx.ID_ANY, u"Updatestatus", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText12.Wrap( -1 )
@@ -96,34 +96,20 @@ class MainFrame ( wx.Frame ):
 
 		gSizer2.Add( self.m_staticText154, 0, wx.ALL, 5 )
 
-		fgSizer16 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer16 = wx.FlexGridSizer( 0, 3, 0, 0 )
 		fgSizer16.SetFlexibleDirection( wx.BOTH )
 		fgSizer16.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		fgSizer17 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer17.SetFlexibleDirection( wx.BOTH )
-		fgSizer17.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
 		self.chSYSReboot = wx.CheckBox( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.chSYSReboot.Enable( False )
 
-		fgSizer17.Add( self.chSYSReboot, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
+		fgSizer16.Add( self.chSYSReboot, 0, wx.ALIGN_CENTER|wx.ALL, 5 )
 
 		self.bSYSReboot = wx.Button( self.pMain, wx.ID_ANY, u"Reboot", wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
-		fgSizer17.Add( self.bSYSReboot, 0, wx.ALL, 5 )
-
-
-		fgSizer16.Add( fgSizer17, 1, wx.EXPAND, 5 )
-
-		fgSizer18 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer18.SetFlexibleDirection( wx.BOTH )
-		fgSizer18.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+		fgSizer16.Add( self.bSYSReboot, 0, wx.ALL, 5 )
 
 		self.bSYSApplicationRestart = wx.Button( self.pMain, wx.ID_ANY, u"Restart", wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
-		fgSizer18.Add( self.bSYSApplicationRestart, 0, wx.ALL, 5 )
-
-
-		fgSizer16.Add( fgSizer18, 1, wx.EXPAND, 5 )
+		fgSizer16.Add( self.bSYSApplicationRestart, 0, wx.ALL, 5 )
 
 
 		gSizer2.Add( fgSizer16, 1, wx.EXPAND, 5 )
@@ -231,7 +217,79 @@ class MainFrame ( wx.Frame ):
 		gSizer2.Add( self.bINFOSave, 0, wx.ALL, 5 )
 
 
-		fgSizer21.Add( gSizer2, 1, wx.EXPAND, 5 )
+		fgSizer21.Add( gSizer2, 1, 0, 2 )
+
+		bSizer21 = wx.BoxSizer( wx.VERTICAL )
+
+		fgSizer461 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer461.SetFlexibleDirection( wx.BOTH )
+		fgSizer461.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText221 = wx.StaticText( self.pMain, wx.ID_ANY, u"Dateisystem", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText221.Wrap( -1 )
+
+		fgSizer461.Add( self.m_staticText221, 0, wx.ALL, 5 )
+
+		fgSizer47 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer47.SetFlexibleDirection( wx.BOTH )
+		fgSizer47.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.gInfoFilesystem = wx.Gauge( self.pMain, wx.ID_ANY, 100, wx.DefaultPosition, wx.DefaultSize, wx.GA_HORIZONTAL )
+		self.gInfoFilesystem.SetValue( 0 )
+		fgSizer47.Add( self.gInfoFilesystem, 0, wx.ALL, 5 )
+
+		self.txtFilesystemPercent = wx.TextCtrl( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 50,-1 ), 0 )
+		self.txtFilesystemPercent.Enable( False )
+
+		fgSizer47.Add( self.txtFilesystemPercent, 0, wx.ALL, 5 )
+
+
+		fgSizer461.Add( fgSizer47, 1, wx.EXPAND, 5 )
+
+
+		fgSizer461.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.txtFilesystem = wx.TextCtrl( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 250,-1 ), 0 )
+		self.txtFilesystem.Enable( False )
+
+		fgSizer461.Add( self.txtFilesystem, 0, wx.ALL, 5 )
+
+
+		bSizer21.Add( fgSizer461, 1, 0, 5 )
+
+		self.gSoftwaremodules = wx.grid.Grid( self.pMain, wx.ID_ANY, wx.DefaultPosition, wx.Size( 450,500 ), 0 )
+
+		# Grid
+		self.gSoftwaremodules.CreateGrid( 1, 4 )
+		self.gSoftwaremodules.EnableEditing( True )
+		self.gSoftwaremodules.EnableGridLines( False )
+		self.gSoftwaremodules.EnableDragGridSize( False )
+		self.gSoftwaremodules.SetMargins( 0, 0 )
+
+		# Columns
+		self.gSoftwaremodules.EnableDragColMove( False )
+		self.gSoftwaremodules.EnableDragColSize( True )
+		self.gSoftwaremodules.SetColLabelSize( 30 )
+		self.gSoftwaremodules.SetColLabelValue( 0, u"Modulname" )
+		self.gSoftwaremodules.SetColLabelValue( 1, u"Version" )
+		self.gSoftwaremodules.SetColLabelValue( 2, u"Datum" )
+		self.gSoftwaremodules.SetColLabelValue( 3, u"SVN" )
+		self.gSoftwaremodules.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Rows
+		self.gSoftwaremodules.AutoSizeRows()
+		self.gSoftwaremodules.EnableDragRowSize( True )
+		self.gSoftwaremodules.SetRowLabelSize( 40 )
+		self.gSoftwaremodules.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Label Appearance
+
+		# Cell Defaults
+		self.gSoftwaremodules.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		bSizer21.Add( self.gSoftwaremodules, 0, wx.EXPAND|wx.FIXED_MINSIZE, 5 )
+
+
+		fgSizer21.Add( bSizer21, 1, wx.TOP, 5 )
 
 
 		self.pMain.SetSizer( fgSizer21 )
@@ -247,7 +305,7 @@ class MainFrame ( wx.Frame ):
 		fgSizer10.SetFlexibleDirection( wx.BOTH )
 		fgSizer10.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
-		gSizer8 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer8 = wx.GridSizer( 0, 4, 0, 0 )
 
 		self.m_staticText158 = wx.StaticText( self.m_panel7, wx.ID_ANY, u"Betriebsbereit", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText158.Wrap( -1 )
@@ -742,7 +800,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel8 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer7 = wx.BoxSizer( wx.VERTICAL )
 
-		fgSizer26 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer26 = wx.FlexGridSizer( 0, 3, 0, 0 )
 		fgSizer26.SetFlexibleDirection( wx.BOTH )
 		fgSizer26.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
 
@@ -868,548 +926,376 @@ class MainFrame ( wx.Frame ):
 
 		bSizer14 = wx.BoxSizer( wx.VERTICAL )
 
+		bSizer9 = wx.BoxSizer( wx.VERTICAL )
+
 		self.m_staticText93 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Ladesperrzeiten", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText93.Wrap( -1 )
 
-		bSizer14.Add( self.m_staticText93, 0, wx.ALL, 5 )
+		bSizer9.Add( self.m_staticText93, 0, wx.ALL, 5 )
 
 		self.m_staticline5 = wx.StaticLine( self.m_panel8, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		bSizer14.Add( self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5 )
+		bSizer9.Add( self.m_staticline5, 0, wx.EXPAND |wx.ALL, 5 )
 
-		fgSizer11 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer11.SetFlexibleDirection( wx.BOTH )
-		fgSizer11.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		bSizer8 = wx.BoxSizer( wx.VERTICAL )
-
-		gSizer15 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer13 = wx.GridSizer( 0, 5, 0, 0 )
 
 		self.m_staticText94 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Montag", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText94.Wrap( -1 )
 
-		gSizer15.Add( self.m_staticText94, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13.Add( self.m_staticText94, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.chEMSChargeMo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer15.Add( self.chEMSChargeMo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer8.Add( gSizer15, 1, wx.EXPAND, 5 )
-
-		gSizer151 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText941 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Dienstag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText941.Wrap( -1 )
-
-		gSizer151.Add( self.m_staticText941, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSChargeDi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer151.Add( self.chEMSChargeDi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer8.Add( gSizer151, 1, wx.EXPAND, 5 )
-
-		gSizer1511 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText9411 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Mittwoch", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText9411.Wrap( -1 )
-
-		gSizer1511.Add( self.m_staticText9411, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSChargeMi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer1511.Add( self.chEMSChargeMi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer8.Add( gSizer1511, 1, wx.EXPAND, 5 )
-
-		gSizer15111 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText94111 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Donnerstag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText94111.Wrap( -1 )
-
-		gSizer15111.Add( self.m_staticText94111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSChargeDo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer15111.Add( self.chEMSChargeDo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer8.Add( gSizer15111, 1, wx.EXPAND, 5 )
-
-		gSizer15112 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText94112 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Freitag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText94112.Wrap( -1 )
-
-		gSizer15112.Add( self.m_staticText94112, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSChargeFr = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer15112.Add( self.chEMSChargeFr, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer8.Add( gSizer15112, 1, wx.EXPAND, 5 )
-
-		gSizer15113 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText94113 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Samstag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText94113.Wrap( -1 )
-
-		gSizer15113.Add( self.m_staticText94113, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSChargeSa = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer15113.Add( self.chEMSChargeSa, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer8.Add( gSizer15113, 1, wx.EXPAND, 5 )
-
-		gSizer151131 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText941131 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Sonntag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText941131.Wrap( -1 )
-
-		gSizer151131.Add( self.m_staticText941131, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSChargeSo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer151131.Add( self.chEMSChargeSo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer8.Add( gSizer151131, 1, wx.EXPAND, 5 )
-
-
-		fgSizer11.Add( bSizer8, 1, wx.EXPAND, 5 )
-
-		bSizer9 = wx.BoxSizer( wx.VERTICAL )
-
-		gSizer13 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer13.Add( self.chEMSChargeMo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeMoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13.Add( self.tpEMSChargeMoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer14 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText95 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText95.Wrap( -1 )
 
-		gSizer14.Add( self.m_staticText95, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13.Add( self.m_staticText95, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeMoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer14.Add( self.tpEMSChargeMoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13.Add( self.tpEMSChargeMoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer13.Add( gSizer14, 1, wx.EXPAND, 5 )
+		bSizer9.Add( gSizer13, 1, wx.EXPAND, 2 )
 
+		gSizer131 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer9.Add( gSizer13, 1, wx.EXPAND, 5 )
+		self.m_staticText941 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Dienstag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText941.Wrap( -1 )
 
-		gSizer131 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer131.Add( self.m_staticText941, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSChargeDi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer131.Add( self.chEMSChargeDi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeDiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131.Add( self.tpEMSChargeDiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer141 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText951 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText951.Wrap( -1 )
 
-		gSizer141.Add( self.m_staticText951, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131.Add( self.m_staticText951, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeDiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer141.Add( self.tpEMSChargeDiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131.Add( self.tpEMSChargeDiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer131.Add( gSizer141, 1, wx.EXPAND, 5 )
+		bSizer9.Add( gSizer131, 1, wx.EXPAND, 2 )
 
+		gSizer1311 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer9.Add( gSizer131, 1, wx.EXPAND, 5 )
+		self.m_staticText9411 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Mittwoch", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText9411.Wrap( -1 )
 
-		gSizer1311 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer1311.Add( self.m_staticText9411, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSChargeMi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1311.Add( self.chEMSChargeMi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeMiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1311.Add( self.tpEMSChargeMiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer1411 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText9511 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText9511.Wrap( -1 )
 
-		gSizer1411.Add( self.m_staticText9511, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer1311.Add( self.m_staticText9511, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeMiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer1411.Add( self.tpEMSChargeMiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		gSizer1311.Add( gSizer1411, 1, wx.EXPAND, 5 )
+		gSizer1311.Add( self.tpEMSChargeMiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
 		bSizer9.Add( gSizer1311, 1, wx.EXPAND, 5 )
 
-		gSizer13111 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer13111 = wx.GridSizer( 0, 5, 0, 0 )
+
+		self.m_staticText94111 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Donnerstag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText94111.Wrap( -1 )
+
+		gSizer13111.Add( self.m_staticText94111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSChargeDo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer13111.Add( self.chEMSChargeDo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeDoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13111.Add( self.tpEMSChargeDoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer14111 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText95111 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText95111.Wrap( -1 )
 
-		gSizer14111.Add( self.m_staticText95111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13111.Add( self.m_staticText95111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeDoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer14111.Add( self.tpEMSChargeDoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		gSizer13111.Add( gSizer14111, 1, wx.EXPAND, 5 )
+		gSizer13111.Add( self.tpEMSChargeDoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
 		bSizer9.Add( gSizer13111, 1, wx.EXPAND, 5 )
 
-		gSizer13112 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer13112 = wx.GridSizer( 0, 5, 0, 0 )
+
+		self.m_staticText94112 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Freitag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText94112.Wrap( -1 )
+
+		gSizer13112.Add( self.m_staticText94112, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSChargeFr = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer13112.Add( self.chEMSChargeFr, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeFrVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13112.Add( self.tpEMSChargeFrVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer14112 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText95112 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText95112.Wrap( -1 )
 
-		gSizer14112.Add( self.m_staticText95112, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13112.Add( self.m_staticText95112, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeFrBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer14112.Add( self.tpEMSChargeFrBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		gSizer13112.Add( gSizer14112, 1, wx.EXPAND, 5 )
+		gSizer13112.Add( self.tpEMSChargeFrBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
 		bSizer9.Add( gSizer13112, 1, wx.EXPAND, 5 )
 
-		gSizer13113 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer13113 = wx.GridSizer( 0, 5, 0, 0 )
+
+		self.m_staticText94113 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Samstag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText94113.Wrap( -1 )
+
+		gSizer13113.Add( self.m_staticText94113, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSChargeSa = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer13113.Add( self.chEMSChargeSa, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeSaVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13113.Add( self.tpEMSChargeSaVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer14113 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText95113 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText95113.Wrap( -1 )
 
-		gSizer14113.Add( self.m_staticText95113, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13113.Add( self.m_staticText95113, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeSaBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer14113.Add( self.tpEMSChargeSaBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		gSizer13113.Add( gSizer14113, 1, wx.EXPAND, 5 )
+		gSizer13113.Add( self.tpEMSChargeSaBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
 		bSizer9.Add( gSizer13113, 1, wx.EXPAND, 5 )
 
-		gSizer131131 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer131131 = wx.GridSizer( 0, 5, 0, 0 )
+
+		self.m_staticText941131 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Sonntag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText941131.Wrap( -1 )
+
+		gSizer131131.Add( self.m_staticText941131, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSChargeSo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer131131.Add( self.chEMSChargeSo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeSoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131131.Add( self.tpEMSChargeSoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer141131 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText951131 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText951131.Wrap( -1 )
 
-		gSizer141131.Add( self.m_staticText951131, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131131.Add( self.m_staticText951131, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSChargeSoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer141131.Add( self.tpEMSChargeSoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		gSizer131131.Add( gSizer141131, 1, wx.EXPAND, 5 )
+		gSizer131131.Add( self.tpEMSChargeSoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
 		bSizer9.Add( gSizer131131, 1, wx.EXPAND, 5 )
 
 
-		fgSizer11.Add( bSizer9, 1, wx.EXPAND, 5 )
+		bSizer14.Add( bSizer9, 1, wx.EXPAND, 5 )
 
 
-		bSizer14.Add( fgSizer11, 1, wx.EXPAND, 5 )
+		fgSizer26.Add( bSizer14, 1, wx.EXPAND, 2 )
+
+		bSizer22 = wx.BoxSizer( wx.VERTICAL )
 
 		self.m_staticText931 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Entladesperrzeiten", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText931.Wrap( -1 )
 
-		bSizer14.Add( self.m_staticText931, 0, wx.ALL, 5 )
+		bSizer22.Add( self.m_staticText931, 0, wx.ALL, 5 )
 
 		self.m_staticline31 = wx.StaticLine( self.m_panel8, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
-		bSizer14.Add( self.m_staticline31, 0, wx.EXPAND |wx.ALL, 5 )
+		bSizer22.Add( self.m_staticline31, 0, wx.EXPAND |wx.ALL, 5 )
 
-		fgSizer111 = wx.FlexGridSizer( 0, 2, 0, 0 )
-		fgSizer111.SetFlexibleDirection( wx.HORIZONTAL )
-		fgSizer111.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
-
-		bSizer81 = wx.BoxSizer( wx.VERTICAL )
-
-		gSizer152 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer132 = wx.GridSizer( 0, 5, 0, 0 )
 
 		self.m_staticText942 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Montag", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText942.Wrap( -1 )
 
-		gSizer152.Add( self.m_staticText942, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer132.Add( self.m_staticText942, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.chEMSDischargeMo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer152.Add( self.chEMSDischargeMo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer81.Add( gSizer152, 1, wx.EXPAND, 5 )
-
-		gSizer1512 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText9412 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Dienstag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText9412.Wrap( -1 )
-
-		gSizer1512.Add( self.m_staticText9412, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSDischargeDi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer1512.Add( self.chEMSDischargeDi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer81.Add( gSizer1512, 1, wx.EXPAND, 5 )
-
-		gSizer15114 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText94114 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Mittwoch", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText94114.Wrap( -1 )
-
-		gSizer15114.Add( self.m_staticText94114, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSDischargeMi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer15114.Add( self.chEMSDischargeMi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer81.Add( gSizer15114, 1, wx.EXPAND, 5 )
-
-		gSizer151111 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText941111 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Donnerstag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText941111.Wrap( -1 )
-
-		gSizer151111.Add( self.m_staticText941111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSDischargeDo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer151111.Add( self.chEMSDischargeDo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer81.Add( gSizer151111, 1, wx.EXPAND, 5 )
-
-		gSizer151121 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText941121 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Freitag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText941121.Wrap( -1 )
-
-		gSizer151121.Add( self.m_staticText941121, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSDischargeFr = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer151121.Add( self.chEMSDischargeFr, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer81.Add( gSizer151121, 1, wx.EXPAND, 5 )
-
-		gSizer151132 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText941132 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Samstag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText941132.Wrap( -1 )
-
-		gSizer151132.Add( self.m_staticText941132, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSDischargeSa = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer151132.Add( self.chEMSDischargeSa, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer81.Add( gSizer151132, 1, wx.EXPAND, 5 )
-
-		gSizer1511311 = wx.GridSizer( 0, 2, 0, 0 )
-
-		self.m_staticText9411311 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Sonntag", wx.DefaultPosition, wx.DefaultSize, 0 )
-		self.m_staticText9411311.Wrap( -1 )
-
-		gSizer1511311.Add( self.m_staticText9411311, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-		self.chEMSDischargeSo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
-		gSizer1511311.Add( self.chEMSDischargeSo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		bSizer81.Add( gSizer1511311, 1, wx.EXPAND, 5 )
-
-
-		fgSizer111.Add( bSizer81, 1, wx.EXPAND, 5 )
-
-		bSizer91 = wx.BoxSizer( wx.VERTICAL )
-
-		gSizer132 = wx.GridSizer( 0, 2, 0, 0 )
-
-		gSizer481 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer132.Add( self.chEMSDischargeMo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeMoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer481.Add( self.tpEMSDischargeMoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
-
-
-		gSizer481.Add( ( 0, 0), 1, wx.EXPAND, 5 )
-
-
-		gSizer132.Add( gSizer481, 1, wx.EXPAND, 5 )
-
-		gSizer142 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer132.Add( self.tpEMSDischargeMoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.m_staticText952 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText952.Wrap( -1 )
 
-		gSizer142.Add( self.m_staticText952, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer132.Add( self.m_staticText952, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeMoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer142.Add( self.tpEMSDischargeMoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer132.Add( self.tpEMSDischargeMoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer132.Add( gSizer142, 1, wx.EXPAND, 5 )
+		bSizer22.Add( gSizer132, 1, wx.EXPAND, 2 )
 
+		gSizer1312 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer91.Add( gSizer132, 1, wx.EXPAND, 5 )
+		self.m_staticText9412 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Dienstag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText9412.Wrap( -1 )
 
-		gSizer1312 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer1312.Add( self.m_staticText9412, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSDischargeDi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1312.Add( self.chEMSDischargeDi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeDiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1312.Add( self.tpEMSDischargeDiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer1412 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText9512 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText9512.Wrap( -1 )
 
-		gSizer1412.Add( self.m_staticText9512, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer1312.Add( self.m_staticText9512, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeDiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer1412.Add( self.tpEMSDischargeDiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer1312.Add( self.tpEMSDischargeDiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer1312.Add( gSizer1412, 1, wx.EXPAND, 5 )
+		bSizer22.Add( gSizer1312, 1, wx.EXPAND, 2 )
 
+		gSizer13114 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer91.Add( gSizer1312, 1, wx.EXPAND, 5 )
+		self.m_staticText94114 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Mittwoch", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText94114.Wrap( -1 )
 
-		gSizer13114 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer13114.Add( self.m_staticText94114, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSDischargeMi = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer13114.Add( self.chEMSDischargeMi, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeMiVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer13114.Add( self.tpEMSDischargeMiVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer14114 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText95114 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText95114.Wrap( -1 )
 
-		gSizer14114.Add( self.m_staticText95114, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13114.Add( self.m_staticText95114, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeMiBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer14114.Add( self.tpEMSDischargeMiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer13114.Add( self.tpEMSDischargeMiBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer13114.Add( gSizer14114, 1, wx.EXPAND, 5 )
+		bSizer22.Add( gSizer13114, 1, wx.EXPAND, 5 )
 
+		gSizer131111 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer91.Add( gSizer13114, 1, wx.EXPAND, 5 )
+		self.m_staticText941111 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Donnerstag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText941111.Wrap( -1 )
 
-		gSizer131111 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer131111.Add( self.m_staticText941111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSDischargeDo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer131111.Add( self.chEMSDischargeDo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeDoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131111.Add( self.tpEMSDischargeDoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer141111 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText951111 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText951111.Wrap( -1 )
 
-		gSizer141111.Add( self.m_staticText951111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131111.Add( self.m_staticText951111, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeDoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer141111.Add( self.tpEMSDischargeDoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131111.Add( self.tpEMSDischargeDoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer131111.Add( gSizer141111, 1, wx.EXPAND, 5 )
+		bSizer22.Add( gSizer131111, 1, wx.EXPAND, 5 )
 
+		gSizer131121 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer91.Add( gSizer131111, 1, wx.EXPAND, 5 )
+		self.m_staticText941121 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Freitag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText941121.Wrap( -1 )
 
-		gSizer131121 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer131121.Add( self.m_staticText941121, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSDischargeFr = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer131121.Add( self.chEMSDischargeFr, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeFrVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131121.Add( self.tpEMSDischargeFrVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer141121 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText951121 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText951121.Wrap( -1 )
 
-		gSizer141121.Add( self.m_staticText951121, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131121.Add( self.m_staticText951121, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeFrBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer141121.Add( self.tpEMSDischargeFrBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131121.Add( self.tpEMSDischargeFrBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer131121.Add( gSizer141121, 1, wx.EXPAND, 5 )
+		bSizer22.Add( gSizer131121, 1, wx.EXPAND, 5 )
 
+		gSizer131132 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer91.Add( gSizer131121, 1, wx.EXPAND, 5 )
+		self.m_staticText941132 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Samstag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText941132.Wrap( -1 )
 
-		gSizer131132 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer131132.Add( self.m_staticText941132, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSDischargeSa = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer131132.Add( self.chEMSDischargeSa, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeSaVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer131132.Add( self.tpEMSDischargeSaVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer141132 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText951132 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText951132.Wrap( -1 )
 
-		gSizer141132.Add( self.m_staticText951132, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131132.Add( self.m_staticText951132, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeSaBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer141132.Add( self.tpEMSDischargeSaBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer131132.Add( self.tpEMSDischargeSaBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer131132.Add( gSizer141132, 1, wx.EXPAND, 5 )
+		bSizer22.Add( gSizer131132, 1, wx.EXPAND, 5 )
 
+		gSizer1311311 = wx.GridSizer( 0, 5, 0, 0 )
 
-		bSizer91.Add( gSizer131132, 1, wx.EXPAND, 5 )
+		self.m_staticText9411311 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"Sonntag", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText9411311.Wrap( -1 )
 
-		gSizer1311311 = wx.GridSizer( 0, 2, 0, 0 )
+		gSizer1311311.Add( self.m_staticText9411311, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+
+		self.chEMSDischargeSo = wx.CheckBox( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer1311311.Add( self.chEMSDischargeSo, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeSoVon = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
 		gSizer1311311.Add( self.tpEMSDischargeSoVon, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
-		gSizer1411311 = wx.GridSizer( 0, 2, 0, 0 )
-
 		self.m_staticText9511311 = wx.StaticText( self.m_panel8, wx.ID_ANY, u"bis", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText9511311.Wrap( -1 )
 
-		gSizer1411311.Add( self.m_staticText9511311, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer1311311.Add( self.m_staticText9511311, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 		self.tpEMSDischargeSoBis = wx.TextCtrl( self.m_panel8, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 40,-1 ), 0 )
-		gSizer1411311.Add( self.tpEMSDischargeSoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
+		gSizer1311311.Add( self.tpEMSDischargeSoBis, 0, wx.ALIGN_BOTTOM|wx.ALL, 5 )
 
 
-		gSizer1311311.Add( gSizer1411311, 1, wx.EXPAND, 5 )
+		bSizer22.Add( gSizer1311311, 1, wx.EXPAND, 5 )
 
 
-		bSizer91.Add( gSizer1311311, 1, wx.EXPAND, 5 )
-
-
-		fgSizer111.Add( bSizer91, 1, wx.EXPAND, 5 )
-
-
-		bSizer14.Add( fgSizer111, 1, wx.EXPAND, 5 )
-
-
-		fgSizer26.Add( bSizer14, 1, wx.EXPAND, 5 )
-
-		self.bEMSUploadChanges = wx.Button( self.m_panel8, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )
-		fgSizer26.Add( self.bEMSUploadChanges, 0, wx.ALL, 5 )
+		fgSizer26.Add( bSizer22, 1, wx.EXPAND, 2 )
 
 
 		bSizer7.Add( fgSizer26, 1, wx.EXPAND, 5 )
+
+		self.bEMSUploadChanges = wx.Button( self.m_panel8, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		bSizer7.Add( self.bEMSUploadChanges, 0, wx.ALL, 5 )
 
 
 		self.m_panel8.SetSizer( bSizer7 )
@@ -3108,6 +2994,12 @@ class MainFrame ( wx.Frame ):
 		fgSizer42.Add( self.chUploadMQTTRetain, 0, wx.ALL, 5 )
 
 
+		fgSizer42.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.chUploadMQTTSub = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"Werteänderung zulassen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer42.Add( self.chUploadMQTTSub, 0, wx.ALL, 5 )
+
+
 		fgSizer40.Add( fgSizer42, 1, wx.EXPAND, 5 )
 
 		self.chUploadHTTP = wx.CheckBox( self.pEinstellungen, wx.ID_ANY, u"an URL senden (POST)", wx.DefaultPosition, wx.DefaultSize, 0 )
@@ -3201,6 +3093,7 @@ class MainFrame ( wx.Frame ):
 
 		bSizer20 = wx.BoxSizer( wx.VERTICAL )
 
+		bSizer20.SetMinSize( wx.Size( 700,200 ) )
 		fgSizer39 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer39.SetFlexibleDirection( wx.BOTH )
 		fgSizer39.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
@@ -3229,7 +3122,7 @@ class MainFrame ( wx.Frame ):
 		self.m_hyperlink1 = wx.adv.HyperlinkCtrl( self.pPortal, wx.ID_ANY, u"https://pv.pincrushers.de/rscpgui/portal", u"https://pv.pincrushers.de/rscpgui/portal", wx.DefaultPosition, wx.DefaultSize, wx.adv.HL_DEFAULT_STYLE )
 		bSizer20.Add( self.m_hyperlink1, 0, wx.ALL, 5 )
 
-		self.gPortalList = wx.grid.Grid( self.pPortal, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.gPortalList = wx.grid.Grid( self.pPortal, wx.ID_ANY, wx.DefaultPosition, wx.Size( 800,400 ), wx.HSCROLL )
 
 		# Grid
 		self.gPortalList.CreateGrid( 5, 5 )
@@ -3246,7 +3139,7 @@ class MainFrame ( wx.Frame ):
 
 		# Rows
 		self.gPortalList.EnableDragRowSize( True )
-		self.gPortalList.SetRowLabelSize( 80 )
+		self.gPortalList.SetRowLabelSize( 40 )
 		self.gPortalList.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -3263,8 +3156,121 @@ class MainFrame ( wx.Frame ):
 		self.pPortal.Layout()
 		wSizer1.Fit( self.pPortal )
 		self.pMainregister.AddPage( self.pPortal, u"Portal", False )
+		self.pBenachrichtigungen = wx.Panel( self.pMainregister, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		fgSizer46 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer46.SetFlexibleDirection( wx.BOTH )
+		fgSizer46.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		fgSizer421 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer421.SetFlexibleDirection( wx.BOTH )
+		fgSizer421.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText2171 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"Ziele", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2171.Wrap( -1 )
+
+		fgSizer421.Add( self.m_staticText2171, 0, wx.ALL, 5 )
+
+
+		fgSizer421.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticline211 = wx.StaticLine( self.pBenachrichtigungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer421.Add( self.m_staticline211, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.m_staticline22 = wx.StaticLine( self.pBenachrichtigungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		fgSizer421.Add( self.m_staticline22, 0, wx.EXPAND |wx.ALL, 5 )
+
+		self.chBenachrichtigungTelegram = wx.CheckBox( self.pBenachrichtigungen, wx.ID_ANY, u"Telegram", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer421.Add( self.chBenachrichtigungTelegram, 0, wx.ALL, 5 )
+
+		fgSizer44 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer44.SetFlexibleDirection( wx.BOTH )
+		fgSizer44.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText2181 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"Token", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText2181.Wrap( -1 )
+
+		fgSizer44.Add( self.m_staticText2181, 0, wx.ALL, 5 )
+
+		self.txtTelegramToken = wx.TextCtrl( self.pBenachrichtigungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer44.Add( self.txtTelegramToken, 0, wx.ALL, 5 )
+
+		self.m_staticText219 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"EmpfängerID", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText219.Wrap( -1 )
+
+		fgSizer44.Add( self.m_staticText219, 0, wx.ALL, 5 )
+
+		self.txtTelegramEmpfaenger = wx.TextCtrl( self.pBenachrichtigungen, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer44.Add( self.txtTelegramEmpfaenger, 0, wx.ALL, 5 )
+
+
+		fgSizer421.Add( fgSizer44, 1, wx.EXPAND, 5 )
+
+
+		fgSizer46.Add( fgSizer421, 1, wx.EXPAND, 5 )
+
+
+		fgSizer46.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.m_staticText220 = wx.StaticText( self.pBenachrichtigungen, wx.ID_ANY, u"Benachrichtigungseinstellungen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText220.Wrap( -1 )
+
+		fgSizer46.Add( self.m_staticText220, 0, wx.ALL, 5 )
+
+
+		fgSizer46.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.gBenachrichtigungen = wx.grid.Grid( self.pBenachrichtigungen, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+
+		# Grid
+		self.gBenachrichtigungen.CreateGrid( 5, 6 )
+		self.gBenachrichtigungen.EnableEditing( True )
+		self.gBenachrichtigungen.EnableGridLines( True )
+		self.gBenachrichtigungen.EnableDragGridSize( False )
+		self.gBenachrichtigungen.SetMargins( 0, 0 )
+
+		# Columns
+		self.gBenachrichtigungen.EnableDragColMove( False )
+		self.gBenachrichtigungen.EnableDragColSize( True )
+		self.gBenachrichtigungen.SetColLabelSize( 30 )
+		self.gBenachrichtigungen.SetColLabelValue( 0, u"Pfad" )
+		self.gBenachrichtigungen.SetColLabelValue( 1, u"Datentyp" )
+		self.gBenachrichtigungen.SetColLabelValue( 2, u"Ausdruck" )
+		self.gBenachrichtigungen.SetColLabelValue( 3, u"Dienst" )
+		self.gBenachrichtigungen.SetColLabelValue( 4, u"Text" )
+		self.gBenachrichtigungen.SetColLabelValue( 5, u"Sendeintervall" )
+		self.gBenachrichtigungen.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Rows
+		self.gBenachrichtigungen.EnableDragRowSize( True )
+		self.gBenachrichtigungen.SetRowLabelSize( 40 )
+		self.gBenachrichtigungen.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Label Appearance
+
+		# Cell Defaults
+		self.gBenachrichtigungen.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		fgSizer46.Add( self.gBenachrichtigungen, 0, wx.ALL, 5 )
+
+
+		fgSizer46.Add( ( 0, 0), 1, wx.EXPAND, 5 )
+
+		self.bSaveBenachrichtigungen = wx.Button( self.pBenachrichtigungen, wx.ID_ANY, u"Änderungen speichern", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer46.Add( self.bSaveBenachrichtigungen, 0, wx.ALL, 5 )
+
+
+		self.pBenachrichtigungen.SetSizer( fgSizer46 )
+		self.pBenachrichtigungen.Layout()
+		fgSizer46.Fit( self.pBenachrichtigungen )
+		self.pMainregister.AddPage( self.pBenachrichtigungen, u"Benachrichtigungen", False )
 
 		bSizer1.Add( self.pMainregister, 1, wx.EXPAND |wx.ALL, 5 )
+
+		fgSizer43 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer43.SetFlexibleDirection( wx.BOTH )
+		fgSizer43.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+
+		bSizer1.Add( fgSizer43, 1, wx.EXPAND, 5 )
 
 		self.bUpdate = wx.Button( self, wx.ID_ANY, u"aktualisieren", wx.DefaultPosition, wx.DefaultSize, 0 )
 		bSizer1.Add( self.bUpdate, 0, wx.ALL, 5 )
@@ -3310,6 +3316,7 @@ class MainFrame ( wx.Frame ):
 		self.bPortalUpload.Bind( wx.EVT_BUTTON, self.bPortalUploadOnClick )
 		self.bPortalDelete.Bind( wx.EVT_BUTTON, self.bPortalDeleteOnClick )
 		self.gPortalList.Bind( wx.grid.EVT_GRID_LABEL_LEFT_CLICK, self.gPortalListOnLabelLeftClick )
+		self.bSaveBenachrichtigungen.Bind( wx.EVT_BUTTON, self.bSaveBenachrichtigungenOnClick )
 
 	def __del__( self ):
 		pass
@@ -3404,6 +3411,9 @@ class MainFrame ( wx.Frame ):
 		event.Skip()
 
 	def gPortalListOnLabelLeftClick( self, event ):
+		event.Skip()
+
+	def bSaveBenachrichtigungenOnClick( self, event ):
 		event.Skip()
 
 

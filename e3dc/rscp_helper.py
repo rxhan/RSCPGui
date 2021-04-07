@@ -105,7 +105,6 @@ class rscp_helper():
         r += RSCPTag.WB_REQ_DIAG_DIG_IN_2
         r += RSCPTag.WB_REQ_PM_MAX_PHASE_POWER
         r += RSCPTag.WB_REQ_DEVICE_NAME
-        r += RSCPTag.WB_REQ_AVAILABLE_SOLAR_POWER
         r += RSCPTag.WB_REQ_EXTERN_DATA_SUN
         r += RSCPTag.WB_REQ_EXTERN_DATA_NET
         r += RSCPTag.WB_REQ_EXTERN_DATA_ALL
@@ -124,6 +123,28 @@ class rscp_helper():
 
         return requests
 
+    #TODO: Weiter mit Leben füllen
+    def getDB(self, start, intervall, span):
+        start = int(datetime.datetime.now().timestamp())
+        intervall = 3600
+        span = 3600
+
+        container = []
+        container.append(RSCPDTO(tag=RSCPTag.DB_REQ_HISTORY_TIME_START, rscp_type=RSCPType.Uint64, data=start))
+        container.append(RSCPDTO(tag=RSCPTag.DB_REQ_HISTORY_TIME_INTERVAL, rscp_type=RSCPType.Uint64, data=intervall))
+        container.append(RSCPDTO(tag=RSCPTag.DB_REQ_HISTORY_TIME_SPAN, rscp_type=RSCPType.Uint64, data=span))
+        requests = []
+        requests.append(RSCPDTO(tag=RSCPTag.DB_REQ_HISTORY_DATA_DAY, rscp_type=RSCPType.Container, data=container))
+
+        for i in requests:
+            print(i)
+
+        return requests
+
+    def getInfoAdditional(self):
+        requests = []
+        requests.append(RSCPTag.INFO_REQ_MODULES_SW_VERSIONS)
+        return requests
 
     def getInfo(self):
         requests = []
@@ -140,6 +161,12 @@ class rscp_helper():
         requests.append(RSCPTag.INFO_REQ_GATEWAY)
         requests.append(RSCPTag.INFO_REQ_DNS)
         requests.append(RSCPTag.INFO_REQ_DHCP_STATUS)
+        #requests.append(RSCPTag.INFO_REQ_GET_FACILITY) -> Leere Tags (INFO_NAME, INFO_STREET, INFO_STREET_NO, INFO_POSTCODE, INFO_CITY, INFO_FON, INFO_E_MAIL, INFO_COUNTRY)
+        #requests.append(RSCPTag.INFO_REQ_IS_CALIBRATED) #-> Fehler (ACCESS_DENIED)
+        #requests.append(RSCPTag.INFO_REQ_HW_TIME) #-> Fehler (ACCESS_DENIED)
+        requests.append(RSCPTag.INFO_REQ_GET_FS_USAGE) # Rückgabe: INFO_FS_SIZE, INFO_FS_USED, INFO_FS_AVAILABLE, INFO_FS_USE_PERCENT
+        requests.append(RSCPTag.INFO_REQ_GUI_TARGET)
+        #requests.append(RSCPTag.INFO_REQ_PLATFORM_TYPE) #-> Fehler (ACCESS_DENIED)
         requests.append(RSCPTag.SRV_REQ_IS_ONLINE)
         requests.append(RSCPTag.SYS_REQ_IS_SYSTEM_REBOOTING)
         requests.append(RSCPTag.RSCP_REQ_USER_LEVEL)
@@ -503,7 +530,7 @@ class rscp_helper():
 
     blocked = property(get_blocked, set_blocked)
 
-    def get_data(self, requests, raw=False, block=True):
+    def get_data(self, requests, raw=False, block=True, waittime=0.01):
         if block:
             while self.blocked:
                 logger.debug('Warte auf Freigabe der Verbindung')
@@ -513,7 +540,7 @@ class rscp_helper():
         responses = []
 
         try:
-            responses = self.e3dc.send_requests(requests)
+            responses = self.e3dc.send_requests(requests, waittime=waittime)
         except:
             if block:
                 self.blocked = False

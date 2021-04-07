@@ -23,7 +23,9 @@ class RSCPAuthenticationError(Exception):
 
 
 class RSCPCommunicationError(Exception):
-    def __init__(self, message, logger: Logger):
+    def __init__(self, message, logger: Logger, response=None):
         if message is None:
             message = self.__class__.__name__
+        self.response = response
+        self.message = message
         logger.debug(message)

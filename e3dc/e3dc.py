@@ -29,7 +29,7 @@ class E3DC:
     def create_encrypt(self):
         self.encrypt_decrypt = RSCPEncryptDecrypt(self.key)
 
-    def send_requests(self, payload: [Union[RSCPDTO, RSCPTag]]) -> [RSCPDTO]:
+    def send_requests(self, payload: [Union[RSCPDTO, RSCPTag]], waittime = 0.01) -> [RSCPDTO]:
         """
         This function will send a list of requests consisting of RSCPDTO's oder RSCPTag's to the e3dc
         and returns a list of responses.
@@ -50,10 +50,10 @@ class E3DC:
         responses: [RSCPDTO] = []
         dto: RSCPDTO
         for dto in dto_list:
-            responses.append(self.send_request(dto, True))
+            responses.append(self.send_request(dto, True, waittime=waittime))
         return responses
 
-    def send_request(self, payload: Union[RSCPDTO, RSCPTag, bytes], keep_connection_alive: bool = False) -> RSCPDTO:
+    def send_request(self, payload: Union[RSCPDTO, RSCPTag, bytes], keep_connection_alive: bool = False, waittime = 0.01) -> RSCPDTO:
         """
         This will perform a single request.
 
@@ -85,11 +85,14 @@ class E3DC:
         if platform.system() == 'Darwin':
             time.sleep(0.05)
         else:
-            time.sleep(0.01)
+            #TODO: Herausfinden warum eine künstliche Verzögerung notwendig ist.
+            # Aktuell werden aufwendigere Anfragen (z.B. SW_MODULES 0.05s) ohne Verzögerung teilweise nicht vollständig übertragen,
+            # was wiederum zu einem Entschlüsselungsfehler führt
+            time.sleep(waittime)
         response = self._receive()
         if response.type == RSCPType.Error:
-            logger.debug("Error type returned")
-            raise (RSCPCommunicationError(None, logger))
+            logger.debug("Error type returned: " + str(response.data))
+            raise (RSCPCommunicationError('Error type returned: ' + str(response.data), logger, response))
         if not keep_connection_alive:
             self._disconnect()
         return response
@@ -120,7 +123,13 @@ class E3DC:
             self.socket.close()
             raise RSCPCommunicationError("Did not receive data from e3dc", logger)
         self.rscp_utils = RSCPUtils()
-        decrypted_data = self.encrypt_decrypt.decrypt(data)
+
+        try:
+            decrypted_data = self.encrypt_decrypt.decrypt(data)
+        except AssertionError as e:
+            logger.error('Decrypt-Error - Anfrage eventuell zu Aufwendig, waittime muss erhöht werden')
+            raise
+
         rawdata = binascii.hexlify(decrypted_data)
         logger.debug('Response RAW: ' + str(rawdata))
         rscp_dto = self.rscp_utils.decode_data(decrypted_data)

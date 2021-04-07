@@ -298,7 +298,16 @@ class E3DCExport(ExportFrame):
         return paths
 
     def getCustomNames(self):
-        return self._customNames
+        items = self.tcUpload.GetCheckedItems()
+
+        result = {}
+        for item in items:
+            path = self.getUploadPath(item)
+            if path in self._customNames:
+                result[path] = self._customNames[path]
+            else:
+                result[path] = path
+        return result
 
     def setCustomNames(self, value):
         items = self.tcUpload.GetAllItems()
