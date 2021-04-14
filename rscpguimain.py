@@ -19,7 +19,7 @@ import requests
 import sys
 import datetime
 import threading
-from e3dc._rscp_exceptions import RSCPCommunicationError
+from e3dc._rscp_exceptions import RSCPCommunicationError, RSCPCommunicationWaittimeError
 from e3dc.rscp_helper import rscp_helper
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
@@ -62,6 +62,10 @@ class RSCPGuiMain():
     _notificationblocker = {}
     _mqttclient = None
     _exportcache = None
+    _dcdc_available = []
+    _pm_available = []
+    _pvi_available = []
+    _wb_available = []
 
     def __init__(self, args):
         logger.info('Main initialisiert')
@@ -991,10 +995,8 @@ class RSCPGuiMain():
     def _fill_info(self):
         logger.debug('Rufe INFO-Daten ab')
 
-        requests = self.gui.getInfo() + self.gui.getUpdateStatus()
-        requests+=self.gui.getInfoAdditional()
-
-        data = self.gui.get_data(requests, True, waittime=0.05)
+        requests = self.gui.getInfo() + self.gui.getUpdateStatus() + self.gui.getInfoAdditional()
+        data = self.gui.get_data(requests, True, waittime=0.1)
 
         logger.debug('Abruf INFO-Daten abgeschlossen')
         return data
@@ -1024,13 +1026,19 @@ class RSCPGuiMain():
     def _fill_dcdc(self):
         logger.debug('Rufe DCDC-Daten ab')
         data = []
-        for index in [0, 1, 2, 3]:
+        if len(self._dcdc_available) > 0:
+            indexes = self._dcdc_available
+        else:
+            indexes = [0,1,2,3]
+        for index in indexes:
             try:
                 d = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=[index]), True)
                 index = int(d['DCDC_INDEX'])
                 data.append(d)
 
                 logger.info('DCDC #' + str(index) + ' wurde erfolgreich abgefragt.')
+                if index not in self._dcdc_available:
+                    self._dcdc_available.append(index)
             except:
                 logger.debug('DCDC #' + str(index) + ' konnte nicht abgefragt werden.')
 
@@ -1042,10 +1050,16 @@ class RSCPGuiMain():
     def _fill_pvi(self):
         logger.debug('Rufe PVI-Daten ab')
         data = {}
-        for index in range(0,4):
+        if len(self._pvi_available) > 0:
+            indexes = self._pvi_available
+        else:
+            indexes = [0, 1, 2, 3]
+        for index in indexes:
             try:
                 data[index] = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
+                if index not in self._pvi_available:
+                    self._pvi_available.append(index)
             except:
                 logger.debug('PVI #' + str(index) + ' konnte nicht abgefragt werden.')
 
@@ -1060,10 +1074,10 @@ class RSCPGuiMain():
         logger.debug('Rufe PM-Daten ab')
         data = {}
 
-        if self._extsrcavailable >= 0:
-            indexes = range(0,8)
+        if len(self._pm_available) > 0:
+            indexes = self._pm_available
         else:
-            indexes = None
+            indexes = range(0,8)
 
         for index in indexes:
             try:
@@ -1073,6 +1087,8 @@ class RSCPGuiMain():
                     index = d['PM_INDEX'].data
                     data[index] = d
                     logger.info('PM #' + str(index) + ' erfolgreich abgerufen')
+                    if index not in self._pm_available:
+                        self._pm_available.append(index)
             except:
                 logger.exception('PM #' + str(index) + ' konnte nicht abgerufen werden.')
 
