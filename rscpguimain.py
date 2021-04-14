@@ -19,7 +19,7 @@ import requests
 import sys
 import datetime
 import threading
-from e3dc._rscp_exceptions import RSCPCommunicationError, RSCPCommunicationWaittimeError
+from e3dc._rscp_exceptions import RSCPCommunicationError
 from e3dc.rscp_helper import rscp_helper
 from e3dc.rscp_tag import RSCPTag
 from e3dc.rscp_type import RSCPType
