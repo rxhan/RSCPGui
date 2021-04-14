@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class E3DC:
     PORT = 5033
-    BUFFER_SIZE = 1024 * 32
+    BUFFER_SIZE = 1024*32
 
     def __init__(self, username, password, ip, key):
         self.password = password
@@ -24,12 +24,13 @@ class E3DC:
         self.ip = ip
         self.socket = None
         self.key = key
+        self.waittime = 0.01
         self.rscp_utils = RSCPUtils()
 
     def create_encrypt(self):
         self.encrypt_decrypt = RSCPEncryptDecrypt(self.key)
 
-    def send_requests(self, payload: [Union[RSCPDTO, RSCPTag]], waittime = 0.01) -> [RSCPDTO]:
+    def send_requests2(self, payload: [Union[RSCPDTO, RSCPTag]], waittime = 0.0) -> [RSCPDTO]:
         """
         This function will send a list of requests consisting of RSCPDTO's oder RSCPTag's to the e3dc
         and returns a list of responses.
@@ -50,10 +51,34 @@ class E3DC:
         responses: [RSCPDTO] = []
         dto: RSCPDTO
         for dto in dto_list:
-            responses.append(self.send_request(dto, True, waittime=waittime))
+            response = self.send_request(dto, True, waittime=waittime)
+            responses.append(response)
         return responses
 
-    def send_request(self, payload: Union[RSCPDTO, RSCPTag, bytes], keep_connection_alive: bool = False, waittime = 0.01) -> RSCPDTO:
+    def send_requests(self, payload: [Union[RSCPDTO, RSCPTag]], waittime = 0.0) -> [RSCPDTO]:
+        payload_all = bytes()
+        for payload_element in payload:
+            if isinstance(payload_element, RSCPTag):
+                dto = RSCPDTO(payload_element)
+            else:
+                dto = payload_element
+
+            payload_all+=self.rscp_utils.encode_data(dto)
+
+        prepared_data = self.rscp_utils.encode_frame(payload_all)
+        response =  self.send_request(prepared_data, True, waittime)
+
+        responses: [RSCPDTO] = []
+        if response.type == RSCPType.Container:
+            data: RSCPDTO
+            for data in response:
+                responses.append(data)
+        else:
+            responses.append(response)
+
+        return responses
+
+    def send_request(self, payload: Union[RSCPDTO, RSCPTag, bytes], keep_connection_alive: bool = False, waittime: float = 0.0) -> RSCPDTO:
         """
         This will perform a single request.
 
@@ -72,8 +97,9 @@ class E3DC:
             encode_data = self.rscp_utils.encode_data(payload)
             prepared_data = self.rscp_utils.encode_frame(encode_data)
             
-        rawdata = binascii.hexlify(prepared_data)
-        logger.debug('Send RAW: ' + str(rawdata))
+        #rawdata = binascii.hexlify(prepared_data)
+        #logger.debug('Send RAW: ' + str(rawdata))
+        logger.debug('Send ' + str(len(prepared_data)) + ' Bytes')
         encrypted_data = self.encrypt_decrypt.encrypt(prepared_data)
         try:
             self.socket.send(encrypted_data)
@@ -81,14 +107,10 @@ class E3DC:
             self._disconnect()
             raise
 
-        # Fix for MAC-Connectionerrors @eba
-        if platform.system() == 'Darwin':
-            time.sleep(0.05)
-        else:
-            #TODO: Herausfinden warum eine künstliche Verzögerung notwendig ist.
-            # Aktuell werden aufwendigere Anfragen (z.B. SW_MODULES 0.05s) ohne Verzögerung teilweise nicht vollständig übertragen,
-            # was wiederum zu einem Entschlüsselungsfehler führt
-            time.sleep(waittime)
+        wait = self.waittime + waittime
+        if wait > 0.0:
+            time.sleep(wait)
+
         response = self._receive()
         if response.type == RSCPType.Error:
             logger.debug("Error type returned: " + str(response.data))
@@ -102,6 +124,7 @@ class E3DC:
             logger.info("Trying to establish connection to " + str(self.ip))
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.connect((self.ip, self.PORT))
+            self.socket.setblocking(False)
             rscp_dto = RSCPDTO(RSCPTag.RSCP_REQ_AUTHENTICATION, RSCPType.Container,
                                [RSCPDTO(RSCPTag.RSCP_AUTHENTICATION_USER, RSCPType.CString, self.username),
                                 RSCPDTO(RSCPTag.RSCP_AUTHENTICATION_PASSWORD, RSCPType.CString, self.password)], None)
@@ -118,20 +141,28 @@ class E3DC:
 
     def _receive(self) -> RSCPDTO:
         logger.debug("Waiting for response from " + str(self.ip))
-        data = self.socket.recv(self.BUFFER_SIZE)
-        if len(data) == 0:
-            self.socket.close()
-            raise RSCPCommunicationError("Did not receive data from e3dc", logger)
-        self.rscp_utils = RSCPUtils()
+        decrypted_data = None
+        wait = 0.01
+        while not decrypted_data:
+            try:
+                data = self.socket.recv(self.BUFFER_SIZE)
+                logger.debug('Received ' + str(len(data)) + ' Bytes')
+                if len(data) == 0:
+                    self.socket.close()
+                    raise RSCPCommunicationError("Did not receive data from e3dc", logger)
+                self.rscp_utils = RSCPUtils()
 
-        try:
-            decrypted_data = self.encrypt_decrypt.decrypt(data)
-        except AssertionError as e:
-            logger.error('Decrypt-Error - Anfrage eventuell zu Aufwendig, waittime muss erhöht werden')
-            raise
+                decrypted_data = self.encrypt_decrypt.decrypt(data)
+            except BlockingIOError:
+                logger.debug('Keine Daten empfangen, warte ' + str(wait) + 's')
+                time.sleep(wait)
+                wait*=2
+                if wait > 2:
+                    raise
 
-        rawdata = binascii.hexlify(decrypted_data)
-        logger.debug('Response RAW: ' + str(rawdata))
+
+        #rawdata = binascii.hexlify(decrypted_data)
+        #logger.debug('Response RAW: ' + str(rawdata))
         rscp_dto = self.rscp_utils.decode_data(decrypted_data)
         logger.debug("Received DTO Type: " + rscp_dto.type.name + ", DTO Tag: " + rscp_dto.tag.name)
         return rscp_dto

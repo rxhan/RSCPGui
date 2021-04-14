@@ -534,7 +534,7 @@ class rscp_helper():
         if block:
             while self.blocked:
                 logger.debug('Warte auf Freigabe der Verbindung')
-                time.sleep(0.1)
+                time.sleep(0.05)
             self.blocked = True
 
         responses = []

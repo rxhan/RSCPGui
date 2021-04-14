@@ -258,7 +258,11 @@ class RSCPDTO:
                 data = binascii.hexlify(self.data)
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(data) + " (Dt: " + str(self.data) + ")")
             elif self.type == RSCPType.Error:
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(ERROR_CODE(self.data)))
+                try:
+                    error_code = ERROR_CODE(self.data)
+                except ValueError:
+                    error_code = str(self.data) + ' (UNKNOWN)'
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(error_code))
             elif self.type == RSCPType.Timestamp:
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + datetime.datetime.utcfromtimestamp(self.data).isoformat() + " (Dt: " + str(self.data) + ")")
             else:
