@@ -733,6 +733,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtFilesystemPercent.SetValue(repr(d['INFO_GET_FS_USAGE']['INFO_FS_USE_PERCENT']))
         ts = repr(d['INFO_GET_FS_USAGE']['INFO_FS_USED']) + ' von ' + repr(d['INFO_GET_FS_USAGE']['INFO_FS_SIZE']) + ' in Verwendung, ' + repr(d['INFO_GET_FS_USAGE']['INFO_FS_AVAILABLE']) + ' frei'
         self.txtFilesystem.SetValue(ts)
+
         if 'INFO_MODULES_SW_VERSIONS' in d:
             self.gSoftwaremodules.Show()
             self.gSoftwaremodules.DeleteRows(0, self.gSoftwaremodules.GetNumberRows())
@@ -1486,7 +1487,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         # ems = self.gui.get_data(self.gui.getEMSData() + self.gui.getUserLevel(), True)
 
     def bSYSRebootOnClick(self, event):
-        res = wx.MessageBox('Soll das gesamte E3/DC - System wirklich neu gestartet werden?', 'Systemneustart',
+        res = wx.MessageBox("Soll das gesamte E3/DC - System wirklich neu gestartet werden?\nEs wird das gesamte System neu gestartet, dieser Vorgang dauert etwa 5 Minuten, während dieser Zeit ist das System nicht erreichbar.", "Systemneustart",
                             wx.YES_NO | wx.ICON_WARNING)
         if res == wx.YES:
             try:
@@ -1500,7 +1501,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 wx.MessageBox('Übertragung fehlgeschlagen')
 
     def bSYSApplicationRestartOnClick(self, event):
-        res = wx.MessageBox('Soll die Anwendung im E3/DC wirklich neu gestartet werden?', 'Applikations - Neustart',
+        res = wx.MessageBox("Soll die Anwendung im E3/DC wirklich neu gestartet werden?\nDas System ist dabei für etwa eine Minute nicht erreichbar.", 'Applikations - Neustart',
                             wx.YES_NO | wx.ICON_WARNING)
         if res == wx.YES:
             try:
@@ -1521,7 +1522,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                             'Notstrom-Test', wx.YES_NO | wx.ICON_WARNING)
         if res == wx.YES:
             try:
-                r = RSCPDTO(tag=RSCPTag.REQ_START_EMERGENCYPOWER_TEST, rscp_type=RSCPType.Bool, data=True)
+                r = RSCPDTO(tag=RSCPTag.EMS_REQ_START_EMERGENCYPOWER_TEST, rscp_type=RSCPType.Bool, data=True)
                 print(r)
                 res = self.gui.get_data([r], True)
                 print(res)
