@@ -266,6 +266,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         else:
             self._AutoExportStarted = False
             self.bUploadStart.Enable(False)
+            RSCPGuiMain.StopExport(self)
 
     def StartAutoExport(self):
         RSCPGuiMain.StartAutoExport(self)
