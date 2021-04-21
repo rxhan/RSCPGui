@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import traceback
 
@@ -106,6 +107,9 @@ class RSCPGuiMain():
         self._AutoExportStarted = True
         self._autoexportthread = threading.Thread(target=self.StartAutoExport, args=())
         self._autoexportthread.start()
+
+    def StopExport(self):
+        pass
 
     @property
     def config(self):
@@ -603,6 +607,18 @@ class RSCPGuiMain():
                         except:
                             logger.exception('Fehler bei ' + topic + ' (' + value + ')')
 
+        def on_connect(client, userdata, flags, rc):
+            logger.debug('MQTT-Client connected')
+            if sub:
+                for path in sublist.keys():
+                    if path in self.cfgExportpathnames.keys():
+                        topic = '/' + self.cfgExportpathnames[path] + '/SET'
+                        logger.debug('MQTT Subscribe: ' + topic)
+                        self._mqttclient.subscribe(topic)
+
+        def on_disconnect(client, userdata, rc):
+            logger.debug('MQTT-Client disconnect')
+
         if self._mqttclient is not None:
             if self._mqttclient.is_connected():
                 return self._mqttclient
@@ -618,7 +634,7 @@ class RSCPGuiMain():
             zertifikat = self.cfgExportmqttzertifikat
             insecure = self.cfgExportmqttinsecure
 
-            logger.debug('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
+            logger.info('Verbinde mit MQTT-Broker ' + broker + ':' + str(port))
 
             self._mqttclient = paho.Client("RSCPGui")
 
@@ -633,13 +649,9 @@ class RSCPGuiMain():
             self._mqttclient.enable_logger(logger)
 
             self._mqttclient.on_message=on_message
+            self._mqttclient.on_disconnect=on_disconnect
+            self._mqttclient.on_connect=on_connect
             self._mqttclient.connect(broker, port)
-            if sub:
-                for path in sublist.keys():
-                    if path in self.cfgExportpathnames.keys():
-                        topic = '/' + self.cfgExportpathnames[path] + '/SET'
-                        logger.debug('MQTT Subscribe: ' + topic)
-                        self._mqttclient.subscribe(topic)
             self._mqttclient.loop_start()
 
         return self._mqttclient
@@ -740,7 +752,13 @@ class RSCPGuiMain():
                 if diff < intervall:
                     wait = intervall - diff
                     logger.debug('Warte ' + str(wait) + 's')
-                    time.sleep(wait)
+                    waits = int(math.floor(wait))
+                    time.sleep(wait-waits)
+                    for i in range(0,waits):
+                        if self._AutoExportStarted:
+                            time.sleep(1)
+                        else:
+                            break
 
             if self._mqttclient is not None:
                 self._mqttclient.loop_stop()
@@ -1131,8 +1149,8 @@ class RSCPGuiMain():
             return ddata
 
         for index in data:
-            logger.debug('Rufe Daten für Wallbox #' + str(index.data) + ' ab')
-            d = self.gui.get_data(self.gui.getWB(index=index.data), True)
+            logger.debug('Rufe Daten für Wallbox #' + str(index) + ' ab')
+            d = self.gui.get_data(self.gui.getWB(index=index), True)
 
             ddata.append(d)
 
