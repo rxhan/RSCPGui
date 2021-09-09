@@ -1,4 +1,5 @@
 import binascii
+import datetime
 import logging
 import math
 import struct
@@ -85,18 +86,20 @@ class RSCPUtils:
                                                                                              :struct.calcsize(
                                                                                                  self._FRAME_HEADER_FORMAT)])
 
+        logger.debug(f'Decoded Frame: Magic: {hex(magic)} Ctrl: {ctrl} Timestamp: {datetime.datetime.fromtimestamp(seconds).isoformat()} Nanoseconds: {nanoseconds} length: {length} count: {len(frame_data)}')
+
         if ctrl & 0x10:
-            logger.debug("CRC is enabled")
             total_length = struct.calcsize(self._FRAME_HEADER_FORMAT) + length + struct.calcsize(self._FRAME_CRC_FORMAT)
             data, crc = struct.unpack("<" + str(length) + "s" + self._FRAME_CRC_FORMAT,
                                       frame_data[struct.calcsize(self._FRAME_HEADER_FORMAT):total_length])
+            logger.debug(f"CRC is enabled, payload-size: {len(data)} Bytes, crc: {crc}")
         else:
             total_length = struct.calcsize(self._FRAME_HEADER_FORMAT) + length
             data = \
                 struct.unpack("<" + str(length) + "s",
                               frame_data[struct.calcsize(self._FRAME_HEADER_FORMAT):total_length])[
                     0]
-            logger.debug("CRC is disabled")
+            logger.debug(f"CRC is disabled, payload-size: {len(data)} Bytes")
 
         self._check_crc_validity(crc, frame_data)
         timestamp = seconds + float(nanoseconds) / 1000
@@ -127,8 +130,13 @@ class RSCPUtils:
         data_header_size = struct.calcsize(self._DATA_HEADER_FORMAT)
         data_tag_hex, data_type_hex, data_length = struct.unpack(self._DATA_HEADER_FORMAT,
                                                                  data[:data_header_size])
+
+        logger.debug(f'Decode_Data - Header Size: {data_header_size} tag_hex: {hex(data_tag_hex)} type_hex: {hex(data_type_hex)} length: {data_length}')
+
         data_tag = RSCPTag(data_tag_hex)
         data_type = RSCPType(data_type_hex)
+
+        logger.debug(f'Decoded_HeaderData - data_tag: {data_tag} data_type{data_type}')
 
         # Für Datensammlungen ohne Container, es wird ein Dummy gebildet
         if data_header_size + data_length != len(data):
