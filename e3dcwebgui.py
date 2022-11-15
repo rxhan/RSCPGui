@@ -255,6 +255,7 @@ class E3DCWeb(E3DC):
     def send_data(self, r, ws = None, waittime=None):
         if not ws:
             ws = self.ws
+        logger.debug('Sende Daten: ' + str(r))
         dataframe = self.rscp_utils.encode_data(r)
         bindat = self.rscp_utils.encode_frame(dataframe, crc=True)
         logger.debug('Sende Daten ' + str(len(bindat)))

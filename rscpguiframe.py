@@ -772,6 +772,31 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.fill_ems_basis(d)
         self.fill_ems_sys(d['EMS_GET_SYS_SPECS'])
         self.fill_ems_power(d)
+        self.fill_ems_errors(d)
+
+    def fill_ems_errors(self, d):
+        logger.info(f'{d}')
+        if 'EMS_STORED_ERRORS' in d:
+            self.gStorederrors.Show()
+            self.gStorederrors.DeleteRows(0, self.gStorederrors.GetNumberRows())
+            self.gStorederrors.AppendRows(len(d['EMS_STORED_ERRORS']))
+            row = 0
+            for err in d['EMS_ERROR_CONTAINER']:
+                type = err['EMS_ERROR_TYPE'].data
+                self.gStorederrors.SetCellValue(row, 0, type)
+                source = err['EMS_ERROR_SOURCE'].data
+                self.gStorederrors.SetCellValue(row, 1, source)
+                msg = err['EMS_ERROR_MESSAGE'].data
+                self.gStorederrors.SetCellValue(row, 2, msg)
+                code = err['EMS_ERROR_CODE'].data
+                self.gStorederrors.SetCellValue(row, 3, str(code))
+                ts = err['EMS_ERROR_TIMESTAMP'].data
+                dd = datetime.datetime.fromtimestamp(ts)
+                self.gStorederrors.SetCellValue(row, 4, dd.strftime(self._time_format))
+                row+=1
+            self.gStorederrors.AutoSizeColumns()
+        else:
+            self.gStorederrors.Hide()
 
     def fill_ems_basis(self, d = None):
         if not d:
@@ -1493,9 +1518,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         if res == wx.YES:
             try:
                 r = RSCPTag.SYS_REQ_SYSTEM_REBOOT
-                print(r)
                 res = self.gui.get_data([r], True)
-                print(res)
                 wx.MessageBox('System wird neu gestartet')
             except:
                 traceback.print_exc()
@@ -1507,9 +1530,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         if res == wx.YES:
             try:
                 r = RSCPTag.SYS_REQ_RESTART_APPLICATION
-                print(r)
                 res = self.gui.get_data([r], True)
-                print(res)
                 wx.MessageBox('Anwendung wird neu gestartet')
             except:
                 traceback.print_exc()
@@ -1544,9 +1565,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             if res == wx.YES:
                 try:
                     r = RSCPDTO(tag=RSCPTag.EMS_REQ_START_MANUAL_CHARGE, rscp_type=RSCPType.Uint32, data=val)
-                    print(r)
                     res = self.gui.get_data([r], True)
-                    print(res)
                     if res.name == 'EMS_START_MANUAL_CHARGE' and res.data:
                         wx.MessageBox('Manuelle Ladung gestartet')
                     else:
@@ -1822,7 +1841,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
     def bPortalUploadOnClick(self, event):
         response = self.sendToPortalMin()
         if response:
-            print(response)
             self.fill_portal()
             if response['msg'] == 'success':
                 link = 'https://pv.pincrushers.de/rscpgui/' + response['filename']
@@ -1837,7 +1855,6 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
     def bPortalDeleteOnClick(self, event):
         response = self.deleteFromPortal()
         if response:
-            print(response)
             self.fill_portal()
             if response['msg'] == 'success':
                 logger.info('Daten gelöscht')
