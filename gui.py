@@ -1562,6 +1562,49 @@ class MainFrame ( wx.Frame ):
 		self.m_panel11.Layout()
 		fgSizer272.Fit( self.m_panel11 )
 		self.m_notebook2.AddPage( self.m_panel11, u"Modbus", False )
+		self.m_panel15 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer201 = wx.BoxSizer( wx.VERTICAL )
+
+		self.gStorederrors = wx.grid.Grid( self.m_panel15, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+
+		# Grid
+		self.gStorederrors.CreateGrid( 5, 5 )
+		self.gStorederrors.EnableEditing( True )
+		self.gStorederrors.EnableGridLines( True )
+		self.gStorederrors.EnableDragGridSize( False )
+		self.gStorederrors.SetMargins( 0, 0 )
+
+		# Columns
+		self.gStorederrors.AutoSizeColumns()
+		self.gStorederrors.EnableDragColMove( False )
+		self.gStorederrors.EnableDragColSize( True )
+		self.gStorederrors.SetColLabelSize( 30 )
+		self.gStorederrors.SetColLabelValue( 0, u"Type" )
+		self.gStorederrors.SetColLabelValue( 1, u"Quelle" )
+		self.gStorederrors.SetColLabelValue( 2, u"Nachricht" )
+		self.gStorederrors.SetColLabelValue( 3, u"Errorcode" )
+		self.gStorederrors.SetColLabelValue( 4, u"Datum/Uhrzeit" )
+		self.gStorederrors.SetColLabelValue( 5, wx.EmptyString )
+		self.gStorederrors.SetColLabelValue( 6, wx.EmptyString )
+		self.gStorederrors.SetColLabelValue( 7, wx.EmptyString )
+		self.gStorederrors.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Rows
+		self.gStorederrors.EnableDragRowSize( True )
+		self.gStorederrors.SetRowLabelSize( 80 )
+		self.gStorederrors.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
+
+		# Label Appearance
+
+		# Cell Defaults
+		self.gStorederrors.SetDefaultCellAlignment( wx.ALIGN_LEFT, wx.ALIGN_TOP )
+		bSizer201.Add( self.gStorederrors, 0, wx.ALL, 5 )
+
+
+		self.m_panel15.SetSizer( bSizer201 )
+		self.m_panel15.Layout()
+		bSizer201.Fit( self.m_panel15 )
+		self.m_notebook2.AddPage( self.m_panel15, u"Fehlermeldungen", False )
 
 		bSizer12.Add( self.m_notebook2, 1, wx.EXPAND |wx.ALL, 5 )
 
