@@ -238,7 +238,7 @@ class RSCPDTO:
             messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name)
             for dat in self.data:
                 ret = str(dat)
-                ret = ret.replace("\n","\n\t")
+                ret = ret.replace("\n", "\n\t")
                 messages.append(" |--> " + ret)
         else:
             try:
@@ -256,7 +256,9 @@ class RSCPDTO:
                 pass
             if self.type == RSCPType.ByteArray:
                 data = binascii.hexlify(self.data)
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(data) + " (Dt: " + str(self.data) + ")")
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(
+                    data))
+
             elif self.type == RSCPType.Error:
                 try:
                     error_code = ERROR_CODE(self.data)
