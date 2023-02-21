@@ -20,6 +20,7 @@ class RSCPUtils:
     _FRAME_CRC_FORMAT = "I"
     _DATA_HEADER_FORMAT = "<IBH"
     _MAGIC_CHECK_FORMAT = ">H"
+    offline = False
 
     def encode_frame(self, data: bytes, crc: bool = True) -> bytes:
         magic_byte = self._endian_swap_uint16(0xe3dc)
@@ -121,7 +122,7 @@ class RSCPUtils:
 
         return rscp_dto
 
-    def decode_data(self, data: bytes) -> RSCPDTO:
+    def decode_data(self, data: bytes, offline=False) -> RSCPDTO:
         magic_byte = struct.unpack(self._MAGIC_CHECK_FORMAT, data[:struct.calcsize(self._MAGIC_CHECK_FORMAT)])[0]
         if magic_byte == 0xe3dc:
             decode_frame_result = self._decode_frame(data)
@@ -185,6 +186,12 @@ class RSCPUtils:
                 value = value.decode()
             except:
                 value = value.decode("utf-8", "ignore")
+
+        if self.offline:
+            if data_tag == RSCPTag.SERVER_RSCP_DATA:
+                l = [dto for dto in self.decode_data(value)]
+                return RSCPDTO(data_tag, RSCPType.Container, l, data_header_size + struct.calcsize(data_format))
+
         return RSCPDTO(data_tag, data_type, value, data_header_size + struct.calcsize(data_format))
 
     def _check_crc_validity(self, crc: str, frame_data: bytes):

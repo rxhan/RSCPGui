@@ -166,6 +166,11 @@ class E3DCWeb(E3DC):
                 r = self.getWeblogin()
                 requests += r
 
+            elif res.name == 'SERVER_CUSTOM_START':
+                logger.debug(res.name)
+                r = RSCPDTO(tag=RSCPTag.SERVER_CUSTOM_ANSWER, rscp_type=RSCPType.Char8, data=1)
+                requests.append(r)
+
             elif res.name == 'SERVER_REQ_RSCP_CMD':
                 if res['SERVER_RSCP_DATA']:
                     p = []
@@ -179,6 +184,8 @@ class E3DCWeb(E3DC):
                         self.next_response = None
                     if 'INFO_SERIAL_NUMBER' in rscp_data:
                         self.info_serial_number = rscp_data['INFO_SERIAL_NUMBER'].data
+                        r = self.getWeblogin()
+                        requests += r
 
                     if 'INFO_REQ_IP_ADDRESS' in rscp_data:
                         p.append(RSCPDTO(RSCPTag.INFO_IP_ADDRESS, rscp_type=RSCPType.CString, data='0.0.0.0'))
@@ -217,7 +224,9 @@ class E3DCWeb(E3DC):
                         info = RSCPDTO(RSCPTag.INFO_INFO, rscp_type=RSCPType.Container)
                         hsh = self.username + str(self.server_connection_id)
                         md5 = hashlib.md5(hsh.encode()).hexdigest()
-                        info += RSCPDTO(RSCPTag.INFO_SERIAL_NUMBER, rscp_type=RSCPType.CString, data='WEB_' + md5)
+                        self.info_serial_number = 'WEB_' + md5
+                        info += RSCPDTO(RSCPTag.INFO_SERIAL_NUMBER, rscp_type=RSCPType.CString, data=self.info_serial_number)
+                        info += RSCPDTO(RSCPTag.INFO_PRODUCTION_DATE, rscp_type=RSCPType.CString, data='570412800000')
                         info += RSCPDTO(RSCPTag.INFO_MAC_ADDRESS, rscp_type=RSCPType.CString, data='00:00:00:00:00:00')
                         p.append(info)
 
