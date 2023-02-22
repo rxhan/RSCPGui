@@ -909,24 +909,25 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
         days = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So']
 
-        for idlePeriod in d['EMS_GET_IDLE_PERIODS']['EMS_IDLE_PERIOD']:
-            if idlePeriod['EMS_IDLE_PERIOD_TYPE'].data == 0:
-                c = 'Charge'
-            else:
-                c = 'Discharge'
+        if 'EMS_GET_IDLE_PERIODS' in d and 'EMS_IDLE_PERIOD' in d['EMS_GET_IDLE_PERIODS']:
+            for idlePeriod in d['EMS_GET_IDLE_PERIODS']['EMS_IDLE_PERIOD']:
+                if idlePeriod['EMS_IDLE_PERIOD_TYPE'].data == 0:
+                    c = 'Charge'
+                else:
+                    c = 'Discharge'
 
-            day = days[int(idlePeriod['EMS_IDLE_PERIOD_DAY'])]
-            von = 'tpEMS' + c + day + 'Von'
-            bis = 'tpEMS' + c + day + 'Bis'
-            ch = 'chEMS' + c + day
+                day = days[int(idlePeriod['EMS_IDLE_PERIOD_DAY'])]
+                von = 'tpEMS' + c + day + 'Von'
+                bis = 'tpEMS' + c + day + 'Bis'
+                ch = 'chEMS' + c + day
 
-            self.__getattribute__(ch).SetValue(idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data)
-            self.__getattribute__(von).SetValue(
-                str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
-                    idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
-            self.__getattribute__(bis).SetValue(
-                str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
-                    idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+                self.__getattribute__(ch).SetValue(idlePeriod['EMS_IDLE_PERIOD_ACTIVE'].data)
+                self.__getattribute__(von).SetValue(
+                    str(idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
+                        idlePeriod['EMS_IDLE_PERIOD_START']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
+                self.__getattribute__(bis).SetValue(
+                    str(idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_HOUR'].data).zfill(2) + ':' + str(
+                        idlePeriod['EMS_IDLE_PERIOD_END']['EMS_IDLE_PERIOD_MINUTE'].data).zfill(2))
 
 
     def fill_ems_sys(self, d = None):
@@ -1073,8 +1074,12 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtPVIMaxTemperature.SetValue(repr(data['PVI_MAX_TEMPERATURE']['PVI_VALUE']))
         self.txtPVIMinTemperature.SetValue(repr(data['PVI_MIN_TEMPERATURE']['PVI_VALUE']))
         self.txtPVIMaxApparentpower.SetValue(repr(data['PVI_AC_MAX_APPARENTPOWER']['PVI_VALUE']))
-        self.txtPVIFreqMin.SetValue(repr(data['PVI_FREQUENCY_UNDER_OVER']['PVI_FREQUENCY_UNDER']))
-        self.txtPVIMaxFreq.SetValue(repr(data['PVI_FREQUENCY_UNDER_OVER']['PVI_FREQUENCY_OVER']))
+        if 'PVI_FREQUENCY_UNDER_OVER' in data:
+            self.txtPVIFreqMin.SetValue(repr(data['PVI_FREQUENCY_UNDER_OVER']['PVI_FREQUENCY_UNDER']))
+            self.txtPVIMaxFreq.SetValue(repr(data['PVI_FREQUENCY_UNDER_OVER']['PVI_FREQUENCY_OVER']))
+        else:
+            self.txtPVIFreqMin.SetValue('n/a')
+            self.txtPVIMaxFreq.SetValue('n/a')
 
         self.chPVIDeviceConnected.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_CONNECTED'].data)
         self.chPVIDeviceWorking.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_WORKING'].data)
@@ -1360,7 +1365,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.gPM.SetCellValue(14, curcol, repr(d['PM_ERROR_CODE']))
             self.gPM.SetCellValue(15, curcol, repr(d['PM_TYPE']))
             self.gPM.SetCellValue(16, curcol, repr(d['PM_DEVICE_ID']))
-            self.gPM.SetCellValue(17, curcol, repr(d['PM_IS_CAN_SILENCE']))
+            if 'PM_IS_CAN_SILENCE' in d:
+                self.gPM.SetCellValue(17, curcol, repr(d['PM_IS_CAN_SILENCE']))
+            else:
+                self.gPM.SetCellValue(17, curcol, 'n/a')
             self.gPM.SetCellValue(28, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_CONNECTED']))
             self.gPM.SetCellValue(29, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_WORKING']))
             self.gPM.SetCellValue(30, curcol, repr(d['PM_DEVICE_STATE']['PM_DEVICE_IN_SERVICE']))
