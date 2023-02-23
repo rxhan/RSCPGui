@@ -173,6 +173,8 @@ class RSCPGuiMain():
 
         if kat in self.config:
             if kat == 'Login':
+                if name == 'verify_ssl':
+                    return True if self._config[kat].get(name, '1').lower() in ('true', '1', 'ja') else False
                 if name in self._config[kat]:
                     if name == 'password' and self._config[kat][name] != '' and self._config[kat][name][0] == '@':
                         return self.tinycode('rscpgui', self._config[kat][name][1:], True)
@@ -275,7 +277,7 @@ class RSCPGuiMain():
             if self.cfgLoginusername and self.cfgLoginpassword and self.cfgLoginrscppassword and seriennummer and not address and self.cfgLoginwebsocketaddr:
                 logger.debug('Versuche IP-Adresse zu ermitteln')
                 try:
-                    testgui = E3DCWebGui(self.cfgLoginusername, self.cfgLoginpassword, seriennummer)
+                    testgui = E3DCWebGui(self.cfgLoginusername, self.cfgLoginpassword, seriennummer, verify_ssl=self.cfgLoginverify_ssl)
                     ip = repr(test_connection(testgui)['INFO_IP_ADDRESS'])
                     if ip:
                         address = ip
@@ -318,7 +320,7 @@ class RSCPGuiMain():
                     testgui = testgui_web
                 else:
                     logger.info('Teste Web Verbindungsart')
-                    testgui = E3DCWebGui(self.cfgLoginusername, self.cfgLoginpassword, seriennummer)
+                    testgui = E3DCWebGui(self.cfgLoginusername, self.cfgLoginpassword, seriennummer, verify_ssl=self.cfgLoginverify_ssl)
                     try:
                         result = test_connection(testgui)
                         if not address:
@@ -353,7 +355,7 @@ class RSCPGuiMain():
             except:
                 self._gui = None
         elif self.cfgLoginusername and self.cfgLoginpassword and self.cfgLoginseriennummer and self.cfgLoginwebsocketaddr and self.cfgLoginconnectiontype == 'web':
-            testgui = E3DCWebGui(self.cfgLoginusername, self.cfgLoginpassword, self.cfgLoginseriennummer)
+            testgui = E3DCWebGui(self.cfgLoginusername, self.cfgLoginpassword, self.cfgLoginseriennummer, verify_ssl=self.cfgLoginverify_ssl)
             try:
                 result = test_connection(testgui)
                 self._gui = testgui

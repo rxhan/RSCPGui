@@ -31,8 +31,8 @@ class E3DCWebGui(rscp_helper):
     timeout_connect = 10
     autoreconnect = True
 
-    def __init__(self, username, password, identifier, url = None):
-        self.e3dc = E3DCWeb(username, password, identifier, url)
+    def __init__(self, username, password, identifier, url=None, verify_ssl=True):
+        self.e3dc = E3DCWeb(username, password, identifier, url, verify_ssl=verify_ssl)
         self.connect()
 
     def connect(self):
@@ -79,7 +79,7 @@ class E3DCWebGui(rscp_helper):
 
 
 class E3DCWeb(E3DC):
-    def __init__(self, username, password, identifier, url = None):
+    def __init__(self, username, password, identifier, url=None, verify_ssl=True):
         logger.debug('Initialisiere E3DC-Websockets')
         if not url:
             url = 'wss://s10.e3dc.com/ws'
@@ -88,6 +88,7 @@ class E3DCWeb(E3DC):
         self.rscp_utils = RSCPUtils()
         self.identifier = identifier
         self.url = url
+        self.verify_ssl = verify_ssl
         logger.debug('Init abgeschlossen')
 
     lasterror = None
@@ -312,7 +313,11 @@ class E3DCWeb(E3DC):
 
         self.ws = ws
         logger.debug(conid + ' - Starte Websocket-Verbindung mit ' + self.url)
-        ws.run_forever()
+        if not self.verify_ssl:
+            import ssl
+            ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+        else:
+            ws.run_forever()
         logger.debug(conid + ' - Websocket-Verbindung beendet')
         self.conid = None
 
