@@ -1099,10 +1099,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.gPVIAC.SetCellValue(2, i, repr(round(values[i]['PVI_AC_CURRENT'], 5)) + ' A')
             self.gPVIAC.SetCellValue(3, i, repr(round(values[i]['PVI_AC_APPARENTPOWER'], 3)) + ' VA')
             self.gPVIAC.SetCellValue(4, i, repr(round(values[i]['PVI_AC_REACTIVEPOWER'], 3)) + ' VAr')
-            self.gPVIAC.SetCellValue(5, i, repr(values[i]['PVI_AC_ENERGY_ALL']) + ' kWh')
-            sum_ac_energy_all += values[i]['PVI_AC_ENERGY_ALL'].data
-            self.gPVIAC.SetCellValue(6, i, repr(values[i]['PVI_AC_ENERGY_GRID_CONSUMPTION']) + ' kWh')
-            sum_ac_energy_grid += values[i]['PVI_AC_ENERGY_GRID_CONSUMPTION'].data
+            self.gPVIAC.SetCellValue(5, i, repr(round(values[i]['PVI_AC_ENERGY_ALL'].data / 1000, 2)) + ' kWh')
+            sum_ac_energy_all += values[i]['PVI_AC_ENERGY_ALL'].data / 1000
+            self.gPVIAC.SetCellValue(6, i, repr(round(values[i]['PVI_AC_ENERGY_GRID_CONSUMPTION'].data / 1000, 2)) + ' kWh')
+            sum_ac_energy_grid += values[i]['PVI_AC_ENERGY_GRID_CONSUMPTION'].data / 1000
 
         self.gPVIAC.SetCellValue(0, 3, str(round(sum_ac_power, 3)) + ' W')
         self.gPVIAC.SetCellValue(5, 3, str(round(sum_ac_energy_all, 3)) + ' kWh')
