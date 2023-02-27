@@ -28,6 +28,7 @@ try:
     import wx.dataview
     from export import E3DCExport
     from gui import MainFrame
+    from assistant import Assistant
 except:
     logger.warning('wxPython steht nicht zur Verfügung, Programm beschränkt sich auf die Console')
 
@@ -54,6 +55,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
     _time_format = '%d.%m.%Y %H:%M:%S.%f'
     _e3dcexportFrame = None
+    assistantFrame = None
 
     def __init__(self, parent, args):
         logger.info('Frame initialisiert')
@@ -93,6 +95,11 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         logger.info('Oberfläche geladen')
 
         self.loadConfig()
+
+        if self._noconfigfile or self.cfgLoginshow_assistant:
+            logger.info('Konfigurationsdatei nicht gefunden, starte Assistent!')
+            self.assistantFrame = Assistant(self)
+            self.assistantFrame.Bind(wx.EVT_CLOSE, self.AssistantFrameOnClose)
 
         def load_timezones():
             logger.debug('Lade Zeitzonen')
@@ -146,6 +153,25 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         locale.setlocale(locale.LC_ALL, '')
 
         logger.info('Init abgeschlossen')
+
+    def AssistantFrameOnClose(self, event):
+        logger.info('Assistent - Dialog geschlossen')
+        if self.assistantFrame.testresult:
+            self.txtConfigSeriennummer.SetValue(self.assistantFrame.serial)
+            self.txtUsername.SetValue(self.assistantFrame.username)
+            self.txtPassword.SetValue(self.assistantFrame.password)
+            self.txtIP.SetValue(self.assistantFrame.ip)
+            self._gui = self.assistantFrame.testgui
+
+        self.cfgLoginshow_assistant = not self.assistantFrame.chkAsistantNoShow.GetValue()
+
+        self.saveConfig()
+
+        self.assistantFrame = None
+
+        self.Show()
+
+        event.Skip()
 
     def enabledisableTelegram(self, value):
         self.chBenachrichtigungTelegram.Enable(value)
@@ -2164,7 +2190,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                            'seriennummer': self.txtConfigSeriennummer.GetValue(),
                            'websocketaddr': self.cfgLoginwebsocketaddr,
                            'connectiontype': self.cfgLoginconnectiontype,
-                           'autoupdate': self.scAutoUpdate.GetValue()}
+                           'autoupdate': self.scAutoUpdate.GetValue(),
+                           'verify_ssl': self.cfgLoginverify_ssl,
+                           'show_assistant': self.cfgLoginshow_assistant}
 
         self.config['Notification'] = {'telegram': self.chBenachrichtigungTelegram.GetValue(),
                                        'telegramtoken': '@' + self.tinycode('telegramtoken', self.txtTelegramToken.GetValue()),
@@ -2210,12 +2238,11 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                 self.config['Notification/Rules'][str(currow+1)] = data
 
 
-    def saveConfig(self):
+    def saveConfig(self, refresh=True):
         logger.info('Speichere Konfigurationsdatei ' + self.ConfigFilename)
 
-        self.refreshConfig()
-
-
+        if refresh:
+            self.refreshConfig()
 
         with open(self.ConfigFilename, 'w') as configfile:
             self.config.write(configfile)

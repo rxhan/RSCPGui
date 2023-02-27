@@ -67,6 +67,7 @@ class RSCPGuiMain():
     _pm_available = []
     _pvi_available = []
     _wb_available = []
+    _noconfigfile = True
 
     def __init__(self, args):
         logger.info('Main initialisiert')
@@ -116,6 +117,7 @@ class RSCPGuiMain():
         if self._config is None:
             logger.info('Lade Konfigurationsdatei ' + self.ConfigFilename)
             self._config = configparser.ConfigParser()
+            self._noconfigfile = not os.path.isfile(self.ConfigFilename)
             self._config.read(self.ConfigFilename)
 
         return self._config
@@ -178,6 +180,8 @@ class RSCPGuiMain():
                         return self.tinycode('rscpgui', self._config[kat][name][1:], True)
                     elif name == 'rscppassword' and self._config[kat][name] != '' and self._config[kat][name][0] == '@':
                         return self.tinycode('rscpgui_rscppass', self._config[kat][name][1:], True)
+                    elif name in ('show_assistant', 'verify_ssl'):
+                        return True if self._config[kat][name].lower() in ('true', '1', 'ja') else False
                     else:
                         return self._config[kat][name]
                 else:
@@ -185,6 +189,8 @@ class RSCPGuiMain():
                         return 'wss://s10.e3dc.com/ws'
                     elif name == 'connectiontype':
                         return 'auto'
+                    elif name in ('show_assistant', 'verify_ssl'):
+                        return True
             elif kat == 'Export':
                 if name in self._config[kat]:
                     if name in ('csv', 'json', 'mqtt', 'http', 'mqttretain', 'mqttinsecure', 'influx', 'mqttsub'):
@@ -370,7 +376,7 @@ class RSCPGuiMain():
         return self._gui
 
     def getSNFromNumbers(self, sn):
-        if sn[0:2] == '70':
+        if sn[0:2] in ('70', '75'):
             return 'P10-' + sn
         elif sn[0:2] == '60':
             return 'Q10-' + sn

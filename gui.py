@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ###########################################################################
-## Python code generated with wxFormBuilder (version Oct 26 2018)
+## Python code generated with wxFormBuilder (version 3.10.1-0-g8feb16b3)
 ## http://www.wxformbuilder.org/
 ##
 ## PLEASE DO *NOT* EDIT THIS FILE!
@@ -269,11 +269,11 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gSoftwaremodules.EnableDragColMove( False )
 		self.gSoftwaremodules.EnableDragColSize( True )
-		self.gSoftwaremodules.SetColLabelSize( 30 )
 		self.gSoftwaremodules.SetColLabelValue( 0, u"Modulname" )
 		self.gSoftwaremodules.SetColLabelValue( 1, u"Version" )
 		self.gSoftwaremodules.SetColLabelValue( 2, u"Datum" )
 		self.gSoftwaremodules.SetColLabelValue( 3, u"SVN" )
+		self.gSoftwaremodules.SetColLabelSize( 30 )
 		self.gSoftwaremodules.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
@@ -1578,7 +1578,6 @@ class MainFrame ( wx.Frame ):
 		self.gStorederrors.AutoSizeColumns()
 		self.gStorederrors.EnableDragColMove( False )
 		self.gStorederrors.EnableDragColSize( True )
-		self.gStorederrors.SetColLabelSize( 30 )
 		self.gStorederrors.SetColLabelValue( 0, u"Type" )
 		self.gStorederrors.SetColLabelValue( 1, u"Quelle" )
 		self.gStorederrors.SetColLabelValue( 2, u"Nachricht" )
@@ -1587,6 +1586,7 @@ class MainFrame ( wx.Frame ):
 		self.gStorederrors.SetColLabelValue( 5, wx.EmptyString )
 		self.gStorederrors.SetColLabelValue( 6, wx.EmptyString )
 		self.gStorederrors.SetColLabelValue( 7, wx.EmptyString )
+		self.gStorederrors.SetColLabelSize( 30 )
 		self.gStorederrors.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
@@ -1629,14 +1629,13 @@ class MainFrame ( wx.Frame ):
 		self.gDCDC.AutoSizeColumns()
 		self.gDCDC.EnableDragColMove( False )
 		self.gDCDC.EnableDragColSize( True )
-		self.gDCDC.SetColLabelSize( 30 )
 		self.gDCDC.SetColLabelValue( 0, u"#0" )
 		self.gDCDC.SetColLabelValue( 1, u"#1" )
+		self.gDCDC.SetColLabelSize( 30 )
 		self.gDCDC.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
 		self.gDCDC.EnableDragRowSize( True )
-		self.gDCDC.SetRowLabelSize( 120 )
 		self.gDCDC.SetRowLabelValue( 0, u"Stromstärke BAT" )
 		self.gDCDC.SetRowLabelValue( 1, u"Spannung BAT" )
 		self.gDCDC.SetRowLabelValue( 2, u"Leistung BAT" )
@@ -1649,6 +1648,7 @@ class MainFrame ( wx.Frame ):
 		self.gDCDC.SetRowLabelValue( 9, u"Board Version" )
 		self.gDCDC.SetRowLabelValue( 10, u"State" )
 		self.gDCDC.SetRowLabelValue( 11, u"Substatus" )
+		self.gDCDC.SetRowLabelSize( 120 )
 		self.gDCDC.SetRowLabelAlignment( wx.ALIGN_LEFT, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -2001,7 +2001,6 @@ class MainFrame ( wx.Frame ):
 
 		# Rows
 		self.gDCB.EnableDragRowSize( True )
-		self.gDCB.SetRowLabelSize( 160 )
 		self.gDCB.SetRowLabelValue( 0, u"Letzte Meldung" )
 		self.gDCB.SetRowLabelValue( 1, u"Maximale Ladespannung" )
 		self.gDCB.SetRowLabelValue( 2, u"Maximaler Ladestrom" )
@@ -2034,6 +2033,7 @@ class MainFrame ( wx.Frame ):
 		self.gDCB.SetRowLabelValue( 29, u"Nr Sensor" )
 		self.gDCB.SetRowLabelValue( 30, u"Seriencode" )
 		self.gDCB.SetRowLabelValue( 31, u"Status" )
+		self.gDCB.SetRowLabelSize( 160 )
 		self.gDCB.SetRowLabelAlignment( wx.ALIGN_LEFT, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -2316,16 +2316,15 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gPVIAC.EnableDragColMove( False )
 		self.gPVIAC.EnableDragColSize( True )
-		self.gPVIAC.SetColLabelSize( 30 )
 		self.gPVIAC.SetColLabelValue( 0, u"L1" )
 		self.gPVIAC.SetColLabelValue( 1, u"L2" )
 		self.gPVIAC.SetColLabelValue( 2, u"L3" )
 		self.gPVIAC.SetColLabelValue( 3, u"Gesamt" )
+		self.gPVIAC.SetColLabelSize( 30 )
 		self.gPVIAC.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
 		self.gPVIAC.EnableDragRowSize( True )
-		self.gPVIAC.SetRowLabelSize( 100 )
 		self.gPVIAC.SetRowLabelValue( 0, u"Leistung" )
 		self.gPVIAC.SetRowLabelValue( 1, u"Spannung" )
 		self.gPVIAC.SetRowLabelValue( 2, u"Stromstärke" )
@@ -2334,6 +2333,7 @@ class MainFrame ( wx.Frame ):
 		self.gPVIAC.SetRowLabelValue( 5, u"Energie (Einspeisung)" )
 		self.gPVIAC.SetRowLabelValue( 6, u"Energie (Bezug)" )
 		self.gPVIAC.SetRowLabelValue( 7, wx.EmptyString )
+		self.gPVIAC.SetRowLabelSize( 100 )
 		self.gPVIAC.SetRowLabelAlignment( wx.ALIGN_LEFT, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -2362,19 +2362,19 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gPVIDC.EnableDragColMove( False )
 		self.gPVIDC.EnableDragColSize( True )
-		self.gPVIDC.SetColLabelSize( 30 )
 		self.gPVIDC.SetColLabelValue( 0, u"#1" )
 		self.gPVIDC.SetColLabelValue( 1, u"#2" )
 		self.gPVIDC.SetColLabelValue( 2, u"Gesamt" )
+		self.gPVIDC.SetColLabelSize( 30 )
 		self.gPVIDC.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
 		self.gPVIDC.EnableDragRowSize( True )
-		self.gPVIDC.SetRowLabelSize( 100 )
 		self.gPVIDC.SetRowLabelValue( 0, u"Leistung" )
 		self.gPVIDC.SetRowLabelValue( 1, u"Spannung" )
 		self.gPVIDC.SetRowLabelValue( 2, u"Stromstärke" )
 		self.gPVIDC.SetRowLabelValue( 3, u"Energie" )
+		self.gPVIDC.SetRowLabelSize( 100 )
 		self.gPVIDC.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -2403,8 +2403,8 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gPVITemps.EnableDragColMove( False )
 		self.gPVITemps.EnableDragColSize( True )
-		self.gPVITemps.SetColLabelSize( 30 )
 		self.gPVITemps.SetColLabelValue( 0, u"Wert" )
+		self.gPVITemps.SetColLabelSize( 30 )
 		self.gPVITemps.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
@@ -2462,13 +2462,12 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gPM.EnableDragColMove( False )
 		self.gPM.EnableDragColSize( True )
-		self.gPM.SetColLabelSize( 30 )
 		self.gPM.SetColLabelValue( 0, u"LM #0" )
+		self.gPM.SetColLabelSize( 30 )
 		self.gPM.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
 		self.gPM.EnableDragRowSize( True )
-		self.gPM.SetRowLabelSize( 150 )
 		self.gPM.SetRowLabelValue( 0, u"Leistung L1" )
 		self.gPM.SetRowLabelValue( 1, u"Leistung L2" )
 		self.gPM.SetRowLabelValue( 2, u"Leistung L3" )
@@ -2500,6 +2499,7 @@ class MainFrame ( wx.Frame ):
 		self.gPM.SetRowLabelValue( 28, u"Gerät verbunden" )
 		self.gPM.SetRowLabelValue( 29, u"Gerät arbeitet" )
 		self.gPM.SetRowLabelValue( 30, u"Gerät in Wartung" )
+		self.gPM.SetRowLabelSize( 150 )
 		self.gPM.SetRowLabelAlignment( wx.ALIGN_LEFT, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -2661,18 +2661,18 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gWBData.EnableDragColMove( False )
 		self.gWBData.EnableDragColSize( True )
-		self.gWBData.SetColLabelSize( 30 )
 		self.gWBData.SetColLabelValue( 0, u"L1" )
 		self.gWBData.SetColLabelValue( 1, u"L2" )
 		self.gWBData.SetColLabelValue( 2, u"L3" )
 		self.gWBData.SetColLabelValue( 3, u"Gesamt" )
+		self.gWBData.SetColLabelSize( 30 )
 		self.gWBData.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
 		self.gWBData.EnableDragRowSize( True )
-		self.gWBData.SetRowLabelSize( 80 )
 		self.gWBData.SetRowLabelValue( 0, u"Leistung" )
 		self.gWBData.SetRowLabelValue( 1, u"Energie" )
+		self.gWBData.SetRowLabelSize( 80 )
 		self.gWBData.SetRowLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Label Appearance
@@ -3274,13 +3274,13 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gBenachrichtigungen.EnableDragColMove( False )
 		self.gBenachrichtigungen.EnableDragColSize( True )
-		self.gBenachrichtigungen.SetColLabelSize( 30 )
 		self.gBenachrichtigungen.SetColLabelValue( 0, u"Pfad" )
 		self.gBenachrichtigungen.SetColLabelValue( 1, u"Datentyp" )
 		self.gBenachrichtigungen.SetColLabelValue( 2, u"Ausdruck" )
 		self.gBenachrichtigungen.SetColLabelValue( 3, u"Dienst" )
 		self.gBenachrichtigungen.SetColLabelValue( 4, u"Text" )
 		self.gBenachrichtigungen.SetColLabelValue( 5, u"Sendeintervall" )
+		self.gBenachrichtigungen.SetColLabelSize( 30 )
 		self.gBenachrichtigungen.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 
 		# Rows
@@ -3365,7 +3365,7 @@ class MainFrame ( wx.Frame ):
 		pass
 
 
-	# Virtual event handlers, overide them in your derived class
+	# Virtual event handlers, override them in your derived class
 	def mainOnClose( self, event ):
 		event.Skip()
 
@@ -3467,7 +3467,7 @@ class MainFrame ( wx.Frame ):
 class ExportFrame ( wx.Frame ):
 
 	def __init__( self, parent ):
-		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = wx.EmptyString, pos = wx.DefaultPosition, size = wx.Size( 522,609 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"Exportdialog", pos = wx.DefaultPosition, size = wx.Size( 522,609 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
 
 		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
 
@@ -3545,7 +3545,7 @@ class ExportFrame ( wx.Frame ):
 		pass
 
 
-	# Virtual event handlers, overide them in your derived class
+	# Virtual event handlers, override them in your derived class
 	def tcUploadOnSelChanged( self, event ):
 		event.Skip()
 
@@ -3554,5 +3554,84 @@ class ExportFrame ( wx.Frame ):
 
 	def bSaveOnClick( self, event ):
 		event.Skip()
+
+
+###########################################################################
+## Class AssistantFrame
+###########################################################################
+
+class AssistantFrame ( wx.Frame ):
+
+	def __init__( self, parent ):
+		wx.Frame.__init__ ( self, parent, id = wx.ID_ANY, title = u"RSCPGui - Startassistent", pos = wx.DefaultPosition, size = wx.Size( 501,275 ), style = wx.DEFAULT_FRAME_STYLE|wx.TAB_TRAVERSAL )
+
+		self.SetSizeHints( wx.DefaultSize, wx.DefaultSize )
+
+		bSizer27 = wx.BoxSizer( wx.VERTICAL )
+
+		self.m_panel16 = wx.Panel( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer22 = wx.BoxSizer( wx.VERTICAL )
+
+		self.lblStartassistant = wx.StaticText( self.m_panel16, wx.ID_ANY, u"Dieser Assistent hilft bei der ersten Verbindung mit deinem E3DC. Es werden die\nZugangsdaten für das Webportal benötigt, alles weitere vesucht \nRSCPGui automatisch zu ermitteln.", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.lblStartassistant.Wrap( -1 )
+
+		bSizer22.Add( self.lblStartassistant, 0, wx.ALL, 5 )
+
+		self.m_staticline23 = wx.StaticLine( self.m_panel16, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
+		bSizer22.Add( self.m_staticline23, 0, wx.EXPAND |wx.ALL, 5 )
+
+		fgSizer45 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer45.SetFlexibleDirection( wx.BOTH )
+		fgSizer45.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.m_staticText223 = wx.StaticText( self.m_panel16, wx.ID_ANY, u"Benutzername:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText223.Wrap( -1 )
+
+		fgSizer45.Add( self.m_staticText223, 0, wx.ALL, 5 )
+
+		self.txtAssistantUsername = wx.TextCtrl( self.m_panel16, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		fgSizer45.Add( self.txtAssistantUsername, 0, wx.ALL, 5 )
+
+		self.m_staticText224 = wx.StaticText( self.m_panel16, wx.ID_ANY, u"Kennwort:", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText224.Wrap( -1 )
+
+		fgSizer45.Add( self.m_staticText224, 0, wx.ALL, 5 )
+
+		self.txtAssistantPassword = wx.TextCtrl( self.m_panel16, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), wx.TE_PASSWORD )
+		fgSizer45.Add( self.txtAssistantPassword, 0, wx.ALL, 5 )
+
+
+		bSizer22.Add( fgSizer45, 1, wx.ALL|wx.EXPAND, 5 )
+
+		fgSizer46 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer46.SetFlexibleDirection( wx.BOTH )
+		fgSizer46.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
+		self.btnAssistantCancel = wx.Button( self.m_panel16, wx.ID_ANY, u"Assistent überspringen", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer46.Add( self.btnAssistantCancel, 0, wx.ALL, 5 )
+
+		self.btnAssistantOK = wx.Button( self.m_panel16, wx.ID_ANY, u"OK", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer46.Add( self.btnAssistantOK, 0, wx.ALL, 5 )
+
+		self.chkAsistantNoShow = wx.CheckBox( self.m_panel16, wx.ID_ANY, u"Assistent nicht mehr anzeigen!", wx.DefaultPosition, wx.DefaultSize, 0 )
+		fgSizer46.Add( self.chkAsistantNoShow, 0, wx.ALL, 5 )
+
+
+		bSizer22.Add( fgSizer46, 1, wx.EXPAND, 5 )
+
+
+		self.m_panel16.SetSizer( bSizer22 )
+		self.m_panel16.Layout()
+		bSizer22.Fit( self.m_panel16 )
+		bSizer27.Add( self.m_panel16, 1, wx.EXPAND |wx.ALL, 5 )
+
+
+		self.SetSizer( bSizer27 )
+		self.Layout()
+
+		self.Centre( wx.BOTH )
+
+	def __del__( self ):
+		pass
 
 

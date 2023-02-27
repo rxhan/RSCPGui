@@ -28,7 +28,7 @@ def _getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
 socket.getaddrinfo = _getaddrinfo
 
 def setLoglevel(loglevel, filename = None, console = True, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'):
-    loggernames = [__name__, 'rscpguiframe','rscpguimain','rscpguiconsole','export','e3dcwebgui','e3dc']
+    loggernames = [__name__, 'rscpguiframe','rscpguimain','rscpguiconsole','export','e3dcwebgui','e3dc','assistant']
     for name in loggernames:
         l = logging.getLogger(name)
         l.setLevel(loglevel)
@@ -81,7 +81,12 @@ if 'wx' in sys.modules.keys() and not args.console:
     logger.info('Fenster geladen')
     if not args.hide:
         logger.info('zeichne Fenster')
-        g.Show()
+        if g.assistantFrame:
+            g.assistantFrame.Show()
+            g.assistantFrame.SetFocus()
+        else:
+            g.Show()
+
         logger.info('Fenster gezeichnet, warte auf Events')
     app.MainLoop()
 else:
