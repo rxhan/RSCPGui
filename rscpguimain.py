@@ -1074,7 +1074,9 @@ class RSCPGuiMain():
             indexes = [0, 1, 2, 3]
         for index in indexes:
             try:
-                data[index] = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
+                rscp_data = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True)
+                # Fix Issue #33
+                data[index] = rscp_data['PVI_DATA'] if 'PVI_DATA' in rscp_data else rscp_data
                 logger.info('PVI #' + str(index) + ' wurde erfolgreich abgefragt.')
                 if index not in self._pvi_available:
                     self._pvi_available.append(index)
