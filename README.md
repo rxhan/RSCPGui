@@ -35,7 +35,11 @@ Für Konsolenbetrieb wenn z.B. nur Export der Daten genügt
     
 Die Installation von wxPython wird dann fehlschlagen, dieses wird für den Konsolenbetrieb aber nicht benötigt.
 
-### Manuelle Konfiguration
+### Konfiguration
+
+Beim ersten Start im Oberflächenmodus wird ein Assistent gestartet, über welchen eine Websocket-Verbindung mithilfe der Web-Zugangsdaten bequem hergestellt werden kann. Es ist jedoch zu empfehlen im Anschluss eine Direktverbindung einzurichten. Dazu muss dann im Einstellungs-Dialog das RSCP-Passwort hinterlegt werden, oder falls noch nicht geschehen gesetzt werden.
+
+### manuelle Konfiguration
 
 Um die RSCPGui manuell zu konfigurieren muss lediglich die Datei rscpe3dc.conf.default.ini zu rscpe3dc.conf.ini umbenannt werden und diese mit den ensprechenden Werten gefüllt werden.
 
