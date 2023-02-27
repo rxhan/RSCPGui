@@ -37,6 +37,7 @@ class PM_MODE(Enum):
     DIAGNOSE = 2
     ERROR_ACTIVE = 3
     ERROR_PASSIVE = 4
+    UNKNOWN_65 = 65
 
 class PM_ACTIVE_PHASES(Enum):
     PHASE_100 = 1
