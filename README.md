@@ -8,7 +8,7 @@ Die Schnittstelle basiert auf der Library von MatrixCrawler (https://github.com/
 
 # Abhängigkeiten
 
-Getestet wurde mit Python 3.9, Python 3.8 und Python 3.7.
+Getestet wurde mit Python 3.10, ältere Versionen bis 3.7 sollten ebenfalls funktionieren.
 Grundsätzlich sollte das Programm Plattformunabhängig sein, es wurde jedoch ausschließlich mit Windows getestet.
 
 
@@ -97,13 +97,15 @@ usage: rscpgui.exe [-h] [-e [EXPORT]] [-i] [-c [CONSOLE]] [-f [LOGFILE]]
 
 # Screenshots
 
-![Übersicht der Batteriedaten](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_BAT.png)
+![Assistent zur vereinfachten Anmeldung](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_Assistant.png)
 
-![Übersicht der Ladeeinstellungen](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_Ladeeinstellungen.png)
+![Übersicht der Batteriedaten](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_BAT.png)
 
-![Übersicht der Wechselrichter](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_Wechselrichter.png)
+![Übersicht der Ladeeinstellungen](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_Ladeeinstellungen.png)
 
-![Übersicht der Basisdaten / EMS](https://github.com/rxhan/RSCPGui/blob/testin3/images/RSCPGUI_EMS.png)
+![Übersicht der Wechselrichter](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_Wechselrichter.png)
+
+![Übersicht der Basisdaten / EMS](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_EMS.png)
 
 # Windows-Binary
 
