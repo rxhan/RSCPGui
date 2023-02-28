@@ -97,7 +97,7 @@ usage: rscpgui.exe [-h] [-e [EXPORT]] [-i] [-c [CONSOLE]] [-f [LOGFILE]]
 
 # Screenshots
 
-![Assistent zur vereinfachten Anmeldung](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_Assistant.png)
+![Assistent zur vereinfachten Anmeldung](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_Assistant.PNG)
 
 ![Übersicht der Batteriedaten](https://github.com/rxhan/RSCPGui/blob/master/images/RSCPGUI_BAT.png)
 
