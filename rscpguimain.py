@@ -937,12 +937,12 @@ class RSCPGuiMain():
                     logger.warning('Element not Found ' + '/'.join(teile))
 
         ems_data = None
-        bat_data = None
+        bat_data = {}
         info_data = None
-        dcdc_data = None
-        pm_data = None
-        pvi_data = None
-        wb_data = None
+        dcdc_data = {}
+        pm_data = {}
+        pvi_data = {}
+        wb_data = {}
 
         values = {}
         value_path = {}
@@ -962,9 +962,10 @@ class RSCPGuiMain():
                         logger.exception('Fehler beim Abruf von EMS')
                 elif teile[1] == 'BAT_DATA':
                     try:
-                        if not bat_data:
-                            bat_data = self.gui.get_data(self.gui.getBatDcbData(bat_index=int(teile[2])), True).asDict()
-                        newvalue = getDataFromPath(teile[3:], bat_data)
+                        index = int(teile[2])
+                        if index not in bat_data.keys():
+                            bat_data[index] = self.gui.get_data(self.gui.getBatDcbData(bat_index=index), True).asDict()
+                        newvalue = getDataFromPath(teile[3:], bat_data[index])
                     except:
                         logger.exception('Fehler beim Abruf von BAT')
                 elif teile[1] == 'INFO_DATA':
@@ -976,30 +977,34 @@ class RSCPGuiMain():
                         logger.exception('Fehler beim Abruf von INFO')
                 elif teile[1] == 'DCDC_DATA':
                     try:
-                        if not dcdc_data:
-                            dcdc_data = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=int(teile[2])), True).asDict()
-                        newvalue = getDataFromPath(teile[3:], dcdc_data)
+                        index = int(teile[2])
+                        if index not in dcdc_data.keys():
+                            dcdc_data[index] = self.gui.get_data(self.gui.getDCDCData(dcdc_indexes=index), True).asDict()
+                        newvalue = getDataFromPath(teile[3:], dcdc_data[index])
                     except:
                         logger.exception('Fehler beim Abruf von DCDC')
                 elif teile[1] == 'PM_DATA':
                     try:
-                        if not pm_data:
-                            pm_data = self.gui.get_data(self.gui.getPMData(pm_index=int(teile[2])), True).asDict()
-                        newvalue = getDataFromPath(teile[3:], pm_data)
+                        index = int(teile[2])
+                        if index not in pm_data.keys():
+                            pm_data[index] = self.gui.get_data(self.gui.getPMData(pm_index=index), True).asDict()
+                        newvalue = getDataFromPath(teile[3:], pm_data[index])
                     except:
                         logger.exception('Fehler beim Abruf von PM')
                 elif teile[1] == 'PVI_DATA':
                     try:
-                        if not pvi_data:
-                            pvi_data = self.gui.get_data(self.gui.getPVIData(pvi_index=int(teile[2])), True).asDict()
-                        newvalue = getDataFromPath(teile[3:], pvi_data)
+                        index = int(teile[2])
+                        if index not in pvi_data.keys():
+                            pvi_data[index] = self.gui.get_data(self.gui.getPVIData(pvi_index=index), True).asDict()
+                        newvalue = getDataFromPath(teile[3:], pvi_data[index])
                     except:
                         logger.exception('Fehler beim Abruf von PVI')
                 elif teile[1] == 'WB_DATA':
                     try:
-                        if not wb_data:
-                            wb_data = self.gui.get_data(self.gui.getWB(index=int(teile[2])), True).asDict()
-                        newvalue = getDataFromPath(teile[3:], wb_data)
+                        index = int(teile[2])
+                        if index not in wb_data.keys():
+                            wb_data[index] = self.gui.get_data(self.gui.getWB(index=index), True).asDict()
+                        newvalue = getDataFromPath(teile[3:], wb_data[index])
                     except:
                         logger.exception('Fehler beim Abruf von WB')
 
