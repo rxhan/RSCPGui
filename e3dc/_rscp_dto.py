@@ -16,9 +16,11 @@ It consists of a tag, the type, the data and the size of the data.
 
 class RSCPDTO:
     def __init__(self, tag: RSCPTag, rscp_type: RSCPType = RSCPType.Nil, data: Union[list, float, str, None, bytes] = None,
-                 size: Optional[int] = None):
+                 size: Optional[int] = None, rscpdata: bytes = None):
         self.tag = tag
         self.type = rscp_type
+        self.rscpdata = rscpdata
+
         if rscp_type == RSCPType.Nil:
             res = RSCPTag2Type.__getattr__(tag.name)
             if res:
@@ -235,7 +237,7 @@ class RSCPDTO:
     def __str__(self):
         messages = []
         if self.type == RSCPType.Container:
-            messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name)
+            messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + " \t rscpdata: " + str(binascii.hexlify(self.rscpdata)))
             for dat in self.data:
                 ret = str(dat)
                 ret = ret.replace("\n", "\n\t")
@@ -249,7 +251,7 @@ class RSCPDTO:
                         messages.append(
                             "rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(
                                 self.data) + "\t enumtype: " + str(attr['type']) + "\t enumdata: " + str(
-                                enum_value))
+                                enum_value) + " \t rscpdata: " + str(binascii.hexlify(self.rscpdata)))
                         return "\n".join(messages)
             except:
                 traceback.print_exc()
@@ -257,18 +259,18 @@ class RSCPDTO:
             if self.type == RSCPType.ByteArray:
                 data = binascii.hexlify(self.data)
                 messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(
-                    data))
+                    data) + " \t rscpdata: " + str(binascii.hexlify(self.rscpdata)))
 
             elif self.type == RSCPType.Error:
                 try:
                     error_code = ERROR_CODE(self.data)
                 except ValueError:
                     error_code = str(self.data) + ' (UNKNOWN)'
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(error_code))
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(error_code) + " \t rscpdata: " + str(binascii.hexlify(self.rscpdata)))
             elif self.type == RSCPType.Timestamp:
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + datetime.datetime.utcfromtimestamp(self.data).isoformat() + " (Dt: " + str(self.data) + ")")
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + datetime.datetime.utcfromtimestamp(self.data).isoformat() + " (Dt: " + str(self.data) + ")" + " \t rscpdata: " + str(binascii.hexlify(self.rscpdata)))
             else:
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(self.data))
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(self.data) + " \t rscpdata: " + str(binascii.hexlify(self.rscpdata)))
 
         return "\n".join(messages)
 

@@ -150,7 +150,7 @@ class RSCPUtils:
                 inner_rscp_dto = self.decode_data(data[current_byte:data_header_size + current_byte + data_length_c])
                 current_byte += inner_rscp_dto.size
                 container_data.append(inner_rscp_dto)
-            return RSCPDTO(RSCPTag.LIST_TYPE, RSCPType.Container, container_data, current_byte)
+            return RSCPDTO(RSCPTag.LIST_TYPE, RSCPType.Container, container_data, current_byte, rscpdata=data)
         # Check the data type name to handle the values accordingly
         elif data_type == RSCPType.Container:
             container_data = []
@@ -162,15 +162,16 @@ class RSCPUtils:
                 inner_rscp_dto = self.decode_data(data[current_byte:data_header_size + current_byte + data_length_c])
                 current_byte += inner_rscp_dto.size
                 container_data.append(inner_rscp_dto)
-            return RSCPDTO(data_tag, data_type, container_data, current_byte)
+            return RSCPDTO(data_tag, data_type, container_data, current_byte, rscpdata=data)
         elif data_type == RSCPType.Timestamp:
-            data_format = "<iii"
+            data_format = "<III"
             high, low, ms = struct.unpack(data_format,
                                           data[data_header_size:data_header_size + struct.calcsize(data_format)])
             timestamp = float(high + low) + (float(ms) * 1e-9)
-            return RSCPDTO(data_tag, data_type, timestamp, data_header_size + struct.calcsize(data_format))
+            print(timestamp)
+            return RSCPDTO(data_tag, data_type, timestamp, data_header_size + struct.calcsize(data_format), rscpdata=data)
         elif data_type.name == "Nil":
-            return RSCPDTO(data_tag, data_type, None, data_header_size)
+            return RSCPDTO(data_tag, data_type, None, data_header_size, rscpdata=data)
         elif data_type.mapping == 'r':
             data_format = str(data_length) + "s"
         elif data_type.mapping != "s":
@@ -189,10 +190,13 @@ class RSCPUtils:
 
         if self.offline:
             if data_tag == RSCPTag.SERVER_RSCP_DATA:
-                l = [dto for dto in self.decode_data(value)]
-                return RSCPDTO(data_tag, RSCPType.Container, l, data_header_size + struct.calcsize(data_format))
+                decoded = self.decode_data(value)
+                l = [dto for dto in decoded]
+                if len(l) == 1 and l[0] in (None, 0):
+                    l = [decoded]
+                return RSCPDTO(data_tag, RSCPType.Container, l, data_header_size + struct.calcsize(data_format), rscpdata=data)
 
-        return RSCPDTO(data_tag, data_type, value, data_header_size + struct.calcsize(data_format))
+        return RSCPDTO(data_tag, data_type, value, data_header_size + struct.calcsize(data_format), rscpdata=data)
 
     def _check_crc_validity(self, crc: str, frame_data: bytes):
         if crc is not None:

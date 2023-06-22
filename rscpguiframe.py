@@ -883,15 +883,21 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.bEMSManualChargeStart.Enable(True)
 
         startcounter = d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_START_COUNTER'].data / 1000
-        dd = datetime.datetime.fromtimestamp(startcounter)
-        self.txtEMSManualChargeStartCounter.SetValue(dd.strftime(self._time_format))
+        try:
+            dd = datetime.datetime.fromtimestamp(startcounter)
+            self.txtEMSManualChargeStartCounter.SetValue(dd.strftime(self._time_format))
+        except:
+            logger.warning(f'EMS_MANUAL_CHARGE_START_COUNTER konnte nicht konvertiert werden. value: {startcounter}')
 
         self.txtEMSManualChargeEnergyCounter.SetValue(str(
-            round(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ENERGY_COUNTER'], 5)) + ' kWh')  # TODO: Einheit anfügen
+            round(d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_ENERGY_COUNTER'], 5)) + ' kWh')
 
         laststart = d['EMS_GET_MANUAL_CHARGE']['EMS_MANUAL_CHARGE_LASTSTART'].data
-        dd = datetime.datetime.fromtimestamp(laststart)
-        self.txtEMSManualChargeLaststart.SetValue(dd.strftime(self._time_format))
+        try:
+            dd = datetime.datetime.fromtimestamp(laststart)
+            self.txtEMSManualChargeLaststart.SetValue(dd.strftime(self._time_format))
+        except:
+            logger.warning(f'EMS_MANUAL_CHARGE_LASTSTART konnte nicht konvertiert werden value: {laststart}')
 
         self.chEPIsland.SetValue(d['EP_IS_ISLAND_GRID'].data)
         self.chEPReadyForSwitch.SetValue(d['EP_IS_READY_FOR_SWITCH'].data)
@@ -1089,12 +1095,21 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             self.txtPVICosPhiValue.SetValue(repr(data['PVI_COS_PHI']['PVI_COS_PHI_VALUE']))
             self.txtPVICosPhiExcited.SetValue(repr(data['PVI_COS_PHI']['PVI_COS_PHI_EXCITED']))
         except:
-            logger.info('Keine COS-PHI-Werte verfügbar in PVI #' + str(index))
-        self.txtPVIVoltageTrTop.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_THRESHOLD_TOP']))
-        self.txtPVIVoltageTrBottom.SetValue(
-            repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_THRESHOLD_BOTTOM']))
-        self.txtPVIVoltageSlUp.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_SLOPE_UP']))
-        self.txtPVIVoltageSlDown.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_SLOPE_DOWN']))
+            self.txtPVICosPhiValue.SetValue('n/a')
+            self.txtPVICosPhiExcited.SetValue('n/a')
+            logger.warning('Keine COS-PHI-Werte verfügbar in PVI #' + str(index))
+
+        if 'PVI_VOLTAGE_MONITORING' in data:
+            self.txtPVIVoltageTrTop.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_THRESHOLD_TOP']))
+            self.txtPVIVoltageTrBottom.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_THRESHOLD_BOTTOM']))
+            self.txtPVIVoltageSlUp.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_SLOPE_UP']))
+            self.txtPVIVoltageSlDown.SetValue(repr(data['PVI_VOLTAGE_MONITORING']['PVI_VOLTAGE_MONITORING_SLOPE_DOWN']))
+        else:
+            self.txtPVIVoltageTrTop.SetValue('n/a')
+            self.txtPVIVoltageTrBottom.SetValue('n/a')
+            self.txtPVIVoltageSlUp.SetValue('n/a')
+            self.txtPVIVoltageSlDown.SetValue('n/a')
+            logger.warning('Wert PVI_VOLTAGE_MONITORING nicht verfügbar!')
         self.txtPVIPowerMode.SetValue(repr(data['PVI_POWER_MODE']))
         self.txtPVISystemMode.SetValue(repr(data['PVI_SYSTEM_MODE']))
         self.txtPVIMaxTemperature.SetValue(repr(data['PVI_MAX_TEMPERATURE']['PVI_VALUE']))
