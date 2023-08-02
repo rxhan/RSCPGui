@@ -397,6 +397,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                                 self.fill_ems_power()
                             elif p2 == self.m_panel7: # Basis
                                 self.fill_ems_basis()
+                            elif p2 == self.m_panel15: # FEhlermeldungen
+                                self.fill_ems_errors()
                         except:
                             logger.exception('Fehler beim Abruf der EMS-Daten')
                     elif page == self.pPM:
@@ -800,27 +802,36 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.fill_ems_power(d)
         self.fill_ems_errors(d)
 
-    def fill_ems_errors(self, d):
-        logger.info(f'{d}')
+    def fill_ems_errors(self, d=None):
+        if not d:
+            d = self.gui.get_data(self.gui.getEMSBasis(), True)
+
         if 'EMS_STORED_ERRORS' in d:
+            errors = d['EMS_STORED_ERRORS']
             self.gStorederrors.Show()
             self.gStorederrors.DeleteRows(0, self.gStorederrors.GetNumberRows())
-            self.gStorederrors.AppendRows(len(d['EMS_STORED_ERRORS']))
-            row = 0
-            for err in d['EMS_ERROR_CONTAINER']:
-                type = err['EMS_ERROR_TYPE'].data
-                self.gStorederrors.SetCellValue(row, 0, type)
-                source = err['EMS_ERROR_SOURCE'].data
-                self.gStorederrors.SetCellValue(row, 1, source)
-                msg = err['EMS_ERROR_MESSAGE'].data
-                self.gStorederrors.SetCellValue(row, 2, msg)
-                code = err['EMS_ERROR_CODE'].data
-                self.gStorederrors.SetCellValue(row, 3, str(code))
-                ts = err['EMS_ERROR_TIMESTAMP'].data
-                dd = datetime.datetime.fromtimestamp(ts)
-                self.gStorederrors.SetCellValue(row, 4, dd.strftime(self._time_format))
-                row+=1
-            self.gStorederrors.AutoSizeColumns()
+            if len(errors) > 0:
+                self.gStorederrors.AppendRows(len(errors))
+                row = 0
+                for err in errors['EMS_ERROR_CONTAINER']:
+                    typ = err['EMS_ERROR_TYPE'].data
+                    self.gStorederrors.SetCellValue(row, 0, str(typ))
+                    source = err['EMS_ERROR_SOURCE'].data
+                    self.gStorederrors.SetCellValue(row, 1, str(source))
+                    msg = err['EMS_ERROR_MESSAGE'].data
+                    self.gStorederrors.SetCellValue(row, 2, msg)
+                    code = err['EMS_ERROR_CODE'].data
+                    self.gStorederrors.SetCellValue(row, 3, str(code))
+                    try:
+                        ts = float(err['EMS_ERROR_TIMESTAMP'].data)
+                        dd = datetime.datetime.fromtimestamp(ts/1000)
+                        self.gStorederrors.SetCellValue(row, 4, dd.strftime(self._time_format))
+                    except:
+                        self.gStorederrors.SetCellValue(row, 4, str(ts))
+                    row += 1
+
+                if row > 0:
+                    self.gStorederrors.AutoSizeColumns()
         else:
             self.gStorederrors.Hide()
 
