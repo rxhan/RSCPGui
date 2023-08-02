@@ -1,9 +1,7 @@
 import binascii
 import copy
 import datetime
-import json
 import traceback
-from enum import Enum
 from typing import Optional, Union
 
 from e3dc.rscp_tag import RSCPTag, RSCPTag2Type
@@ -14,8 +12,10 @@ This is a data wrapper to send and receive data to the e3dc.
 It consists of a tag, the type, the data and the size of the data.
 """
 
+
 class RSCPDTO:
-    def __init__(self, tag: RSCPTag, rscp_type: RSCPType = RSCPType.Nil, data: Union[list, float, str, None, bytes] = None,
+    def __init__(self, tag: RSCPTag, rscp_type: RSCPType = RSCPType.Nil,
+                 data: Union[list, float, str, None, bytes] = None,
                  size: Optional[int] = None, rscpdata: bytes = None):
         self.tag = tag
         self.type = rscp_type
@@ -53,7 +53,6 @@ class RSCPDTO:
         else:
             return 'None'
 
-
     def __add__(self, other):
         if self.type == RSCPType.Container:
             if isinstance(self.data, list):
@@ -71,7 +70,7 @@ class RSCPDTO:
         raise ArithmeticError
 
     def __copy__(self):
-        return RSCPDTO(tag = self.tag, rscp_type=self.type, data=copy.copy(self.data), size=self.size)
+        return RSCPDTO(tag=self.tag, rscp_type=self.type, data=copy.copy(self.data), size=self.size)
 
     def __iter__(self):
         return self
@@ -88,7 +87,6 @@ class RSCPDTO:
 
         self.current_pos = 0
         raise StopIteration()
-
 
     def __getitem__(self, key):
         if isinstance(self.data, list):
@@ -155,7 +153,7 @@ class RSCPDTO:
 
     def set_data(self, value):
         if self.type == RSCPType.Container and isinstance(value, list):
-            for k,l in enumerate(value):
+            for k, l in enumerate(value):
                 if isinstance(l, RSCPTag):
                     value[k] = RSCPDTO(l)
         elif self.type == RSCPType.Nil:
@@ -191,8 +189,7 @@ class RSCPDTO:
                 return [self.data]
         return None
 
-
-    def asDict(self, translate = False):
+    def asDict(self, translate=False):
         if self.type == RSCPType.Container:
             obj = {}
             dat: RSCPDTO
@@ -222,7 +219,7 @@ class RSCPDTO:
         if self.tag == RSCPTag.LIST_TYPE:
             return obj
         else:
-            return {self.name:obj}
+            return {self.name: obj}
 
     def __round__(self, n=None):
         if self.type != RSCPType.Error:
@@ -275,11 +272,15 @@ class RSCPDTO:
                     error_code = ERROR_CODE(self.data)
                 except ValueError:
                     error_code = str(self.data) + ' (UNKNOWN)'
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(error_code) + " \t rscpdata: " + self.rscpdata_str)
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " +
+                                str(error_code) + " \t rscpdata: " + self.rscpdata_str)
             elif self.type == RSCPType.Timestamp:
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + datetime.datetime.utcfromtimestamp(self.data).isoformat() + " (Dt: " + str(self.data) + ")" + " \t rscpdata: " + self.rscpdata_str)
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " +
+                                datetime.datetime.utcfromtimestamp(self.data).isoformat() + " (Dt: " +
+                                str(self.data) + ")" + " \t rscpdata: " + self.rscpdata_str)
             else:
-                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(self.data) + " \t rscpdata: " + self.rscpdata_str)
+                messages.append("rscp: \t tag: " + self.tag.name + "\t type: " + self.type.name + "\t data: " + str(
+                    self.data) + " \t rscpdata: " + self.rscpdata_str)
 
         return "\n".join(messages)
 
