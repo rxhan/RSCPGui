@@ -1301,7 +1301,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel8.SetSizer( bSizer7 )
 		self.m_panel8.Layout()
 		bSizer7.Fit( self.m_panel8 )
-		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", True )
+		self.m_notebook2.AddPage( self.m_panel8, u"Ladeeinstellungen", False )
 		self.m_panel9 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		fgSizer12 = wx.FlexGridSizer( 0, 2, 0, 0 )
 		fgSizer12.SetFlexibleDirection( wx.BOTH )
@@ -1565,6 +1565,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel15 = wx.Panel( self.m_notebook2, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
 		bSizer201 = wx.BoxSizer( wx.VERTICAL )
 
+		bSizer201.SetMinSize( wx.Size( 400,-1 ) )
 		self.gStorederrors = wx.grid.Grid( self.m_panel15, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		# Grid
@@ -1575,7 +1576,6 @@ class MainFrame ( wx.Frame ):
 		self.gStorederrors.SetMargins( 0, 0 )
 
 		# Columns
-		self.gStorederrors.AutoSizeColumns()
 		self.gStorederrors.EnableDragColMove( False )
 		self.gStorederrors.EnableDragColSize( True )
 		self.gStorederrors.SetColLabelValue( 0, u"Type" )
@@ -1604,7 +1604,7 @@ class MainFrame ( wx.Frame ):
 		self.m_panel15.SetSizer( bSizer201 )
 		self.m_panel15.Layout()
 		bSizer201.Fit( self.m_panel15 )
-		self.m_notebook2.AddPage( self.m_panel15, u"Fehlermeldungen", False )
+		self.m_notebook2.AddPage( self.m_panel15, u"Fehlermeldungen", True )
 
 		bSizer12.Add( self.m_notebook2, 1, wx.EXPAND |wx.ALL, 5 )
 
