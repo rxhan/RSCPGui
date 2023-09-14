@@ -2345,7 +2345,7 @@ class MainFrame ( wx.Frame ):
 		self.m_staticline10 = wx.StaticLine( self.pPVI, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.LI_HORIZONTAL )
 		bSizer6.Add( self.m_staticline10, 0, wx.EXPAND |wx.ALL, 5 )
 
-		self.m_staticText611 = wx.StaticText( self.pPVI, wx.ID_ANY, u"Messdaten Strings (#1 und #2)", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText611 = wx.StaticText( self.pPVI, wx.ID_ANY, u"Messdaten Stringss", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText611.Wrap( -1 )
 
 		bSizer6.Add( self.m_staticText611, 0, wx.ALL, 5 )
@@ -2353,7 +2353,7 @@ class MainFrame ( wx.Frame ):
 		self.gPVIDC = wx.grid.Grid( self.pPVI, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
 
 		# Grid
-		self.gPVIDC.CreateGrid( 4, 3 )
+		self.gPVIDC.CreateGrid( 4, 0 )
 		self.gPVIDC.EnableEditing( True )
 		self.gPVIDC.EnableGridLines( True )
 		self.gPVIDC.EnableDragGridSize( False )
@@ -2362,9 +2362,6 @@ class MainFrame ( wx.Frame ):
 		# Columns
 		self.gPVIDC.EnableDragColMove( False )
 		self.gPVIDC.EnableDragColSize( True )
-		self.gPVIDC.SetColLabelValue( 0, u"#1" )
-		self.gPVIDC.SetColLabelValue( 1, u"#2" )
-		self.gPVIDC.SetColLabelValue( 2, u"Gesamt" )
 		self.gPVIDC.SetColLabelSize( 30 )
 		self.gPVIDC.SetColLabelAlignment( wx.ALIGN_CENTER, wx.ALIGN_CENTER )
 

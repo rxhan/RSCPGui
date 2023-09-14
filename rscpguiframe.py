@@ -813,7 +813,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
             if len(errors) > 0:
                 self.gStorederrors.AppendRows(len(errors))
                 row = 0
-                for err in errors['EMS_ERROR_CONTAINER']:
+                for err in errors:
                     typ = err['EMS_ERROR_TYPE'].data
                     self.gStorederrors.SetCellValue(row, 0, str(typ))
                     source = err['EMS_ERROR_SOURCE'].data
@@ -1137,11 +1137,13 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.chPVIDeviceWorking.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_WORKING'].data)
         self.chPVIDeviceInService.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_IN_SERVICE'].data)
 
-        values = [{}, {}, {}]
+        values = []
         for d in data:
             if d.name in ['PVI_AC_POWER', 'PVI_AC_VOLTAGE', 'PVI_AC_CURRENT', 'PVI_AC_APPARENTPOWER',
                           'PVI_AC_REACTIVEPOWER', 'PVI_AC_ENERGY_ALL', 'PVI_AC_ENERGY_GRID_CONSUMPTION']:
                 index = d['PVI_INDEX'].data
+                while len(values)-1 < int(index):
+                    values.append({})
                 values[index][d.name] = d['PVI_VALUE']
         sum_ac_power = sum_ac_energy_all = sum_ac_energy_grid = 0
         for i in range(0, 3):
@@ -1160,22 +1162,30 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.gPVIAC.SetCellValue(5, 3, str(round(sum_ac_energy_all, 3)) + ' kWh')
         self.gPVIAC.SetCellValue(6, 3, str(round(sum_ac_energy_grid, 3)) + ' kWh')
 
-        values = [{}, {}]
+        values = []
         for d in data:
             if d.name in ['PVI_DC_POWER', 'PVI_DC_VOLTAGE', 'PVI_DC_CURRENT', 'PVI_DC_STRING_ENERGY_ALL']:
                 index = d['PVI_INDEX'].data
+                while len(values)-1 < int(index):
+                    values.append({})
                 values[index][d.name] = d['PVI_VALUE']
         sum_dc_power = sum_dc_energy = 0
-        for i in range(0, 2):
-            self.gPVIDC.SetCellValue(0, i, repr(values[i]['PVI_DC_POWER']) + ' W')
-            sum_dc_power += values[i]['PVI_DC_POWER'].data
-            self.gPVIDC.SetCellValue(1, i, repr(values[i]['PVI_DC_VOLTAGE']) + ' V')
-            self.gPVIDC.SetCellValue(2, i, str(round(values[i]['PVI_DC_CURRENT'], 5)) + ' A')
-            self.gPVIDC.SetCellValue(3, i, str(round(values[i]['PVI_DC_STRING_ENERGY_ALL']) / 1000) + ' kWh')
-            sum_dc_energy += values[i]['PVI_DC_STRING_ENERGY_ALL'].data
 
-        self.gPVIDC.SetCellValue(0, 2, str(round(sum_dc_power, 3)) + ' W')
-        self.gPVIDC.SetCellValue(3, 2, str(round(sum_dc_energy, 3) / 1000) + ' kWh')
+        if self.gPVIDC.NumberCols == 0:
+            self.gPVIDC.AppendCols(len(values)+1, True)
+
+        for i, value in enumerate(values):
+            self.gPVIDC.SetColLabelValue(i, f'#{i+1}')
+            self.gPVIDC.SetCellValue(0, i, repr(value['PVI_DC_POWER']) + ' W')
+            sum_dc_power += value['PVI_DC_POWER'].data
+            self.gPVIDC.SetCellValue(1, i, repr(value['PVI_DC_VOLTAGE']) + ' V')
+            self.gPVIDC.SetCellValue(2, i, str(round(value['PVI_DC_CURRENT'], 5)) + ' A')
+            self.gPVIDC.SetCellValue(3, i, str(round(value['PVI_DC_STRING_ENERGY_ALL']) / 1000) + ' kWh')
+            sum_dc_energy += value['PVI_DC_STRING_ENERGY_ALL'].data
+
+        self.gPVIDC.SetColLabelValue(i+1, 'Gesamt:')
+        self.gPVIDC.SetCellValue(0, i+1, str(round(sum_dc_power, 3)) + ' W')
+        self.gPVIDC.SetCellValue(3, i+1, str(round(sum_dc_energy, 3) / 1000) + ' kWh')
 
         update = False
         if self.gPVITemps.GetNumberRows() != data['PVI_TEMPERATURE_COUNT'].data:
