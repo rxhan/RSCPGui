@@ -1,8 +1,8 @@
 py3rijndael~=0.3.3
-wxPython==4.2.0
-requests==2.28.2
-websocket-client==1.5.1
-pytz==2022.7.1
+wxPython==4.2.1
+requests==2.31
+websocket-client==1.6.3
+pytz==2023.3.post1
 paho-mqtt==1.6.1
 influxdb~=5.3.0
-python-telegram-bot==20.1
+python-telegram-bot==20.5
