@@ -8,7 +8,7 @@ Die Schnittstelle basiert auf der Library von MatrixCrawler (https://github.com/
 
 # Abhängigkeiten
 
-Getestet wurde mit Python 3.10, ältere Versionen bis 3.7 sollten ebenfalls funktionieren.
+Getestet wurde mit Python 3.10/3.11, ältere Versionen bis 3.7 sollten ebenfalls funktionieren.
 Grundsätzlich sollte das Programm Plattformunabhängig sein, es wurde jedoch ausschließlich mit Windows getestet.
 
 
