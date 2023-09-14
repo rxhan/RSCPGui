@@ -1338,36 +1338,156 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
                     logger.debug('Fülle weitere Infos für DCB #' + str(index))
                     dd = datetime.datetime.fromtimestamp(int(d['BAT_DCB_LAST_MESSAGE_TIMESTAMP']) / 1000)
                     self.gDCB.SetCellValue(0, index, str(dd))
-                    self.gDCB.SetCellValue(1, index, str(round(d['BAT_DCB_MAX_CHARGE_VOLTAGE'],3)) + ' V')
-                    self.gDCB.SetCellValue(2, index, str(round(d['BAT_DCB_MAX_CHARGE_CURRENT'],5)) + ' A')
-                    self.gDCB.SetCellValue(3, index, str(round(d['BAT_DCB_END_OF_DISCHARGE'],3)) + ' V')
-                    self.gDCB.SetCellValue(4, index, str(round(d['BAT_DCB_MAX_DISCHARGE_CURRENT'],5)) + ' A')
-                    self.gDCB.SetCellValue(5, index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'], 5)) + ' Ah')
-                    self.gDCB.SetCellValue(6, index, str(round(d['BAT_DCB_REMAINING_CAPACITY'], 5)) + ' Ah')
-                    self.gDCB.SetCellValue(7, index, str(round(d['BAT_DCB_SOC'],2)) + '%')
-                    self.gDCB.SetCellValue(8, index, str(round(d['BAT_DCB_SOH'],2)) + '%')
-                    self.gDCB.SetCellValue(9, index, str(round(d['BAT_DCB_CYCLE_COUNT'],0)))
-                    self.gDCB.SetCellValue(10, index, str(round(d['BAT_DCB_CURRENT'], 5)) + ' A')
-                    self.gDCB.SetCellValue(11, index, str(round(d['BAT_DCB_VOLTAGE'], 2)) + ' V')
-                    self.gDCB.SetCellValue(12, index, str(round(d['BAT_DCB_CURRENT_AVG_30S'], 5)) + ' A')
-                    self.gDCB.SetCellValue(13, index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'], 2)) + ' V')
-                    self.gDCB.SetCellValue(14, index, str(round(d['BAT_DCB_DESIGN_CAPACITY'], 5)) + ' Ah')
-                    self.gDCB.SetCellValue(15, index, str(round(d['BAT_DCB_DESIGN_VOLTAGE'],2)) + ' V')
-                    self.gDCB.SetCellValue(16, index, str(round(d['BAT_DCB_CHARGE_LOW_TEMPERATURE'],3)) + ' °C')
-                    self.gDCB.SetCellValue(17, index, str(round(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE'],3)) + ' °C')
-                    self.gDCB.SetCellValue(18, index, repr(d['BAT_DCB_MANUFACTURE_NAME']))
-                    self.gDCB.SetCellValue(19, index, repr(d['BAT_DCB_DEVICE_NAME']))
-                    self.gDCB.SetCellValue(20, index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
-                    self.gDCB.SetCellValue(21, index, repr(d['BAT_DCB_SERIALNO']))
-                    self.gDCB.SetCellValue(22, index, repr(d['BAT_DCB_FW_VERSION']))
-                    self.gDCB.SetCellValue(23, index, repr(d['BAT_DCB_PCB_VERSION']))
-                    self.gDCB.SetCellValue(24, index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
-                    self.gDCB.SetCellValue(25, index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
-                    self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_NR_SERIES_CELL']))
-                    self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
-                    self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_SERIALCODE']))
-                    self.gDCB.SetCellValue(29, index, repr(d['BAT_DCB_NR_SENSOR']))
-                    self.gDCB.SetCellValue(30, index, repr(d['BAT_DCB_STATUS']))
+
+                    try:
+                        self.gDCB.SetCellValue(1, index, str(round(d['BAT_DCB_MAX_CHARGE_VOLTAGE'],3)) + ' V')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_MAX_CHARGE_VOLTAGE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(2, index, str(round(d['BAT_DCB_MAX_CHARGE_CURRENT'],5)) + ' A')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_MAX_CHARGE_CURRENT nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(3, index, str(round(d['BAT_DCB_END_OF_DISCHARGE'],3)) + ' V')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_END_OF_DISCHARGE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(4, index, str(round(d['BAT_DCB_MAX_DISCHARGE_CURRENT'],5)) + ' A')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_MAX_DISCHARGE_CURRENT nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(5, index, str(round(d['BAT_DCB_FULL_CHARGE_CAPACITY'], 5)) + ' Ah')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_FULL_CHARGE_CAPACITY nicht verfügbar!')
+                    try:
+                        self.gDCB.SetCellValue(6, index, str(round(d['BAT_DCB_REMAINING_CAPACITY'], 5)) + ' Ah')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_REMAINING_CAPACITY nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(7, index, str(round(d['BAT_DCB_SOC'],2)) + '%')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_SOC nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(8, index, str(round(d['BAT_DCB_SOH'],2)) + '%')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_SOH nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(9, index, str(round(d['BAT_DCB_CYCLE_COUNT'],0)))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_CYCLE_COUNT nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(10, index, str(round(d['BAT_DCB_CURRENT'], 5)) + ' A')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_CURRENT nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(11, index, str(round(d['BAT_DCB_VOLTAGE'], 2)) + ' V')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_VOLTAGE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(12, index, str(round(d['BAT_DCB_CURRENT_AVG_30S'], 5)) + ' A')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_CURRENT_AVG_30S nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(13, index, str(round(d['BAT_DCB_VOLTAGE_AVG_30S'], 2)) + ' V')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_VOLTAGE_AVG_30S nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(14, index, str(round(d['BAT_DCB_DESIGN_CAPACITY'], 5)) + ' Ah')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_DESIGN_CAPACITY nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(15, index, str(round(d['BAT_DCB_DESIGN_VOLTAGE'],2)) + ' V')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_DESIGN_VOLTAGE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(16, index, str(round(d['BAT_DCB_CHARGE_LOW_TEMPERATURE'],3)) + ' °C')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_CHARGE_LOW_TEMPERATURE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(17, index, str(round(d['BAT_DCB_CHARGE_HIGH_TEMPERATURE'],3)) + ' °C')
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_CHARGE_HIGH_TEMPERATURE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(18, index, repr(d['BAT_DCB_MANUFACTURE_NAME']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_MANUFACTURE_NAME nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(19, index, repr(d['BAT_DCB_DEVICE_NAME']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_DEVICE_NAME nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(20, index, repr(d['BAT_DCB_MANUFACTURE_DATE']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_MANUFACTURE_DATE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(21, index, repr(d['BAT_DCB_SERIALNO']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_SERIALNO nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(22, index, repr(d['BAT_DCB_FW_VERSION']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_FW_VERSION nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(23, index, repr(d['BAT_DCB_PCB_VERSION']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_PCB_VERSION nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(24, index, repr(d['BAT_DCB_DATA_TABLE_VERSION']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_DATA_TABLE_VERSION nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(25, index, repr(d['BAT_DCB_PROTOCOL_VERSION']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_PROTOCOL_VERSION nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(26, index, repr(d['BAT_DCB_NR_SERIES_CELL']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_NR_SERIES_CELL nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(27, index, repr(d['BAT_DCB_NR_PARALLEL_CELL']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_NR_PARALLEL_CELL nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(28, index, repr(d['BAT_DCB_SERIALCODE']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_SERIALCODE nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(29, index, repr(d['BAT_DCB_NR_SENSOR']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_NR_SENSOR nicht verfügbar!')
+
+                    try:
+                        self.gDCB.SetCellValue(30, index, repr(d['BAT_DCB_STATUS']))
+                    except AttributeError:
+                        logger.warning('Wert BAT_DCB_STATUS nicht verfügbar!')
+
                     logger.debug('Weitere Infos für DCB #' + str(index) + ' gefüllt')
 
         if dcbcount > 1:

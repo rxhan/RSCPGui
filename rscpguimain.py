@@ -1241,12 +1241,35 @@ class RSCPGuiMain():
 
                 for dcb in dcbinfo:
                     datadcb = {}
-                    datadcb['cyclecount'] = dcb['BAT_DCB_CYCLE_COUNT'].data
-                    datadcb['soh'] = dcb['BAT_DCB_SOH'].data
-                    datadcb['maxchargevoltage'] = dcb['BAT_DCB_MAX_CHARGE_VOLTAGE'].data
-                    datadcb['endofdischarge'] = dcb['BAT_DCB_END_OF_DISCHARGE'].data
-                    datadcb['manufacture'] = dcb['BAT_DCB_MANUFACTURE_NAME'].data
-                    datadcb['type'] = dcb['BAT_DCB_DEVICE_NAME'].data
+                    try:
+                        datadcb['cyclecount'] = dcb['BAT_DCB_CYCLE_COUNT'].data
+                    except AttributeError:
+                        datadcb['cyclecount'] = '-1'
+
+                    try:
+                        datadcb['soh'] = dcb['BAT_DCB_SOH'].data
+                    except AttributeError:
+                        datadcb['soh'] = '-1'
+
+                    try:
+                        datadcb['maxchargevoltage'] = dcb['BAT_DCB_MAX_CHARGE_VOLTAGE'].data
+                    except AttributeError:
+                        datadcb['maxchargevoltage'] = '-1'
+
+                    try:
+                        datadcb['endofdischarge'] = dcb['BAT_DCB_END_OF_DISCHARGE'].data
+                    except AttributeError:
+                        datadcb['endofdischarge'] = '-1'
+
+                    try:
+                        datadcb['manufacture'] = dcb['BAT_DCB_MANUFACTURE_NAME'].data
+                    except AttributeError:
+                        datadcb['manufacture'] = '-1'
+
+                    try:
+                        datadcb['type'] = dcb['BAT_DCB_DEVICE_NAME'].data
+                    except AttributeError:
+                        datadcb['type'] = '-1'
 
                     databat['dcb'].append(datadcb)
 
