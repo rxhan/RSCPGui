@@ -48,10 +48,22 @@ class MainFrame ( wx.Frame ):
 
 		gSizer2.Add( self.m_staticText61, 0, wx.ALL, 5 )
 
+		fgSizer462 = wx.FlexGridSizer( 0, 2, 0, 0 )
+		fgSizer462.SetFlexibleDirection( wx.BOTH )
+		fgSizer462.SetNonFlexibleGrowMode( wx.FLEX_GROWMODE_SPECIFIED )
+
 		self.txtSerialnumber = wx.TextCtrl( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 120,-1 ), 0 )
 		self.txtSerialnumber.Enable( False )
 
-		gSizer2.Add( self.txtSerialnumber, 0, wx.ALL, 5 )
+		fgSizer462.Add( self.txtSerialnumber, 0, wx.ALL, 5 )
+
+		self.txtModelname = wx.StaticText( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtModelname.Wrap( -1 )
+
+		fgSizer462.Add( self.txtModelname, 0, wx.ALL, 5 )
+
+
+		gSizer2.Add( fgSizer462, 1, wx.EXPAND, 5 )
 
 		self.m_staticText71 = wx.StaticText( self.pMain, wx.ID_ANY, u"Softwarerelease", wx.DefaultPosition, wx.DefaultSize, 0 )
 		self.m_staticText71.Wrap( -1 )
@@ -212,6 +224,24 @@ class MainFrame ( wx.Frame ):
 
 		self.chDHCP = wx.CheckBox( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer2.Add( self.chDHCP, 0, wx.ALL, 5 )
+
+		self.m_staticText692 = wx.StaticText( self.pMain, wx.ID_ANY, u"UPNP aktiv", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText692.Wrap( -1 )
+
+		gSizer2.Add( self.m_staticText692, 0, wx.ALL, 5 )
+
+		self.chUPNP = wx.CheckBox( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		gSizer2.Add( self.chUPNP, 0, wx.ALL, 5 )
+
+		self.m_staticText6921 = wx.StaticText( self.pMain, wx.ID_ANY, u"RSCP Passwort gesetzt", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText6921.Wrap( -1 )
+
+		gSizer2.Add( self.m_staticText6921, 0, wx.ALL, 5 )
+
+		self.chRSCPPasswordSet = wx.CheckBox( self.pMain, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.chRSCPPasswordSet.Enable( False )
+
+		gSizer2.Add( self.chRSCPPasswordSet, 0, wx.ALL, 5 )
 
 		self.bINFOSave = wx.Button( self.pMain, wx.ID_ANY, u"Änderungen übertragen", wx.DefaultPosition, wx.DefaultSize, 0 )
 		gSizer2.Add( self.bINFOSave, 0, wx.ALL, 5 )

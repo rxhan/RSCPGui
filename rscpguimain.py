@@ -380,8 +380,28 @@ class RSCPGuiMain():
             return 'P10-' + sn
         elif sn[0:2] == '60':
             return 'Q10-' + sn
+        elif sn[0:2] in ('85', '81', '82'):
+            return 'H20-' + sn
         else:
             return 'S10-' + sn
+
+    def getModelFromSerial(self, sn):
+        sn = sn[4:]
+        if sn[0:1] == '4' or sn[0:2] == '72':
+            return "S10E"
+        if sn[0:2] == '74':
+            return "S10E Compact"
+        if sn[0:1] == '5':
+            return "S10 Mini"
+        if sn[0:1] == '6':
+            return "Quattroporte"
+        if sn[0:2] == '70':
+            return "S10E Pro"
+        if sn[0:2] == '75':
+            return "S10E Pro Compact"
+        if sn[0:1] == '8':
+            return "S10X"
+        return "Unknown"
 
     def getSerialnoFromWeb(self, username, password):
         logger.debug('Ermittle Seriennummer über Webzugriff')

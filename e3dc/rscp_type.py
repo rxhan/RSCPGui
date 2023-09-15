@@ -20,6 +20,7 @@ _data_type_mapping = {
     "Nil": None,
 }
 
+
 class PM_TYPE(Enum):
     UNDEFINED = 0
     ROOT = 1
@@ -31,6 +32,7 @@ class PM_TYPE(Enum):
     WALLBOX = 7
     FARM_ADDITIONAL = 8
 
+
 class PM_MODE(Enum):
     ACTIVE = 0
     PASSIVE = 1
@@ -38,6 +40,7 @@ class PM_MODE(Enum):
     ERROR_ACTIVE = 3
     ERROR_PASSIVE = 4
     UNKNOWN_65 = 65
+
 
 class PM_ACTIVE_PHASES(Enum):
     PHASE_100 = 1
@@ -48,10 +51,12 @@ class PM_ACTIVE_PHASES(Enum):
     PHASE_011 = 6
     PHASE_111 = 7
 
+
 class PVI_TYPE(Enum):
     SOLU = 1
     KACO = 2
     E3DC_E = 3
+
 
 class PVI_SYSTEM_MODE(Enum):
     IDLE = 0
@@ -59,37 +64,42 @@ class PVI_SYSTEM_MODE(Enum):
     GRIDCHARGE = 2
     BACKUPPOWER = 3
 
+
 class PVI_POWER_MODE(Enum):
     ON = 1
     OFF = 0
     ON_FORCE = 101
     OFF_FORCE = 100
 
+
 class EMS_GENERATOR_STATE(Enum):
-    IDLE=0x00
-    HEATUP=0x01
-    HEATUPDONE=0x02
-    STARTING=0x03
-    STARTINGPAUSE=0x04
-    RUNNING=0x05
-    STOPPING=0x06
-    STOPPED=0x07
-    RELAISCONTROLMODE=0x10
-    NO_GENERATOR=0xFF
+    IDLE = 0x00
+    HEATUP = 0x01
+    HEATUPDONE = 0x02
+    STARTING = 0x03
+    STARTINGPAUSE = 0x04
+    RUNNING = 0x05
+    STOPPING = 0x06
+    STOPPED = 0x07
+    RELAISCONTROLMODE = 0x10
+    NO_GENERATOR = 0xFF
+
 
 class EMS_COUPLING_MODE(Enum):
-    DC=0
-    DC_MULTIWR=1
-    AC=2
-    HYBRID=3
-    ISLAND=4
+    DC = 0
+    DC_MULTIWR = 1
+    AC = 2
+    HYBRID = 3
+    ISLAND = 4
+
 
 class EMS_SET_POWER_MODE(Enum):
-    NORMAL=0
-    IDLE=1
-    ENTLADEN=2
-    LADEN=3
-    NETZLADEN=4
+    NORMAL = 0
+    IDLE = 1
+    ENTLADEN = 2
+    LADEN = 3
+    NETZLADEN = 4
+
 
 class EMS_EMERGENCY_POWER_STATUS(Enum):
     NOT_POSSIBLE = 0x00
@@ -98,19 +108,23 @@ class EMS_EMERGENCY_POWER_STATUS(Enum):
     NOT_AVAILABLE = 0x03
     SWITCH_IN_ISLAND_STATE = 0x04
 
+
 class EMS_SET_EMERGENCY_POWER(Enum):
     NORMAL_GRID_MODE = 0x00
     EMERGENCY_MODE = 0x01
     ISLAND_NO_POWER_MODE = 0x02
 
+
 class WB_MODE(Enum):
     NONE = 0
-    LOADING = 144 #00001001
-    NOT_LOADING = 128 #00000001
+    LOADING = 144  # 00001001
+    NOT_LOADING = 128  # 00000001
+
 
 class WB_TYPE(Enum):
     E3DC = 1
     EASYCONNECT = 2
+
 
 class RSCP_USER_LEVEL(Enum):
     NO_AUTH = 0
@@ -121,18 +135,26 @@ class RSCP_USER_LEVEL(Enum):
     E3DC_ADMIN = 50
     E3DC_ROOT = 60
 
+
 class UM_UPDATE_STATUS(Enum):
-    IDLE=0x00
-    UPDATE_CHECK_RUNNING=0x01
-    UPDATING_MODULES_AND_FILES=0x02
-    UPDATING_HARDWARE=0x03
+    IDLE = 0x00
+    UPDATE_CHECK_RUNNING = 0x01
+    UPDATING_MODULES_AND_FILES = 0x02
+    UPDATING_HARDWARE = 0x03
+
 
 class ERROR_CODE(Enum):
-    ERR_NOT_HANDLED=0x01
-    ERR_ACCESS_DENIED=0x02
-    ERR_FORMAT=0x03
-    ERR_AGAIN=0x04
-    ERR_UNKNOWN=-1
+    ERR_NOT_HANDLED = 0x01
+    ERR_ACCESS_DENIED = 0x02
+    ERR_FORMAT = 0x03
+    ERR_AGAIN = 0x04
+    RSCP_ERR_OUT_OF_BOUNDS = 0x05
+    RSCP_ERR_NOT_AVAILABLE = 0x06
+    RSCP_ERR_UNKNOWN_TAG = 0x07
+    RSCP_ERR_ALREADY_IN_USE = 0x08
+    UNEXPECTED = 0xFFFFFFFF
+    ERR_UNKNOWN = -1
+
 
 class RSCPType(Enum):
     Nil = 0x00

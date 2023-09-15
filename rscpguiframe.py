@@ -740,7 +740,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         d = self._data_info
 
         self.txtProductionDate.SetValue(repr(d['INFO_PRODUCTION_DATE']))
-        self.txtSerialnumber.SetValue(repr(d['INFO_SERIAL_NUMBER']))
+        sn = repr(d['INFO_SERIAL_NUMBER'])
+        self.txtSerialnumber.SetValue(sn)
+        self.txtModelname.SetLabel(RSCPGuiMain.getModelFromSerial(self, sn))
         self.txtSwRelease.SetValue(repr(d['INFO_SW_RELEASE']))
         self.txtA35Serial.SetValue(repr(d['INFO_A35_SERIAL_NUMBER']))
         dd = datetime.datetime.utcfromtimestamp(float(d['INFO_TIME'].data))
@@ -762,6 +764,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtFilesystemPercent.SetValue(repr(d['INFO_GET_FS_USAGE']['INFO_FS_USE_PERCENT']))
         ts = repr(d['INFO_GET_FS_USAGE']['INFO_FS_USED']) + ' von ' + repr(d['INFO_GET_FS_USAGE']['INFO_FS_SIZE']) + ' in Verwendung, ' + repr(d['INFO_GET_FS_USAGE']['INFO_FS_AVAILABLE']) + ' frei'
         self.txtFilesystem.SetValue(ts)
+
+        self.chUPNP.SetValue(d['INFO_UPNP_STATUS'].data)
+        self.chRSCPPasswordSet.SetValue(d['INFO_IS_RSCP_PASSWORD_SET'].data)
 
         if 'INFO_MODULES_SW_VERSIONS' in d:
             self.gSoftwaremodules.Show()
@@ -2302,6 +2307,10 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         if test != self._data_info['INFO_DHCP_STATUS'].data:
             r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_DHCP_STATUS, rscp_type=RSCPType.Bool, data=test))
 
+        test = self.chUPNP.GetValue()
+        if test != self._data_info['INFO_UPNP_STATUS'].data:
+            r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_UPNP_STATUS, rscp_type=RSCPType.Bool, data=test))
+
         if len(r) == 0:
             res = wx.MessageBox('Es wurden keine Änderungen gemacht, aktuelle Einstellungen trotzdem übertragen?',
                                 'Info speichern', wx.YES_NO)
@@ -2323,6 +2332,9 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
 
                 test = self.chDHCP.GetValue()
                 r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_DHCP_STATUS, rscp_type=RSCPType.Bool, data=test))
+
+                test = self.chUPNP.GetValue()
+                r.append(RSCPDTO(tag=RSCPTag.INFO_REQ_SET_UPNP_STATUS, rscp_type=RSCPType.Bool, data=test))
 
         if len(r) > 0:
             res = wx.MessageBox(

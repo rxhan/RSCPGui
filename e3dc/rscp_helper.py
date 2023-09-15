@@ -161,6 +161,8 @@ class rscp_helper():
         requests.append(RSCPTag.INFO_REQ_GATEWAY)
         requests.append(RSCPTag.INFO_REQ_DNS)
         requests.append(RSCPTag.INFO_REQ_DHCP_STATUS)
+        requests.append(RSCPTag.INFO_REQ_IS_RSCP_PASSWORD_SET)
+        requests.append(RSCPTag.INFO_REQ_UPNP_STATUS)
         #requests.append(RSCPTag.INFO_REQ_GET_FACILITY) -> Leere Tags (INFO_NAME, INFO_STREET, INFO_STREET_NO, INFO_POSTCODE, INFO_CITY, INFO_FON, INFO_E_MAIL, INFO_COUNTRY)
         #requests.append(RSCPTag.INFO_REQ_IS_CALIBRATED) #-> Fehler (ACCESS_DENIED)
         #requests.append(RSCPTag.INFO_REQ_HW_TIME) #-> Fehler (ACCESS_DENIED)

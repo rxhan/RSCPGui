@@ -168,7 +168,6 @@ class RSCPUtils:
             high, low, ms = struct.unpack(data_format,
                                           data[data_header_size:data_header_size + struct.calcsize(data_format)])
             timestamp = float(high + low) + (float(ms) * 1e-9)
-            print(timestamp)
             return RSCPDTO(data_tag, data_type, timestamp, data_header_size + struct.calcsize(data_format), rscpdata=data)
         elif data_type.name == "Nil":
             return RSCPDTO(data_tag, data_type, None, data_header_size, rscpdata=data)
