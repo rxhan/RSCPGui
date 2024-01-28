@@ -1046,6 +1046,7 @@ class RSCPGuiMain():
 
         requests = self.gui.getInfo() + self.gui.getUpdateStatus() + self.gui.getInfoAdditional()
         data = self.gui.get_data(requests, True, waittime=0.1)
+        rscp_data = self.gui.get_data(self.gui.getUPNPData(), True)
 
         logger.debug('Abruf INFO-Daten abgeschlossen')
         return data
@@ -1264,32 +1265,33 @@ class RSCPGuiMain():
                     try:
                         datadcb['cyclecount'] = dcb['BAT_DCB_CYCLE_COUNT'].data
                     except AttributeError:
-                        datadcb['cyclecount'] = '-1'
+                        datadcb['cyclecount'] = bat['BAT_CHARGE_CYCLES'].data
 
                     try:
                         datadcb['soh'] = dcb['BAT_DCB_SOH'].data
                     except AttributeError:
-                        datadcb['soh'] = '-1'
+                        datadcb['soh'] = bat['BAT_ASOC'].data
 
                     try:
                         datadcb['maxchargevoltage'] = dcb['BAT_DCB_MAX_CHARGE_VOLTAGE'].data
                     except AttributeError:
-                        datadcb['maxchargevoltage'] = '-1'
+                        datadcb['maxchargevoltage'] = bat['BAT_MAX_BAT_VOLTAGE'].data
 
                     try:
                         datadcb['endofdischarge'] = dcb['BAT_DCB_END_OF_DISCHARGE'].data
                     except AttributeError:
-                        datadcb['endofdischarge'] = '-1'
+                        datadcb['endofdischarge'] = bat['BAT_EOD_VOLTAGE'].data
 
                     try:
                         datadcb['manufacture'] = dcb['BAT_DCB_MANUFACTURE_NAME'].data
                     except AttributeError:
-                        datadcb['manufacture'] = '-1'
+                        #datadcb['manufacture'] = bat['BAT_']
+                        datadcb['manufacture'] = bat['BAT_DEVICE_NAME'].data
 
                     try:
                         datadcb['type'] = dcb['BAT_DCB_DEVICE_NAME'].data
                     except AttributeError:
-                        datadcb['type'] = '-1'
+                        datadcb['type'] = bat['BAT_DCB_TYPE'].data
 
                     databat['dcb'].append(datadcb)
 

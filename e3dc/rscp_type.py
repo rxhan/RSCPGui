@@ -40,6 +40,7 @@ class PM_MODE(Enum):
     ERROR_ACTIVE = 3
     ERROR_PASSIVE = 4
     UNKNOWN_65 = 65
+    UNKNOWN_81 = 81
 
 
 class PM_ACTIVE_PHASES(Enum):
@@ -56,6 +57,7 @@ class PVI_TYPE(Enum):
     SOLU = 1
     KACO = 2
     E3DC_E = 3
+    UNKNOWN_6 = 6 # Bei H85-Systemen gesehen
 
 
 class PVI_SYSTEM_MODE(Enum):

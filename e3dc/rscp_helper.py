@@ -23,7 +23,7 @@ class rscp_helper():
         if not requests:
             requests = []
         requests += self.getBatData(bat_index=0, dcb_indexes=[0, 1])
-        requests += self.getDCDCData(dcdc_indexes=[0, 1])
+        requests += self.getDCDCData(dcdc_indexes=[0, 1, 2])
         requests += self.getEMSData()
         requests += self.getPMData(pm_indexes=[0, 1])
         requests += self.getPVIData()
@@ -124,10 +124,14 @@ class rscp_helper():
         return requests
 
     #TODO: Weiter mit Leben füllen
-    def getDB(self, start, intervall, span):
-        start = int(datetime.datetime.now().timestamp())
-        intervall = 3600
-        span = 3600
+    def getDB(self, start=None, intervall=None, span=None):
+
+        if not start:
+            start = int(datetime.datetime.now().timestamp())-86400
+        if not intervall:
+            intervall = 3600
+        if not span:
+            span = intervall
 
         container = []
         container.append(RSCPDTO(tag=RSCPTag.DB_REQ_HISTORY_TIME_START, rscp_type=RSCPType.Uint64, data=start))
@@ -200,10 +204,13 @@ class rscp_helper():
             r += RSCPTag.BAT_REQ_DCB_COUNT
             try:
                 data = self.get_data([r], True)
+                if data.type == RSCPType.Error:
+                    raise Exception('Bat #' + str(bat_index) + ' steht nicht zur Verfügung (nicht vorhanden)')
                 logger.debug('Bat #' + str(bat_index) + ' scheint aktiv zu sein, rufe weitere Daten ab')
                 requests += self.getBatData(bat_index=bat_index, dcb_indexes=range(0, data['BAT_DCB_COUNT'].data))
+
             except:
-                logger.debug('Bat #' + str(bat_index) + ' steht nicht zur Verfügung')
+                logger.debug('Bat #' + str(bat_index) + ' steht nicht zur Verfügung (Error)')
 
 
         return requests
@@ -243,6 +250,15 @@ class rscp_helper():
             r += RSCPTag.BAT_REQ_INTERNALS
             r += RSCPTag.BAT_REQ_TOTAL_USE_TIME
             r += RSCPTag.BAT_REQ_TOTAL_DISCHARGE_TIME
+            #r += RSCPTag.BAT_REQ_MAX_DCB_CELL_CURRENT -> in S45 und H85 Systemen immer 0, scheinbar nicht übertragen
+            #r += RSCPTag.BAT_REQ_MIN_DCB_CELL_CURRENT
+            r += RSCPTag.BAT_REQ_MAX_DCB_CELL_VOLTAGE
+            r += RSCPTag.BAT_REQ_MIN_DCB_CELL_VOLTAGE
+
+            r += RSCPTag.BAT_REQ_DCB_ERROR_LIST
+            r += RSCPTag.BAT_REQ_BPM_STATUS
+            r += RSCPTag.BAT_REQ_DCB_TYPE
+            # r += RSCPTag.BAT_REQ_DCB_INFO -> auch ohne DCB Index bei H85 Systemen möglich (HV)
 
             if dcb_indexes:
                 for dcb_index in dcb_indexes:
@@ -371,6 +387,8 @@ class rscp_helper():
 
         requests.append(RSCPTag.EMS_REQ_STATUS)
 
+        requests.append(RSCPTag.EMS_REQ_IS_PV_DERATING)
+
         return requests
 
     def getEMSData(self):
@@ -425,6 +443,17 @@ class rscp_helper():
 
         return requests
 
+    def getUPNPData(self):
+        requests = []
+
+        #requests.append(RSCPTag.UPNPC_REQ_DEFAULT_LIST) # R_ACCESS_DENIED
+        requests.append(RSCPTag.UPNPC_REQ_SERVICE_LIST)
+        #requests.append(RSCPTag.UPNPC_REQ_DEFAULT_LIST_REV) # ERR_ACCESS_DENIED
+        #requests.append(RSCPTag.UPNPC_REQ_SERVICE_LIST_REV) # ERR_ACCESS_DENIED
+        requests.append(RSCPTag.RSCP_REQ_SUPPORTED_PROTOCOL_VERSIONS)
+
+        return requests
+
     def getPVIData(self, pvi_index=0, pvi_indexes=None, phase=None, string=None):
         requests = []
 
@@ -469,6 +498,19 @@ class rscp_helper():
             r += RSCPTag.PVI_REQ_MIN_TEMPERATURE
             r += RSCPTag.PVI_REQ_AC_MAX_APPARENTPOWER
             r += RSCPTag.PVI_REQ_DEVICE_STATE
+            r += RSCPTag.PVI_REQ_USED_STRING_COUNT
+            r += RSCPTag.PVI_REQ_LAND_CODE
+            #r += RSCPTag.PVI_REQ_LAND_CODE_LIST - ERR_ACCESS_DENIED
+            #r += RSCPTag.PVI_REQ_SET_LAND_CODE
+            r += RSCPTag.PVI_REQ_ERROR_LIST
+            r += RSCPTag.PVI_REQ_STATUS_LIST
+            #r += RSCPTag.PVI_REQ_SET_DEVICE_SILENCE - ERR_ACCESS_DENIED
+            #r += RSCPTag.PVI_REQ_DEVICE_SILENCE
+            #r += RSCPTag.PVI_REQ_SELF_TEST
+            #r += RSCPTag.PVI_REQ_SET_FREE_INVERTER
+            #r += RSCPTag.PVI_REQ_SET_BLOCK_INVERTER
+
+            #r += RSCPTag.PVI_REQ_DERATE_TO_POWER - ERR_ACCESS_DENIED mit normalen USER-Rechten
 
             for phase in phases:
                 r += RSCPDTO(tag=RSCPTag.PVI_REQ_AC_POWER, data=phase)

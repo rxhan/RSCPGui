@@ -2106,7 +2106,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer4.Add( self.m_staticText36, 0, wx.ALL, 5 )
 
-		self.txtPVISerialNumber = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtPVISerialNumber = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), 0 )
 		self.txtPVISerialNumber.Enable( False )
 
 		gSizer4.Add( self.txtPVISerialNumber, 0, wx.ALL, 5 )
@@ -2116,7 +2116,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer4.Add( self.m_staticText37, 0, wx.ALL, 5 )
 
-		self.txtPVIType = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtPVIType = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), 0 )
 		self.txtPVIType.Enable( False )
 
 		gSizer4.Add( self.txtPVIType, 0, wx.ALL, 5 )
@@ -2126,7 +2126,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer4.Add( self.m_staticText38, 0, wx.ALL, 5 )
 
-		self.txtPVIVersionMain = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtPVIVersionMain = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
 		self.txtPVIVersionMain.Enable( False )
 
 		gSizer4.Add( self.txtPVIVersionMain, 0, wx.ALL, 5 )
@@ -2136,7 +2136,7 @@ class MainFrame ( wx.Frame ):
 
 		gSizer4.Add( self.m_staticText39, 0, wx.ALL, 5 )
 
-		self.txtPVIVersionPic = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.txtPVIVersionPic = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 150,-1 ), 0 )
 		self.txtPVIVersionPic.Enable( False )
 
 		gSizer4.Add( self.txtPVIVersionPic, 0, wx.ALL, 5 )
@@ -2320,6 +2320,16 @@ class MainFrame ( wx.Frame ):
 		self.txtPVIFreqMin.Enable( False )
 
 		gSizer4.Add( self.txtPVIFreqMin, 0, wx.ALL, 5 )
+
+		self.m_staticText601 = wx.StaticText( self.pPVI, wx.ID_ANY, u"Land code", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.m_staticText601.Wrap( -1 )
+
+		gSizer4.Add( self.m_staticText601, 0, wx.ALL, 5 )
+
+		self.txtPVILandCode = wx.TextCtrl( self.pPVI, wx.ID_ANY, wx.EmptyString, wx.DefaultPosition, wx.Size( 200,-1 ), 0 )
+		self.txtPVILandCode.Enable( False )
+
+		gSizer4.Add( self.txtPVILandCode, 0, wx.ALL, 5 )
 
 
 		fgSizer25.Add( gSizer4, 1, wx.EXPAND, 5 )

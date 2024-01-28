@@ -814,7 +814,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         if 'EMS_STORED_ERRORS' in d:
             errors = d['EMS_STORED_ERRORS']
             self.gStorederrors.Show()
-            self.gStorederrors.DeleteRows(0, self.gStorederrors.GetNumberRows())
+            if self.gStorederrors.GetNumberRows() > 0:
+                self.gStorederrors.DeleteRows(0, self.gStorederrors.GetNumberRows())
             if len(errors) > 0:
                 self.gStorederrors.AppendRows(len(errors))
                 row = 0
@@ -1142,6 +1143,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.chPVIDeviceWorking.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_WORKING'].data)
         self.chPVIDeviceInService.SetValue(data['PVI_DEVICE_STATE']['PVI_DEVICE_IN_SERVICE'].data)
 
+        self.txtPVILandCode.SetValue(repr(data['PVI_LAND_CODE']))
+
         values = []
         for d in data:
             if d.name in ['PVI_AC_POWER', 'PVI_AC_VOLTAGE', 'PVI_AC_CURRENT', 'PVI_AC_APPARENTPOWER',
@@ -1271,7 +1274,7 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.chBATDeviceInService.SetValue(f['BAT_DEVICE_STATE']['BAT_DEVICE_IN_SERVICE'].data)
 
         self.txtBATMaxDCBCount.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_MAX_DCB_COUNT']))
-        self.txtBATCapacity.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_CAPACITY']) + ' Wh')
+        self.txtBATCapacity.SetValue(str(int(round(f['BAT_SPECIFICATION']['BAT_SPECIFIED_CAPACITY'], 0))) + ' Wh')
         self.txtBATMaxChargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_CHARGE_POWER']) + ' W')
         self.txtBATMaxDischargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_DSCHARGE_POWER']) + ' W')
 
