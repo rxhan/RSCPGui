@@ -10,7 +10,7 @@ parser.add_argument('-i', '--hide', action='store_true',
                     help='Programm verstecken')
 parser.add_argument("-c", "--console", const=True, default=False, nargs='?', help='Verwendung als Konsolenprogramm, sonst mit Oberfläche')
 parser.add_argument("-f", "--logfile", const='rscpgui.log', default=None, nargs='?', help='Ausgabe in eine Logdatei (Default bei Oberfläche)')
-parser.add_argument("-v", "--verbose", const='INFO', choices=logging._nameToLevel.keys(), default='DEBUG', nargs='?', help='Anpassen des Loglevels')
+parser.add_argument("-v", "--verbose", const='INFO', choices=logging._nameToLevel.keys(), default='ERROR', nargs='?', help='Anpassen des Loglevels')
 parser.add_argument("-l", "--logconsole", action='store_true', help='Logausgabe auch auf der Console (nur sinnvoll ohne -c)')
 parser.add_argument("-p", "--portal", action='store_true', help='Sende Batteriedaten an Portal')
 
