@@ -478,7 +478,6 @@ class rscp_helper():
 
             if not strings:
                 strings = range(0,int(data['PVI_DC_MAX_STRING_COUNT']))
-
             r = RSCPDTO(tag=RSCPTag.PVI_REQ_DATA)
             r += RSCPDTO(tag=RSCPTag.PVI_INDEX, data=pvi_index)
             r += RSCPTag.PVI_REQ_TEMPERATURE_COUNT
@@ -504,6 +503,8 @@ class rscp_helper():
             #r += RSCPTag.PVI_REQ_SET_LAND_CODE
             r += RSCPTag.PVI_REQ_ERROR_LIST
             r += RSCPTag.PVI_REQ_STATUS_LIST
+            r += RSCPTag.PVI_REQ_AC_FREQUENCY
+
             #r += RSCPTag.PVI_REQ_SET_DEVICE_SILENCE - ERR_ACCESS_DENIED
             #r += RSCPTag.PVI_REQ_DEVICE_SILENCE
             #r += RSCPTag.PVI_REQ_SELF_TEST
@@ -527,7 +528,7 @@ class rscp_helper():
                 r += RSCPDTO(tag=RSCPTag.PVI_REQ_DC_CURRENT, data=string)
                 r += RSCPDTO(tag=RSCPTag.PVI_REQ_DC_STRING_ENERGY_ALL, data=string)
 
-            for temps in range(0,tempcount):
+            for temps in range(0, tempcount):
                 r += RSCPDTO(tag=RSCPTag.PVI_REQ_TEMPERATURE, data=temps)
 
             requests.append(r)

@@ -1278,8 +1278,8 @@ class RSCPGuiFrame(MainFrame, RSCPGuiMain):
         self.txtBATMaxChargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_CHARGE_POWER']) + ' W')
         self.txtBATMaxDischargePower.SetValue(repr(f['BAT_SPECIFICATION']['BAT_SPECIFIED_DSCHARGE_POWER']) + ' W')
 
-        self.txtBATMeasuredResistance.SetValue(str(round(f['BAT_INTERNALS']['BAT_MEASURED_RESISTANCE'],5)))
-        self.txtBATRunMeasuredResistance.SetValue(str(round(f['BAT_INTERNALS']['BAT_RUN_MEASURED_RESISTANCE'],5)))
+        self.txtBATMeasuredResistance.SetValue(str(round(f['BAT_INTERNALS']['BAT_INTERNAL_CURRENT_AVG30'], 5)))
+        self.txtBATRunMeasuredResistance.SetValue(str(round(f['BAT_INTERNALS']['BAT_INTERNAL_MTV_AVG30'], 5)))
 
         if f['BAT_TRAINING_MODE'].data == 0:
             s = 'Nicht im Training'
