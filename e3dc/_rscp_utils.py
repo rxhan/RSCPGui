@@ -133,8 +133,12 @@ class RSCPUtils:
                                                                  data[:data_header_size])
 
         logger.debug(f'Decode_Data - Header Size: {data_header_size} tag_hex: {hex(data_tag_hex)} type_hex: {hex(data_type_hex)} length: {data_length}')
+        try:
+            data_tag = RSCPTag(data_tag_hex)
+        except:
+            logger.error(f'Unbekannter RSCPTag: {data_tag_hex}')
+            data_tag = RSCPTag.UKNOWN
 
-        data_tag = RSCPTag(data_tag_hex)
         data_type = RSCPType(data_type_hex)
 
         logger.debug(f'Decoded_HeaderData - data_tag: {data_tag} data_type{data_type}')
